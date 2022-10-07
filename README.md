@@ -34,8 +34,6 @@ Ensure the following are installed on your system:
 - [Go](https://go.dev/)
 - [Docker](https://www.docker.com/)
 - [Docker Compose](https://docs.docker.com/compose/install/)
-- [psql](https://www.postgresql.org/docs/13/app-psql.html)
-- [redis-cli](https://redis.io/topics/rediscli)
 
 ### Installation
 

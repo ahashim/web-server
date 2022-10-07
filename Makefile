@@ -36,18 +36,17 @@ ent-new:
 # Start the Docker containers
 .PHONY: up
 up:
-	docker-compose up -d
-	sleep 3
+	docker compose up -d
 
 # Rebuild Docker containers to wipe all data
 .PHONY: reset
 reset:
-	docker-compose down
+	docker compose down
 	make up
 
 # Run the application
 .PHONY: run
-run:
+run: up
 	clear
 	go run main.go
 
