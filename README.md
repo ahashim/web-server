@@ -1,4 +1,4 @@
-# 🤖 Server
+# 🤖 Web Server
 
 The [Critter](https://github.com/ahashim/critter) web server.
 
