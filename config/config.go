@@ -43,9 +43,9 @@ const (
 	EnvProduction environment = "prod"
 )
 
-// SwitchEnvironment sets the environment variable used to dictate which environment the application is
-// currently running in.
-// This must be called prior to loading the configuration in order for it to take effect.
+// SwitchEnvironment sets the environment variable used to dictate which
+// environment the application is currently running in. This must be called
+// prior to loading the configuration in order for it to take effect.
 func SwitchEnvironment(env environment) {
 	if err := os.Setenv("APP_ENVIRONMENT", string(env)); err != nil {
 		panic(err)
@@ -107,8 +107,8 @@ type (
 	DatabaseConfig struct {
 		Hostname     string `env:"DB_HOSTNAME,default=localhost"`
 		Port         uint16 `env:"DB_PORT,default=5432"`
-		User         string `env:"DB_USER,default=admin"`
-		Password     string `env:"DB_PASSWORD,default=admin"`
+		User         string `env:"DB_USER"`
+		Password     string `env:"DB_PASSWORD"`
 		Database     string `env:"DB_NAME,default=app"`
 		TestDatabase string `env:"DB_NAME_TEST,default=app_test"`
 	}
