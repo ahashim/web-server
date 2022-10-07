@@ -9,8 +9,8 @@ import (
 	"os/signal"
 	"time"
 
-   // autoload environment variables
-  _ "github.com/joho/godotenv/autoload"
+	// autoload environment variables
+	_ "github.com/joho/godotenv/autoload"
 
 	"github.com/mikestefanello/pagoda/routes"
 	"github.com/mikestefanello/pagoda/services"
