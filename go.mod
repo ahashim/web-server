@@ -14,6 +14,7 @@ require (
 	github.com/hibiken/asynq v0.23.0
 	github.com/jackc/pgx/v4 v4.17.1
 	github.com/joeshaw/envdecode v0.0.0-20200121155833-099f1fc765bd
+	github.com/joho/godotenv v1.4.0
 	github.com/labstack/echo-contrib v0.13.0
 	github.com/labstack/echo/v4 v4.9.0
 	github.com/labstack/gommon v0.3.1
