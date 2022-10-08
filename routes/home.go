@@ -23,7 +23,7 @@ func (c *home) Get(ctx echo.Context) error {
 	page := controller.NewPage(ctx)
 	page.Layout = "main"
 	page.Name = "home"
-	page.Metatags.Description = "Welcome to the homepage."
+	page.Metatags.Description = "Welcome to the Critter."
 	page.Metatags.Keywords = []string{"Go", "MVC", "Web", "Software"}
 	page.Pager = controller.NewPager(ctx, 4)
 	page.Data = c.fetchPosts(&page.Pager)
@@ -39,7 +39,10 @@ func (c *home) fetchPosts(pager *controller.Pager) []post {
 	for k := range posts {
 		posts[k] = post{
 			Title: fmt.Sprintf("Post example #%d", k+1),
-			Body:  fmt.Sprintf("Lorem ipsum example #%d ddolor sit amet, consectetur adipiscing elit. Nam elementum vulputate tristique.", k+1),
+			Body: fmt.Sprintf(
+				"Lorem ipsum example #%d ddolor sit amet, consectetur adipiscing elit. Nam elementum vulputate tristique.",
+				k+1,
+			),
 		}
 	}
 	return posts[pager.GetOffset() : pager.GetOffset()+pager.ItemsPerPage]
