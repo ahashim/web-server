@@ -1,22 +1,22 @@
 # Connect to the primary database
 .PHONY: db
 db:
-	psql postgresql://admin:admin@localhost:5432/app
+	docker compose exec -it db psql postgresql://admin:admin@localhost:5432/app
 
 # Connect to the test database
 .PHONY: db-test
 db-test:
-	psql postgresql://admin:admin@localhost:5432/app_test
+	docker compose exec -it db psql postgresql://admin:admin@localhost:5432/app_test
 
 # Connect to the primary cache
 .PHONY: cache
 cache:
-	redis-cli
+	docker compose exec -it cache redis-cli
 
  # Connect to the test cache
 .PHONY: cache-test
 cache-test:
-	redis-cli -n 1
+	docker compose exec -it redis-cli -n 1
 
 # Install Ent code-generation module
 .PHONY: ent-install
