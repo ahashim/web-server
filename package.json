@@ -1,0 +1,22 @@
+{
+  "name": "web-server",
+  "version": "1.0.0",
+  "description": "Critter web server",
+  "keywords": [
+    "critter",
+    "golang",
+    "server",
+    "web"
+  ],
+  "author": "Ahmed Hashim <ahashim@users.noreply.github.com> (https://ahmedhashim.app)",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "prettier": "^2.7.1",
+    "prettier-plugin-go-template": "^0.0.13"
+  },
+  "prettier": {
+    "plugins": [
+      "prettier-plugin-go-template"
+    ]
+  }
+}
