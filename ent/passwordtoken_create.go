@@ -10,8 +10,8 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/mikestefanello/pagoda/ent/passwordtoken"
-	"github.com/mikestefanello/pagoda/ent/user"
+	"github.com/ahashim/web-server/ent/passwordtoken"
+	"github.com/ahashim/web-server/ent/user"
 )
 
 // PasswordTokenCreate is the builder for creating a PasswordToken entity.

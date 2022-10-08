@@ -10,8 +10,8 @@ import (
 	"runtime"
 	"sync"
 
-	"github.com/mikestefanello/pagoda/config"
-	"github.com/mikestefanello/pagoda/funcmap"
+	"github.com/ahashim/web-server/config"
+	"github.com/ahashim/web-server/funcmap"
 )
 
 type (

@@ -4,9 +4,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/mikestefanello/pagoda/config"
-	"github.com/mikestefanello/pagoda/ent"
-	"github.com/mikestefanello/pagoda/tests"
+	"github.com/ahashim/web-server/config"
+	"github.com/ahashim/web-server/ent"
+	"github.com/ahashim/web-server/tests"
 
 	"github.com/labstack/echo/v4"
 )

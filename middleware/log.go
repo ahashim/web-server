@@ -6,8 +6,8 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// LogRequestID includes the request ID in all logs for the given request
-// This requires that middleware that includes the request ID first execute
+// LogRequestID includes the request ID in all logs for the given request. This
+// requires that middleware that includes the request ID first execute.
 func LogRequestID() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {

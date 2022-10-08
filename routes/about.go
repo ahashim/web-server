@@ -3,7 +3,7 @@ package routes
 import (
 	"html/template"
 
-	"github.com/mikestefanello/pagoda/controller"
+	"github.com/ahashim/web-server/controller"
 
 	"github.com/labstack/echo/v4"
 )

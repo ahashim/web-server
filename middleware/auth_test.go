@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/mikestefanello/pagoda/context"
-	"github.com/mikestefanello/pagoda/ent"
-	"github.com/mikestefanello/pagoda/tests"
+	"github.com/ahashim/web-server/context"
+	"github.com/ahashim/web-server/ent"
+	"github.com/ahashim/web-server/tests"
 
 	"github.com/stretchr/testify/require"
 

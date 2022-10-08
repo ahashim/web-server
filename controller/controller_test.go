@@ -8,11 +8,11 @@ import (
 	"os"
 	"testing"
 
-	"github.com/mikestefanello/pagoda/config"
-	"github.com/mikestefanello/pagoda/htmx"
-	"github.com/mikestefanello/pagoda/middleware"
-	"github.com/mikestefanello/pagoda/services"
-	"github.com/mikestefanello/pagoda/tests"
+	"github.com/ahashim/web-server/config"
+	"github.com/ahashim/web-server/htmx"
+	"github.com/ahashim/web-server/middleware"
+	"github.com/ahashim/web-server/services"
+	"github.com/ahashim/web-server/tests"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

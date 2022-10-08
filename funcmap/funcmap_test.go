@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/mikestefanello/pagoda/config"
+	"github.com/ahashim/web-server/config"
 
 	"github.com/stretchr/testify/assert"
 )

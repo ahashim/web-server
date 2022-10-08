@@ -1,4 +1,4 @@
-module github.com/mikestefanello/pagoda
+module github.com/ahashim/web-server
 
 go 1.18
 

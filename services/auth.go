@@ -8,11 +8,11 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt"
-	"github.com/mikestefanello/pagoda/config"
-	"github.com/mikestefanello/pagoda/context"
-	"github.com/mikestefanello/pagoda/ent"
-	"github.com/mikestefanello/pagoda/ent/passwordtoken"
-	"github.com/mikestefanello/pagoda/ent/user"
+	"github.com/ahashim/web-server/config"
+	"github.com/ahashim/web-server/context"
+	"github.com/ahashim/web-server/ent"
+	"github.com/ahashim/web-server/ent/passwordtoken"
+	"github.com/ahashim/web-server/ent/user"
 
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"

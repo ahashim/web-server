@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/mikestefanello/pagoda/context"
-	"github.com/mikestefanello/pagoda/htmx"
-	"github.com/mikestefanello/pagoda/middleware"
-	"github.com/mikestefanello/pagoda/services"
+	"github.com/ahashim/web-server/context"
+	"github.com/ahashim/web-server/htmx"
+	"github.com/ahashim/web-server/middleware"
+	"github.com/ahashim/web-server/services"
 
 	"github.com/labstack/echo/v4"
 )

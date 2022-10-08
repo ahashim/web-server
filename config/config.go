@@ -3,6 +3,8 @@ package config
 import (
 	"os"
 	"time"
+
+	"github.com/joeshaw/envdecode"
 )
 
 const (
@@ -43,7 +45,8 @@ const (
 
 // SwitchEnvironment sets the environment variable used to dictate which
 // environment the application is currently running in. This must be called
-// prior to loading the configuration in order for it to take effect.
+// prior to loading the configuration in order for it to.
+// take effect.
 func SwitchEnvironment(env environment) {
 	if err := os.Setenv("APP_ENVIRONMENT", string(env)); err != nil {
 		panic(err)

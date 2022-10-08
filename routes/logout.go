@@ -1,8 +1,8 @@
 package routes
 
 import (
-	"github.com/mikestefanello/pagoda/controller"
-	"github.com/mikestefanello/pagoda/msg"
+	"github.com/ahashim/web-server/controller"
+	"github.com/ahashim/web-server/msg"
 
 	"github.com/labstack/echo/v4"
 )
