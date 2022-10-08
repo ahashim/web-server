@@ -127,7 +127,8 @@ func (c *Container) initCache() {
 }
 
 // initDatabase initializes the database
-// If the environment is set to test, the test database will be used and will be dropped, recreated and migrated
+// If the environment is set to test, the test database will be used and will be
+// dropped, recreated and migrated
 func (c *Container) initDatabase() {
 	var err error
 
