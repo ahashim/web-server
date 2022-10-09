@@ -18,11 +18,6 @@ cache:
 cache-test:
 	docker compose exec -it redis-cli -n 1
 
-# Install Ent code-generation module
-.PHONY: ent-install
-ent-install:
-	go get -d entgo.io/ent/cmd/ent
-
 # Generate Ent code
 .PHONY: ent-gen
 ent-gen:
