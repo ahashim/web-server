@@ -16,8 +16,8 @@ var statusTests = []statusTest{
 
 func TestStatus(t *testing.T) {
 	for _, test := range statusTests {
-		if output := Status(test.arg); output != test.want {
-			t.Errorf("Output %q not equal to expected %q", output, test.want)
+		if got := Status(test.arg); got != test.want {
+			t.Errorf("got %q not equal to expected %q", got, test.want)
 		}
 	}
 }
