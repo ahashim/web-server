@@ -2,4 +2,55 @@
 
 package ent
 
-// The schema-stitching logic is generated in github.com/ahashim/web-server/ent/runtime/runtime.go
+import (
+	"github.com/ahashim/web-server/ent/schema"
+	"github.com/ahashim/web-server/ent/user"
+)
+
+// The init function reads all schema descriptors with runtime code
+// (default values, validators, hooks and policies) and stitches it
+// to their package variables.
+func init() {
+	userFields := schema.User{}.Fields()
+	_ = userFields
+	// userDescAddress is the schema descriptor for address field.
+	userDescAddress := userFields[0].Descriptor()
+	// user.AddressValidator is a validator for the "address" field. It is called by the builders before save.
+	user.AddressValidator = func() func(string) error {
+		validators := userDescAddress.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(address string) error {
+			for _, fn := range fns {
+				if err := fn(address); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// userDescUsername is the schema descriptor for username field.
+	userDescUsername := userFields[1].Descriptor()
+	// user.UsernameValidator is a validator for the "username" field. It is called by the builders before save.
+	user.UsernameValidator = func() func(string) error {
+		validators := userDescUsername.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(username string) error {
+			for _, fn := range fns {
+				if err := fn(username); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// userDescScoutLevel is the schema descriptor for scout_level field.
+	userDescScoutLevel := userFields[3].Descriptor()
+	// user.DefaultScoutLevel holds the default value on creation for the scout_level field.
+	user.DefaultScoutLevel = userDescScoutLevel.Default.(int8)
+}

@@ -3,9 +3,9 @@
 package user
 
 import (
-	"time"
+	"fmt"
 
-	"entgo.io/ent"
+	"github.com/ahashim/web-server/enums"
 )
 
 const (
@@ -13,37 +13,25 @@ const (
 	Label = "user"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldName holds the string denoting the name field in the database.
-	FieldName = "name"
-	// FieldEmail holds the string denoting the email field in the database.
-	FieldEmail = "email"
-	// FieldPassword holds the string denoting the password field in the database.
-	FieldPassword = "password"
-	// FieldVerified holds the string denoting the verified field in the database.
-	FieldVerified = "verified"
-	// FieldCreatedAt holds the string denoting the created_at field in the database.
-	FieldCreatedAt = "created_at"
-	// EdgeOwner holds the string denoting the owner edge name in mutations.
-	EdgeOwner = "owner"
+	// FieldAddress holds the string denoting the address field in the database.
+	FieldAddress = "address"
+	// FieldUsername holds the string denoting the username field in the database.
+	FieldUsername = "username"
+	// FieldStatus holds the string denoting the status field in the database.
+	FieldStatus = "status"
+	// FieldScoutLevel holds the string denoting the scout_level field in the database.
+	FieldScoutLevel = "scout_level"
 	// Table holds the table name of the user in the database.
 	Table = "users"
-	// OwnerTable is the table that holds the owner relation/edge.
-	OwnerTable = "password_tokens"
-	// OwnerInverseTable is the table name for the PasswordToken entity.
-	// It exists in this package in order to avoid circular dependency with the "passwordtoken" package.
-	OwnerInverseTable = "password_tokens"
-	// OwnerColumn is the table column denoting the owner relation/edge.
-	OwnerColumn = "password_token_user"
 )
 
 // Columns holds all SQL columns for user fields.
 var Columns = []string{
 	FieldID,
-	FieldName,
-	FieldEmail,
-	FieldPassword,
-	FieldVerified,
-	FieldCreatedAt,
+	FieldAddress,
+	FieldUsername,
+	FieldStatus,
+	FieldScoutLevel,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -56,21 +44,21 @@ func ValidColumn(column string) bool {
 	return false
 }
 
-// Note that the variables below are initialized by the runtime
-// package on the initialization of the application. Therefore,
-// it should be imported in the main as follows:
-//
-//	import _ "github.com/ahashim/web-server/ent/runtime"
 var (
-	Hooks [1]ent.Hook
-	// NameValidator is a validator for the "name" field. It is called by the builders before save.
-	NameValidator func(string) error
-	// EmailValidator is a validator for the "email" field. It is called by the builders before save.
-	EmailValidator func(string) error
-	// PasswordValidator is a validator for the "password" field. It is called by the builders before save.
-	PasswordValidator func(string) error
-	// DefaultVerified holds the default value on creation for the "verified" field.
-	DefaultVerified bool
-	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
-	DefaultCreatedAt func() time.Time
+	// AddressValidator is a validator for the "address" field. It is called by the builders before save.
+	AddressValidator func(string) error
+	// UsernameValidator is a validator for the "username" field. It is called by the builders before save.
+	UsernameValidator func(string) error
+	// DefaultScoutLevel holds the default value on creation for the "scout_level" field.
+	DefaultScoutLevel int8
 )
+
+// StatusValidator is a validator for the "status" field enum values. It is called by the builders before save.
+func StatusValidator(s enums.Status) error {
+	switch s.String() {
+	case "UNKNOWN", "ACTIVE", "SUSPENDED", "BANNED":
+		return nil
+	default:
+		return fmt.Errorf("user: invalid enum value for status field: %q", s)
+	}
+}

@@ -61,7 +61,6 @@ func BuildRouter(c *services.Container) {
 
 	// Example routes
 	navRoutes(c, g, ctr)
-	userRoutes(c, g, ctr)
 }
 
 func navRoutes(c *services.Container, g *echo.Group, ctr controller.Controller) {
@@ -77,33 +76,4 @@ func navRoutes(c *services.Container, g *echo.Group, ctr controller.Controller) 
 	contact := contact{Controller: ctr}
 	g.GET("/contact", contact.Get).Name = "contact"
 	g.POST("/contact", contact.Post).Name = "contact.post"
-}
-
-func userRoutes(c *services.Container, g *echo.Group, ctr controller.Controller) {
-	logout := logout{Controller: ctr}
-	g.GET("/logout", logout.Get, middleware.RequireAuthentication()).Name = "logout"
-
-	verifyEmail := verifyEmail{Controller: ctr}
-	g.GET("/email/verify/:token", verifyEmail.Get).Name = "verify_email"
-
-	noAuth := g.Group("/user", middleware.RequireNoAuthentication())
-	login := login{Controller: ctr}
-	noAuth.GET("/login", login.Get).Name = "login"
-	noAuth.POST("/login", login.Post).Name = "login.post"
-
-	register := register{Controller: ctr}
-	noAuth.GET("/register", register.Get).Name = "register"
-	noAuth.POST("/register", register.Post).Name = "register.post"
-
-	forgot := forgotPassword{Controller: ctr}
-	noAuth.GET("/password", forgot.Get).Name = "forgot_password"
-	noAuth.POST("/password", forgot.Post).Name = "forgot_password.post"
-
-	resetGroup := noAuth.Group("/password/reset",
-		middleware.LoadUser(c.ORM),
-		middleware.LoadValidPasswordToken(c.Auth),
-	)
-	reset := resetPassword{Controller: ctr}
-	resetGroup.GET("/token/:user/:password_token/:token", reset.Get).Name = "reset_password"
-	resetGroup.POST("/token/:user/:password_token/:token", reset.Post).Name = "reset_password.post"
 }

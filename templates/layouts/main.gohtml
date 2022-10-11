@@ -31,19 +31,6 @@
               <li>{{ link (call .ToURL "about") "About" .Path }}</li>
               <li>{{ link (call .ToURL "contact") "Contact" .Path }}</li>
             </ul>
-
-            <p class="menu-label">Account</p>
-            <ul class="menu-list">
-              {{- if .IsAuth }}
-                <li>{{ link (call .ToURL "logout") "Logout" .Path }}</li>
-              {{- else }}
-                <li>{{ link (call .ToURL "login") "Login" .Path }}</li>
-                <li>{{ link (call .ToURL "register") "Register" .Path }}</li>
-                <li>
-                  {{ link (call .ToURL "forgot_password") "Forgot password" .Path }}
-                </li>
-              {{- end }}
-            </ul>
           </aside>
         </div>
 

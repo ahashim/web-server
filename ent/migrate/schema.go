@@ -8,35 +8,23 @@ import (
 )
 
 var (
-	// PasswordTokensColumns holds the columns for the "password_tokens" table.
-	PasswordTokensColumns = []*schema.Column{
+	// SqueaksColumns holds the columns for the "squeaks" table.
+	SqueaksColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "hash", Type: field.TypeString},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "password_token_user", Type: field.TypeInt},
 	}
-	// PasswordTokensTable holds the schema information for the "password_tokens" table.
-	PasswordTokensTable = &schema.Table{
-		Name:       "password_tokens",
-		Columns:    PasswordTokensColumns,
-		PrimaryKey: []*schema.Column{PasswordTokensColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "password_tokens_users_user",
-				Columns:    []*schema.Column{PasswordTokensColumns[3]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-		},
+	// SqueaksTable holds the schema information for the "squeaks" table.
+	SqueaksTable = &schema.Table{
+		Name:       "squeaks",
+		Columns:    SqueaksColumns,
+		PrimaryKey: []*schema.Column{SqueaksColumns[0]},
 	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "name", Type: field.TypeString},
-		{Name: "email", Type: field.TypeString, Unique: true},
-		{Name: "password", Type: field.TypeString},
-		{Name: "verified", Type: field.TypeBool, Default: false},
-		{Name: "created_at", Type: field.TypeTime},
+		{Name: "address", Type: field.TypeString},
+		{Name: "username", Type: field.TypeString, Size: 32},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"UNKNOWN", "ACTIVE", "SUSPENDED", "BANNED"}},
+		{Name: "scout_level", Type: field.TypeInt8, Default: 1},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{
@@ -46,11 +34,10 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
-		PasswordTokensTable,
+		SqueaksTable,
 		UsersTable,
 	}
 )
 
 func init() {
-	PasswordTokensTable.ForeignKeys[0].RefTable = UsersTable
 }

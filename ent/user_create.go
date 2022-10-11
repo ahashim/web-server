@@ -6,12 +6,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/ahashim/web-server/ent/passwordtoken"
 	"github.com/ahashim/web-server/ent/user"
+	"github.com/ahashim/web-server/enums"
 )
 
 // UserCreate is the builder for creating a User entity.
@@ -21,65 +20,36 @@ type UserCreate struct {
 	hooks    []Hook
 }
 
-// SetName sets the "name" field.
-func (uc *UserCreate) SetName(s string) *UserCreate {
-	uc.mutation.SetName(s)
+// SetAddress sets the "address" field.
+func (uc *UserCreate) SetAddress(s string) *UserCreate {
+	uc.mutation.SetAddress(s)
 	return uc
 }
 
-// SetEmail sets the "email" field.
-func (uc *UserCreate) SetEmail(s string) *UserCreate {
-	uc.mutation.SetEmail(s)
+// SetUsername sets the "username" field.
+func (uc *UserCreate) SetUsername(s string) *UserCreate {
+	uc.mutation.SetUsername(s)
 	return uc
 }
 
-// SetPassword sets the "password" field.
-func (uc *UserCreate) SetPassword(s string) *UserCreate {
-	uc.mutation.SetPassword(s)
+// SetStatus sets the "status" field.
+func (uc *UserCreate) SetStatus(e enums.Status) *UserCreate {
+	uc.mutation.SetStatus(e)
 	return uc
 }
 
-// SetVerified sets the "verified" field.
-func (uc *UserCreate) SetVerified(b bool) *UserCreate {
-	uc.mutation.SetVerified(b)
+// SetScoutLevel sets the "scout_level" field.
+func (uc *UserCreate) SetScoutLevel(i int8) *UserCreate {
+	uc.mutation.SetScoutLevel(i)
 	return uc
 }
 
-// SetNillableVerified sets the "verified" field if the given value is not nil.
-func (uc *UserCreate) SetNillableVerified(b *bool) *UserCreate {
-	if b != nil {
-		uc.SetVerified(*b)
+// SetNillableScoutLevel sets the "scout_level" field if the given value is not nil.
+func (uc *UserCreate) SetNillableScoutLevel(i *int8) *UserCreate {
+	if i != nil {
+		uc.SetScoutLevel(*i)
 	}
 	return uc
-}
-
-// SetCreatedAt sets the "created_at" field.
-func (uc *UserCreate) SetCreatedAt(t time.Time) *UserCreate {
-	uc.mutation.SetCreatedAt(t)
-	return uc
-}
-
-// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (uc *UserCreate) SetNillableCreatedAt(t *time.Time) *UserCreate {
-	if t != nil {
-		uc.SetCreatedAt(*t)
-	}
-	return uc
-}
-
-// AddOwnerIDs adds the "owner" edge to the PasswordToken entity by IDs.
-func (uc *UserCreate) AddOwnerIDs(ids ...int) *UserCreate {
-	uc.mutation.AddOwnerIDs(ids...)
-	return uc
-}
-
-// AddOwner adds the "owner" edges to the PasswordToken entity.
-func (uc *UserCreate) AddOwner(p ...*PasswordToken) *UserCreate {
-	ids := make([]int, len(p))
-	for i := range p {
-		ids[i] = p[i].ID
-	}
-	return uc.AddOwnerIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -93,9 +63,7 @@ func (uc *UserCreate) Save(ctx context.Context) (*User, error) {
 		err  error
 		node *User
 	)
-	if err := uc.defaults(); err != nil {
-		return nil, err
-	}
+	uc.defaults()
 	if len(uc.hooks) == 0 {
 		if err = uc.check(); err != nil {
 			return nil, err
@@ -160,52 +128,41 @@ func (uc *UserCreate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (uc *UserCreate) defaults() error {
-	if _, ok := uc.mutation.Verified(); !ok {
-		v := user.DefaultVerified
-		uc.mutation.SetVerified(v)
+func (uc *UserCreate) defaults() {
+	if _, ok := uc.mutation.ScoutLevel(); !ok {
+		v := user.DefaultScoutLevel
+		uc.mutation.SetScoutLevel(v)
 	}
-	if _, ok := uc.mutation.CreatedAt(); !ok {
-		if user.DefaultCreatedAt == nil {
-			return fmt.Errorf("ent: uninitialized user.DefaultCreatedAt (forgotten import ent/runtime?)")
-		}
-		v := user.DefaultCreatedAt()
-		uc.mutation.SetCreatedAt(v)
-	}
-	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
 func (uc *UserCreate) check() error {
-	if _, ok := uc.mutation.Name(); !ok {
-		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "User.name"`)}
+	if _, ok := uc.mutation.Address(); !ok {
+		return &ValidationError{Name: "address", err: errors.New(`ent: missing required field "User.address"`)}
 	}
-	if v, ok := uc.mutation.Name(); ok {
-		if err := user.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "User.name": %w`, err)}
+	if v, ok := uc.mutation.Address(); ok {
+		if err := user.AddressValidator(v); err != nil {
+			return &ValidationError{Name: "address", err: fmt.Errorf(`ent: validator failed for field "User.address": %w`, err)}
 		}
 	}
-	if _, ok := uc.mutation.Email(); !ok {
-		return &ValidationError{Name: "email", err: errors.New(`ent: missing required field "User.email"`)}
+	if _, ok := uc.mutation.Username(); !ok {
+		return &ValidationError{Name: "username", err: errors.New(`ent: missing required field "User.username"`)}
 	}
-	if v, ok := uc.mutation.Email(); ok {
-		if err := user.EmailValidator(v); err != nil {
-			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "User.email": %w`, err)}
+	if v, ok := uc.mutation.Username(); ok {
+		if err := user.UsernameValidator(v); err != nil {
+			return &ValidationError{Name: "username", err: fmt.Errorf(`ent: validator failed for field "User.username": %w`, err)}
 		}
 	}
-	if _, ok := uc.mutation.Password(); !ok {
-		return &ValidationError{Name: "password", err: errors.New(`ent: missing required field "User.password"`)}
+	if _, ok := uc.mutation.Status(); !ok {
+		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "User.status"`)}
 	}
-	if v, ok := uc.mutation.Password(); ok {
-		if err := user.PasswordValidator(v); err != nil {
-			return &ValidationError{Name: "password", err: fmt.Errorf(`ent: validator failed for field "User.password": %w`, err)}
+	if v, ok := uc.mutation.Status(); ok {
+		if err := user.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "User.status": %w`, err)}
 		}
 	}
-	if _, ok := uc.mutation.Verified(); !ok {
-		return &ValidationError{Name: "verified", err: errors.New(`ent: missing required field "User.verified"`)}
-	}
-	if _, ok := uc.mutation.CreatedAt(); !ok {
-		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "User.created_at"`)}
+	if _, ok := uc.mutation.ScoutLevel(); !ok {
+		return &ValidationError{Name: "scout_level", err: errors.New(`ent: missing required field "User.scout_level"`)}
 	}
 	return nil
 }
@@ -234,64 +191,37 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			},
 		}
 	)
-	if value, ok := uc.mutation.Name(); ok {
+	if value, ok := uc.mutation.Address(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
-			Column: user.FieldName,
+			Column: user.FieldAddress,
 		})
-		_node.Name = value
+		_node.Address = value
 	}
-	if value, ok := uc.mutation.Email(); ok {
+	if value, ok := uc.mutation.Username(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
-			Column: user.FieldEmail,
+			Column: user.FieldUsername,
 		})
-		_node.Email = value
+		_node.Username = value
 	}
-	if value, ok := uc.mutation.Password(); ok {
+	if value, ok := uc.mutation.Status(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeEnum,
 			Value:  value,
-			Column: user.FieldPassword,
+			Column: user.FieldStatus,
 		})
-		_node.Password = value
+		_node.Status = value
 	}
-	if value, ok := uc.mutation.Verified(); ok {
+	if value, ok := uc.mutation.ScoutLevel(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeBool,
+			Type:   field.TypeInt8,
 			Value:  value,
-			Column: user.FieldVerified,
+			Column: user.FieldScoutLevel,
 		})
-		_node.Verified = value
-	}
-	if value, ok := uc.mutation.CreatedAt(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: user.FieldCreatedAt,
-		})
-		_node.CreatedAt = value
-	}
-	if nodes := uc.mutation.OwnerIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: true,
-			Table:   user.OwnerTable,
-			Columns: []string{user.OwnerColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: passwordtoken.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
+		_node.ScoutLevel = value
 	}
 	return _node, _spec
 }

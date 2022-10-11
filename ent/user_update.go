@@ -10,9 +10,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/ahashim/web-server/ent/passwordtoken"
 	"github.com/ahashim/web-server/ent/predicate"
 	"github.com/ahashim/web-server/ent/user"
+	"github.com/ahashim/web-server/enums"
 )
 
 // UserUpdate is the builder for updating User entities.
@@ -28,77 +28,42 @@ func (uu *UserUpdate) Where(ps ...predicate.User) *UserUpdate {
 	return uu
 }
 
-// SetName sets the "name" field.
-func (uu *UserUpdate) SetName(s string) *UserUpdate {
-	uu.mutation.SetName(s)
+// SetUsername sets the "username" field.
+func (uu *UserUpdate) SetUsername(s string) *UserUpdate {
+	uu.mutation.SetUsername(s)
 	return uu
 }
 
-// SetEmail sets the "email" field.
-func (uu *UserUpdate) SetEmail(s string) *UserUpdate {
-	uu.mutation.SetEmail(s)
+// SetStatus sets the "status" field.
+func (uu *UserUpdate) SetStatus(e enums.Status) *UserUpdate {
+	uu.mutation.SetStatus(e)
 	return uu
 }
 
-// SetPassword sets the "password" field.
-func (uu *UserUpdate) SetPassword(s string) *UserUpdate {
-	uu.mutation.SetPassword(s)
+// SetScoutLevel sets the "scout_level" field.
+func (uu *UserUpdate) SetScoutLevel(i int8) *UserUpdate {
+	uu.mutation.ResetScoutLevel()
+	uu.mutation.SetScoutLevel(i)
 	return uu
 }
 
-// SetVerified sets the "verified" field.
-func (uu *UserUpdate) SetVerified(b bool) *UserUpdate {
-	uu.mutation.SetVerified(b)
-	return uu
-}
-
-// SetNillableVerified sets the "verified" field if the given value is not nil.
-func (uu *UserUpdate) SetNillableVerified(b *bool) *UserUpdate {
-	if b != nil {
-		uu.SetVerified(*b)
+// SetNillableScoutLevel sets the "scout_level" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableScoutLevel(i *int8) *UserUpdate {
+	if i != nil {
+		uu.SetScoutLevel(*i)
 	}
 	return uu
 }
 
-// AddOwnerIDs adds the "owner" edge to the PasswordToken entity by IDs.
-func (uu *UserUpdate) AddOwnerIDs(ids ...int) *UserUpdate {
-	uu.mutation.AddOwnerIDs(ids...)
+// AddScoutLevel adds i to the "scout_level" field.
+func (uu *UserUpdate) AddScoutLevel(i int8) *UserUpdate {
+	uu.mutation.AddScoutLevel(i)
 	return uu
-}
-
-// AddOwner adds the "owner" edges to the PasswordToken entity.
-func (uu *UserUpdate) AddOwner(p ...*PasswordToken) *UserUpdate {
-	ids := make([]int, len(p))
-	for i := range p {
-		ids[i] = p[i].ID
-	}
-	return uu.AddOwnerIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
 func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
-}
-
-// ClearOwner clears all "owner" edges to the PasswordToken entity.
-func (uu *UserUpdate) ClearOwner() *UserUpdate {
-	uu.mutation.ClearOwner()
-	return uu
-}
-
-// RemoveOwnerIDs removes the "owner" edge to PasswordToken entities by IDs.
-func (uu *UserUpdate) RemoveOwnerIDs(ids ...int) *UserUpdate {
-	uu.mutation.RemoveOwnerIDs(ids...)
-	return uu
-}
-
-// RemoveOwner removes "owner" edges to PasswordToken entities.
-func (uu *UserUpdate) RemoveOwner(p ...*PasswordToken) *UserUpdate {
-	ids := make([]int, len(p))
-	for i := range p {
-		ids[i] = p[i].ID
-	}
-	return uu.RemoveOwnerIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -163,19 +128,14 @@ func (uu *UserUpdate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (uu *UserUpdate) check() error {
-	if v, ok := uu.mutation.Name(); ok {
-		if err := user.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "User.name": %w`, err)}
+	if v, ok := uu.mutation.Username(); ok {
+		if err := user.UsernameValidator(v); err != nil {
+			return &ValidationError{Name: "username", err: fmt.Errorf(`ent: validator failed for field "User.username": %w`, err)}
 		}
 	}
-	if v, ok := uu.mutation.Email(); ok {
-		if err := user.EmailValidator(v); err != nil {
-			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "User.email": %w`, err)}
-		}
-	}
-	if v, ok := uu.mutation.Password(); ok {
-		if err := user.PasswordValidator(v); err != nil {
-			return &ValidationError{Name: "password", err: fmt.Errorf(`ent: validator failed for field "User.password": %w`, err)}
+	if v, ok := uu.mutation.Status(); ok {
+		if err := user.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "User.status": %w`, err)}
 		}
 	}
 	return nil
@@ -199,87 +159,33 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := uu.mutation.Name(); ok {
+	if value, ok := uu.mutation.Username(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
-			Column: user.FieldName,
+			Column: user.FieldUsername,
 		})
 	}
-	if value, ok := uu.mutation.Email(); ok {
+	if value, ok := uu.mutation.Status(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeEnum,
 			Value:  value,
-			Column: user.FieldEmail,
+			Column: user.FieldStatus,
 		})
 	}
-	if value, ok := uu.mutation.Password(); ok {
+	if value, ok := uu.mutation.ScoutLevel(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeInt8,
 			Value:  value,
-			Column: user.FieldPassword,
+			Column: user.FieldScoutLevel,
 		})
 	}
-	if value, ok := uu.mutation.Verified(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeBool,
+	if value, ok := uu.mutation.AddedScoutLevel(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt8,
 			Value:  value,
-			Column: user.FieldVerified,
+			Column: user.FieldScoutLevel,
 		})
-	}
-	if uu.mutation.OwnerCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: true,
-			Table:   user.OwnerTable,
-			Columns: []string{user.OwnerColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: passwordtoken.FieldID,
-				},
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := uu.mutation.RemovedOwnerIDs(); len(nodes) > 0 && !uu.mutation.OwnerCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: true,
-			Table:   user.OwnerTable,
-			Columns: []string{user.OwnerColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: passwordtoken.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := uu.mutation.OwnerIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: true,
-			Table:   user.OwnerTable,
-			Columns: []string{user.OwnerColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: passwordtoken.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, uu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -300,77 +206,42 @@ type UserUpdateOne struct {
 	mutation *UserMutation
 }
 
-// SetName sets the "name" field.
-func (uuo *UserUpdateOne) SetName(s string) *UserUpdateOne {
-	uuo.mutation.SetName(s)
+// SetUsername sets the "username" field.
+func (uuo *UserUpdateOne) SetUsername(s string) *UserUpdateOne {
+	uuo.mutation.SetUsername(s)
 	return uuo
 }
 
-// SetEmail sets the "email" field.
-func (uuo *UserUpdateOne) SetEmail(s string) *UserUpdateOne {
-	uuo.mutation.SetEmail(s)
+// SetStatus sets the "status" field.
+func (uuo *UserUpdateOne) SetStatus(e enums.Status) *UserUpdateOne {
+	uuo.mutation.SetStatus(e)
 	return uuo
 }
 
-// SetPassword sets the "password" field.
-func (uuo *UserUpdateOne) SetPassword(s string) *UserUpdateOne {
-	uuo.mutation.SetPassword(s)
+// SetScoutLevel sets the "scout_level" field.
+func (uuo *UserUpdateOne) SetScoutLevel(i int8) *UserUpdateOne {
+	uuo.mutation.ResetScoutLevel()
+	uuo.mutation.SetScoutLevel(i)
 	return uuo
 }
 
-// SetVerified sets the "verified" field.
-func (uuo *UserUpdateOne) SetVerified(b bool) *UserUpdateOne {
-	uuo.mutation.SetVerified(b)
-	return uuo
-}
-
-// SetNillableVerified sets the "verified" field if the given value is not nil.
-func (uuo *UserUpdateOne) SetNillableVerified(b *bool) *UserUpdateOne {
-	if b != nil {
-		uuo.SetVerified(*b)
+// SetNillableScoutLevel sets the "scout_level" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableScoutLevel(i *int8) *UserUpdateOne {
+	if i != nil {
+		uuo.SetScoutLevel(*i)
 	}
 	return uuo
 }
 
-// AddOwnerIDs adds the "owner" edge to the PasswordToken entity by IDs.
-func (uuo *UserUpdateOne) AddOwnerIDs(ids ...int) *UserUpdateOne {
-	uuo.mutation.AddOwnerIDs(ids...)
+// AddScoutLevel adds i to the "scout_level" field.
+func (uuo *UserUpdateOne) AddScoutLevel(i int8) *UserUpdateOne {
+	uuo.mutation.AddScoutLevel(i)
 	return uuo
-}
-
-// AddOwner adds the "owner" edges to the PasswordToken entity.
-func (uuo *UserUpdateOne) AddOwner(p ...*PasswordToken) *UserUpdateOne {
-	ids := make([]int, len(p))
-	for i := range p {
-		ids[i] = p[i].ID
-	}
-	return uuo.AddOwnerIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
 func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
-}
-
-// ClearOwner clears all "owner" edges to the PasswordToken entity.
-func (uuo *UserUpdateOne) ClearOwner() *UserUpdateOne {
-	uuo.mutation.ClearOwner()
-	return uuo
-}
-
-// RemoveOwnerIDs removes the "owner" edge to PasswordToken entities by IDs.
-func (uuo *UserUpdateOne) RemoveOwnerIDs(ids ...int) *UserUpdateOne {
-	uuo.mutation.RemoveOwnerIDs(ids...)
-	return uuo
-}
-
-// RemoveOwner removes "owner" edges to PasswordToken entities.
-func (uuo *UserUpdateOne) RemoveOwner(p ...*PasswordToken) *UserUpdateOne {
-	ids := make([]int, len(p))
-	for i := range p {
-		ids[i] = p[i].ID
-	}
-	return uuo.RemoveOwnerIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -448,19 +319,14 @@ func (uuo *UserUpdateOne) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (uuo *UserUpdateOne) check() error {
-	if v, ok := uuo.mutation.Name(); ok {
-		if err := user.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "User.name": %w`, err)}
+	if v, ok := uuo.mutation.Username(); ok {
+		if err := user.UsernameValidator(v); err != nil {
+			return &ValidationError{Name: "username", err: fmt.Errorf(`ent: validator failed for field "User.username": %w`, err)}
 		}
 	}
-	if v, ok := uuo.mutation.Email(); ok {
-		if err := user.EmailValidator(v); err != nil {
-			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "User.email": %w`, err)}
-		}
-	}
-	if v, ok := uuo.mutation.Password(); ok {
-		if err := user.PasswordValidator(v); err != nil {
-			return &ValidationError{Name: "password", err: fmt.Errorf(`ent: validator failed for field "User.password": %w`, err)}
+	if v, ok := uuo.mutation.Status(); ok {
+		if err := user.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "User.status": %w`, err)}
 		}
 	}
 	return nil
@@ -501,87 +367,33 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			}
 		}
 	}
-	if value, ok := uuo.mutation.Name(); ok {
+	if value, ok := uuo.mutation.Username(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
-			Column: user.FieldName,
+			Column: user.FieldUsername,
 		})
 	}
-	if value, ok := uuo.mutation.Email(); ok {
+	if value, ok := uuo.mutation.Status(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeEnum,
 			Value:  value,
-			Column: user.FieldEmail,
+			Column: user.FieldStatus,
 		})
 	}
-	if value, ok := uuo.mutation.Password(); ok {
+	if value, ok := uuo.mutation.ScoutLevel(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeInt8,
 			Value:  value,
-			Column: user.FieldPassword,
+			Column: user.FieldScoutLevel,
 		})
 	}
-	if value, ok := uuo.mutation.Verified(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeBool,
+	if value, ok := uuo.mutation.AddedScoutLevel(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt8,
 			Value:  value,
-			Column: user.FieldVerified,
+			Column: user.FieldScoutLevel,
 		})
-	}
-	if uuo.mutation.OwnerCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: true,
-			Table:   user.OwnerTable,
-			Columns: []string{user.OwnerColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: passwordtoken.FieldID,
-				},
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := uuo.mutation.RemovedOwnerIDs(); len(nodes) > 0 && !uuo.mutation.OwnerCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: true,
-			Table:   user.OwnerTable,
-			Columns: []string{user.OwnerColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: passwordtoken.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := uuo.mutation.OwnerIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: true,
-			Table:   user.OwnerTable,
-			Columns: []string{user.OwnerColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: passwordtoken.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &User{config: uuo.config}
 	_spec.Assign = _node.assignValues

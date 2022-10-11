@@ -10,12 +10,11 @@ import (
 
 	"github.com/ahashim/web-server/ent/migrate"
 
-	"github.com/ahashim/web-server/ent/passwordtoken"
+	"github.com/ahashim/web-server/ent/squeak"
 	"github.com/ahashim/web-server/ent/user"
 
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
-	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 // Client is the client that holds all ent builders.
@@ -23,8 +22,8 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
-	// PasswordToken is the client for interacting with the PasswordToken builders.
-	PasswordToken *PasswordTokenClient
+	// Squeak is the client for interacting with the Squeak builders.
+	Squeak *SqueakClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 }
@@ -40,7 +39,7 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
-	c.PasswordToken = NewPasswordTokenClient(c.config)
+	c.Squeak = NewSqueakClient(c.config)
 	c.User = NewUserClient(c.config)
 }
 
@@ -73,10 +72,10 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:           ctx,
-		config:        cfg,
-		PasswordToken: NewPasswordTokenClient(cfg),
-		User:          NewUserClient(cfg),
+		ctx:    ctx,
+		config: cfg,
+		Squeak: NewSqueakClient(cfg),
+		User:   NewUserClient(cfg),
 	}, nil
 }
 
@@ -94,17 +93,17 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:           ctx,
-		config:        cfg,
-		PasswordToken: NewPasswordTokenClient(cfg),
-		User:          NewUserClient(cfg),
+		ctx:    ctx,
+		config: cfg,
+		Squeak: NewSqueakClient(cfg),
+		User:   NewUserClient(cfg),
 	}, nil
 }
 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		PasswordToken.
+//		Squeak.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -126,88 +125,88 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
-	c.PasswordToken.Use(hooks...)
+	c.Squeak.Use(hooks...)
 	c.User.Use(hooks...)
 }
 
-// PasswordTokenClient is a client for the PasswordToken schema.
-type PasswordTokenClient struct {
+// SqueakClient is a client for the Squeak schema.
+type SqueakClient struct {
 	config
 }
 
-// NewPasswordTokenClient returns a client for the PasswordToken from the given config.
-func NewPasswordTokenClient(c config) *PasswordTokenClient {
-	return &PasswordTokenClient{config: c}
+// NewSqueakClient returns a client for the Squeak from the given config.
+func NewSqueakClient(c config) *SqueakClient {
+	return &SqueakClient{config: c}
 }
 
 // Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `passwordtoken.Hooks(f(g(h())))`.
-func (c *PasswordTokenClient) Use(hooks ...Hook) {
-	c.hooks.PasswordToken = append(c.hooks.PasswordToken, hooks...)
+// A call to `Use(f, g, h)` equals to `squeak.Hooks(f(g(h())))`.
+func (c *SqueakClient) Use(hooks ...Hook) {
+	c.hooks.Squeak = append(c.hooks.Squeak, hooks...)
 }
 
-// Create returns a builder for creating a PasswordToken entity.
-func (c *PasswordTokenClient) Create() *PasswordTokenCreate {
-	mutation := newPasswordTokenMutation(c.config, OpCreate)
-	return &PasswordTokenCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Create returns a builder for creating a Squeak entity.
+func (c *SqueakClient) Create() *SqueakCreate {
+	mutation := newSqueakMutation(c.config, OpCreate)
+	return &SqueakCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// CreateBulk returns a builder for creating a bulk of PasswordToken entities.
-func (c *PasswordTokenClient) CreateBulk(builders ...*PasswordTokenCreate) *PasswordTokenCreateBulk {
-	return &PasswordTokenCreateBulk{config: c.config, builders: builders}
+// CreateBulk returns a builder for creating a bulk of Squeak entities.
+func (c *SqueakClient) CreateBulk(builders ...*SqueakCreate) *SqueakCreateBulk {
+	return &SqueakCreateBulk{config: c.config, builders: builders}
 }
 
-// Update returns an update builder for PasswordToken.
-func (c *PasswordTokenClient) Update() *PasswordTokenUpdate {
-	mutation := newPasswordTokenMutation(c.config, OpUpdate)
-	return &PasswordTokenUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Update returns an update builder for Squeak.
+func (c *SqueakClient) Update() *SqueakUpdate {
+	mutation := newSqueakMutation(c.config, OpUpdate)
+	return &SqueakUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *PasswordTokenClient) UpdateOne(pt *PasswordToken) *PasswordTokenUpdateOne {
-	mutation := newPasswordTokenMutation(c.config, OpUpdateOne, withPasswordToken(pt))
-	return &PasswordTokenUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *SqueakClient) UpdateOne(s *Squeak) *SqueakUpdateOne {
+	mutation := newSqueakMutation(c.config, OpUpdateOne, withSqueak(s))
+	return &SqueakUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *PasswordTokenClient) UpdateOneID(id int) *PasswordTokenUpdateOne {
-	mutation := newPasswordTokenMutation(c.config, OpUpdateOne, withPasswordTokenID(id))
-	return &PasswordTokenUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *SqueakClient) UpdateOneID(id int) *SqueakUpdateOne {
+	mutation := newSqueakMutation(c.config, OpUpdateOne, withSqueakID(id))
+	return &SqueakUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// Delete returns a delete builder for PasswordToken.
-func (c *PasswordTokenClient) Delete() *PasswordTokenDelete {
-	mutation := newPasswordTokenMutation(c.config, OpDelete)
-	return &PasswordTokenDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Delete returns a delete builder for Squeak.
+func (c *SqueakClient) Delete() *SqueakDelete {
+	mutation := newSqueakMutation(c.config, OpDelete)
+	return &SqueakDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *PasswordTokenClient) DeleteOne(pt *PasswordToken) *PasswordTokenDeleteOne {
-	return c.DeleteOneID(pt.ID)
+func (c *SqueakClient) DeleteOne(s *Squeak) *SqueakDeleteOne {
+	return c.DeleteOneID(s.ID)
 }
 
 // DeleteOne returns a builder for deleting the given entity by its id.
-func (c *PasswordTokenClient) DeleteOneID(id int) *PasswordTokenDeleteOne {
-	builder := c.Delete().Where(passwordtoken.ID(id))
+func (c *SqueakClient) DeleteOneID(id int) *SqueakDeleteOne {
+	builder := c.Delete().Where(squeak.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
-	return &PasswordTokenDeleteOne{builder}
+	return &SqueakDeleteOne{builder}
 }
 
-// Query returns a query builder for PasswordToken.
-func (c *PasswordTokenClient) Query() *PasswordTokenQuery {
-	return &PasswordTokenQuery{
+// Query returns a query builder for Squeak.
+func (c *SqueakClient) Query() *SqueakQuery {
+	return &SqueakQuery{
 		config: c.config,
 	}
 }
 
-// Get returns a PasswordToken entity by its id.
-func (c *PasswordTokenClient) Get(ctx context.Context, id int) (*PasswordToken, error) {
-	return c.Query().Where(passwordtoken.ID(id)).Only(ctx)
+// Get returns a Squeak entity by its id.
+func (c *SqueakClient) Get(ctx context.Context, id int) (*Squeak, error) {
+	return c.Query().Where(squeak.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *PasswordTokenClient) GetX(ctx context.Context, id int) *PasswordToken {
+func (c *SqueakClient) GetX(ctx context.Context, id int) *Squeak {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -215,25 +214,9 @@ func (c *PasswordTokenClient) GetX(ctx context.Context, id int) *PasswordToken {
 	return obj
 }
 
-// QueryUser queries the user edge of a PasswordToken.
-func (c *PasswordTokenClient) QueryUser(pt *PasswordToken) *UserQuery {
-	query := &UserQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
-		id := pt.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(passwordtoken.Table, passwordtoken.FieldID, id),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, passwordtoken.UserTable, passwordtoken.UserColumn),
-		)
-		fromV = sqlgraph.Neighbors(pt.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // Hooks returns the client hooks.
-func (c *PasswordTokenClient) Hooks() []Hook {
-	return c.hooks.PasswordToken
+func (c *SqueakClient) Hooks() []Hook {
+	return c.hooks.Squeak
 }
 
 // UserClient is a client for the User schema.
@@ -321,24 +304,7 @@ func (c *UserClient) GetX(ctx context.Context, id int) *User {
 	return obj
 }
 
-// QueryOwner queries the owner edge of a User.
-func (c *UserClient) QueryOwner(u *User) *PasswordTokenQuery {
-	query := &PasswordTokenQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
-		id := u.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(user.Table, user.FieldID, id),
-			sqlgraph.To(passwordtoken.Table, passwordtoken.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, true, user.OwnerTable, user.OwnerColumn),
-		)
-		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
-	hooks := c.hooks.User
-	return append(hooks[:len(hooks):len(hooks)], user.Hooks[:]...)
+	return c.hooks.User
 }

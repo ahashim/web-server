@@ -1,13 +1,9 @@
 package services
 
 import (
-	"context"
 	"errors"
 	"testing"
 	"time"
-
-	"github.com/ahashim/web-server/ent/passwordtoken"
-	"github.com/ahashim/web-server/ent/user"
 
 	"github.com/stretchr/testify/require"
 
@@ -48,60 +44,6 @@ func TestAuthClient_PasswordHashing(t *testing.T) {
 	assert.NotEqual(t, hash, pw)
 	err = c.Auth.CheckPassword(pw, hash)
 	assert.NoError(t, err)
-}
-
-func TestAuthClient_GeneratePasswordResetToken(t *testing.T) {
-	token, pt, err := c.Auth.GeneratePasswordResetToken(ctx, usr.ID)
-	require.NoError(t, err)
-	assert.Len(t, token, c.Config.App.PasswordToken.Length)
-	assert.NoError(t, c.Auth.CheckPassword(token, pt.Hash))
-}
-
-func TestAuthClient_GetValidPasswordToken(t *testing.T) {
-	// Check that a fake token is not valid
-	_, err := c.Auth.GetValidPasswordToken(ctx, usr.ID, 1, "faketoken")
-	assert.Error(t, err)
-
-	// Generate a valid token and check that it is returned
-	token, pt, err := c.Auth.GeneratePasswordResetToken(ctx, usr.ID)
-	require.NoError(t, err)
-	pt2, err := c.Auth.GetValidPasswordToken(ctx, usr.ID, pt.ID, token)
-	require.NoError(t, err)
-	assert.Equal(t, pt.ID, pt2.ID)
-
-	// Expire the token by pushing the date far enough back
-	count, err := c.ORM.PasswordToken.
-		Update().
-		SetCreatedAt(time.Now().Add(-(c.Config.App.PasswordToken.Expiration + time.Hour))).
-		Where(passwordtoken.ID(pt.ID)).
-		Save(context.Background())
-	require.NoError(t, err)
-	require.Equal(t, 1, count)
-
-	// Expired tokens should not be valid
-	_, err = c.Auth.GetValidPasswordToken(ctx, usr.ID, pt.ID, token)
-	assert.Error(t, err)
-}
-
-func TestAuthClient_DeletePasswordTokens(t *testing.T) {
-	// Create three tokens for the user
-	for i := 0; i < 3; i++ {
-		_, _, err := c.Auth.GeneratePasswordResetToken(ctx, usr.ID)
-		require.NoError(t, err)
-	}
-
-	// Delete all tokens for the user
-	err := c.Auth.DeletePasswordTokens(ctx, usr.ID)
-	require.NoError(t, err)
-
-	// Check that no tokens remain
-	count, err := c.ORM.PasswordToken.
-		Query().
-		Where(passwordtoken.HasUserWith(user.ID(usr.ID))).
-		Count(context.Background())
-
-	require.NoError(t, err)
-	assert.Equal(t, 0, count)
 }
 
 func TestAuthClient_RandomToken(t *testing.T) {

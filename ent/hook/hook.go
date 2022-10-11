@@ -9,15 +9,15 @@ import (
 	"github.com/ahashim/web-server/ent"
 )
 
-// The PasswordTokenFunc type is an adapter to allow the use of ordinary
-// function as PasswordToken mutator.
-type PasswordTokenFunc func(context.Context, *ent.PasswordTokenMutation) (ent.Value, error)
+// The SqueakFunc type is an adapter to allow the use of ordinary
+// function as Squeak mutator.
+type SqueakFunc func(context.Context, *ent.SqueakMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
-func (f PasswordTokenFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.PasswordTokenMutation)
+func (f SqueakFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.SqueakMutation)
 	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PasswordTokenMutation", m)
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SqueakMutation", m)
 	}
 	return f(ctx, mv)
 }

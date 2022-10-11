@@ -1,16 +1,11 @@
 package schema
 
 import (
-	"context"
-	"strings"
-	"time"
-
-	ge "github.com/ahashim/web-server/ent"
-	"github.com/ahashim/web-server/ent/hook"
+	"regexp"
 
 	"entgo.io/ent"
-	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"github.com/ahashim/web-server/enums"
 )
 
 // User holds the schema definition for the User entity.
@@ -20,45 +15,24 @@ type User struct {
 
 // Fields of the User.
 func (User) Fields() []ent.Field {
+	ethAddress := regexp.MustCompile("^0x[0-9a-fA-F]{40}$")
+
 	return []ent.Field{
-		field.String("name").
+		field.String("address").
+			Immutable().
+			Match(ethAddress).
 			NotEmpty(),
-		field.String("email").
-			NotEmpty().
-			Unique(),
-		field.String("password").
-			Sensitive().
+		field.String("username").
+			MaxLen(32).
 			NotEmpty(),
-		field.Bool("verified").
-			Default(false),
-		field.Time("created_at").
-			Default(time.Now).
-			Immutable(),
+		field.Enum("status").
+			GoType(enums.Status(0)),
+		field.Int8("scout_level").
+			Default(1),
 	}
 }
 
 // Edges of the User.
 func (User) Edges() []ent.Edge {
-	return []ent.Edge{
-		edge.From("owner", PasswordToken.Type).
-			Ref("user"),
-	}
-}
-
-// Hooks of the User.
-func (User) Hooks() []ent.Hook {
-	return []ent.Hook{
-		hook.On(
-			func(next ent.Mutator) ent.Mutator {
-				return hook.UserFunc(func(ctx context.Context, m *ge.UserMutation) (ent.Value, error) {
-					if v, exists := m.Email(); exists {
-						m.SetEmail(strings.ToLower(v))
-					}
-					return next.Mutate(ctx, m)
-				})
-			},
-			// Limit the hook only for these operations.
-			ent.OpCreate|ent.OpUpdate|ent.OpUpdateOne,
-		),
-	}
+	return nil
 }
