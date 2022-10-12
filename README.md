@@ -22,7 +22,7 @@ The [Critter](https://github.com/ahashim/critter) web server.
 
 #### Storage
 
-- [PostgreSQL](https://www.postgresql.org/): The world's most advanced open source relational database.
+- [MariaDB](https://mariadb.org/): The open source relational database.
 - [Redis](https://redis.io/): In-memory data structure store, used as a database, cache, and message broker.
 
 ## Local Development
