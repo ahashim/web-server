@@ -1,12 +1,12 @@
 # Connect to the primary database
 .PHONY: db
 db:
-	docker compose exec -it db psql postgresql://admin:admin@localhost:5432/app
+	docker compose exec -it db mysql -u critter -pcritter critter
 
 # Connect to the test database
 .PHONY: db-test
 db-test:
-	docker compose exec -it db psql postgresql://admin:admin@localhost:5432/app_test
+	docker compose exec -it db mysql -u critter -pcritter critter_test
 
 # Connect to the primary cache
 .PHONY: cache
@@ -28,10 +28,11 @@ ent-gen:
 ent-new:
 	go run entgo.io/ent/cmd/ent init $(name)
 
-# Start the Docker containers
+# Start the Docker containers & remove old volumes
 .PHONY: up
 up:
 	docker compose up -d
+	docker volume prune -f
 
 # Stop the Docker containers
 .PHONY: down

@@ -2,19 +2,21 @@ version: "3"
 
 services:
   cache:
-    image: "redis:alpine"
+    image: "redis:7.0.5-alpine"
     ports:
       - "6379:6379"
   db:
-    image: postgres:alpine
-    ports:
-      - "5432:5432"
+    image: "mariadb:10.9.3"
     environment:
-      - POSTGRES_USER=admin
-      - POSTGRES_PASSWORD=admin
-      - POSTGRES_DB=app
+      MYSQL_ROOT_PASSWORD: "root"
+      MYSQL_DATABASE: "critter"
+      MYSQL_USER: "critter"
+      MYSQL_PASSWORD: "critter"
+    ports:
+      - "3306:3306"
+    restart: "always"
     volumes:
-      - data:/var/lib/postgresql/data
+      - "data:/var/lib/mysql"
 
 volumes:
   data:

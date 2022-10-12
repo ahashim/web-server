@@ -106,12 +106,14 @@ type (
 
 	// DatabaseConfig stores the database configuration
 	DatabaseConfig struct {
+		Type         string `env:"DB_TYPE,default=mysql"`
 		Hostname     string `env:"DB_HOSTNAME,default=localhost"`
-		Port         uint16 `env:"DB_PORT,default=5432"`
-		User         string `env:"DB_USER,default=admin"`
-		Password     string `env:"DB_PASSWORD,default=admin"`
-		Database     string `env:"DB_NAME,default=app"`
-		TestDatabase string `env:"DB_NAME_TEST,default=app_test"`
+		Port         uint16 `env:"DB_PORT,default=3306"`
+		Protocol     string `env:"DB_PROTOCOL,default=tcp"`
+		User         string `env:"DB_USER,default=critter"`
+		Password     string `env:"DB_PASSWORD,default=critter"`
+		Database     string `env:"DB_NAME,default=critter"`
+		TestDatabase string `env:"DB_NAME_TEST,default=critter_test"`
 	}
 
 	// MailConfig stores the mail configuration
