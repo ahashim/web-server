@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"github.com/ahashim/web-server/ent/role"
 	"github.com/ahashim/web-server/ent/schema"
 	"github.com/ahashim/web-server/ent/user"
 )
@@ -11,6 +12,16 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	roleFields := schema.Role{}.Fields()
+	_ = roleFields
+	// roleDescTitle is the schema descriptor for title field.
+	roleDescTitle := roleFields[0].Descriptor()
+	// role.TitleValidator is a validator for the "title" field. It is called by the builders before save.
+	role.TitleValidator = roleDescTitle.Validators[0].(func(string) error)
+	// roleDescHash is the schema descriptor for hash field.
+	roleDescHash := roleFields[1].Descriptor()
+	// role.HashValidator is a validator for the "hash" field. It is called by the builders before save.
+	role.HashValidator = roleDescHash.Validators[0].(func(string) error)
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescAddress is the schema descriptor for address field.

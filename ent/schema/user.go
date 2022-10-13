@@ -17,22 +17,20 @@ type User struct {
 
 // Fields of the User.
 func (User) Fields() []ent.Field {
-	ethAddress := regexp.MustCompile("^0x[0-9a-fA-F]{40}$")
-
 	return []ent.Field{
 		field.String("address").
 			Annotations(entsql.Annotation{
 				Size: 42, // eth address with `0x` prefix
 			}).
 			Immutable().
-			Match(ethAddress).
+			Match(regexp.MustCompile("^0x[0-9a-fA-F]{40}$")).
 			NotEmpty(),
 		field.String("username").
-			MaxLen(32).
-			NotEmpty().
 			Annotations(entsql.Annotation{
 				Size: 32,
-			}),
+			}).
+			MaxLen(32).
+			NotEmpty(),
 		field.Enum("status").
 			GoType(enums.Status(0)),
 		field.Int8("scout_level").
@@ -45,5 +43,6 @@ func (User) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("following", User.Type).
 			From("followers"),
+		edge.To("roles", Role.Type),
 	}
 }

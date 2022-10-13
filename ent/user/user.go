@@ -25,12 +25,19 @@ const (
 	EdgeFollowers = "followers"
 	// EdgeFollowing holds the string denoting the following edge name in mutations.
 	EdgeFollowing = "following"
+	// EdgeRoles holds the string denoting the roles edge name in mutations.
+	EdgeRoles = "roles"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// FollowersTable is the table that holds the followers relation/edge. The primary key declared below.
 	FollowersTable = "user_following"
 	// FollowingTable is the table that holds the following relation/edge. The primary key declared below.
 	FollowingTable = "user_following"
+	// RolesTable is the table that holds the roles relation/edge. The primary key declared below.
+	RolesTable = "user_roles"
+	// RolesInverseTable is the table name for the Role entity.
+	// It exists in this package in order to avoid circular dependency with the "role" package.
+	RolesInverseTable = "roles"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -49,6 +56,9 @@ var (
 	// FollowingPrimaryKey and FollowingColumn2 are the table columns denoting the
 	// primary key for the following relation (M2M).
 	FollowingPrimaryKey = []string{"user_id", "follower_id"}
+	// RolesPrimaryKey and RolesColumn2 are the table columns denoting the
+	// primary key for the roles relation (M2M).
+	RolesPrimaryKey = []string{"user_id", "role_id"}
 )
 
 // ValidColumn reports if the column name is valid (part of the table columns).

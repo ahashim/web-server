@@ -35,9 +35,11 @@ type UserEdges struct {
 	Followers []*User `json:"followers,omitempty"`
 	// Following holds the value of the following edge.
 	Following []*User `json:"following,omitempty"`
+	// Roles holds the value of the roles edge.
+	Roles []*Role `json:"roles,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // FollowersOrErr returns the Followers value or an error if the edge
@@ -56,6 +58,15 @@ func (e UserEdges) FollowingOrErr() ([]*User, error) {
 		return e.Following, nil
 	}
 	return nil, &NotLoadedError{edge: "following"}
+}
+
+// RolesOrErr returns the Roles value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) RolesOrErr() ([]*Role, error) {
+	if e.loadedTypes[2] {
+		return e.Roles, nil
+	}
+	return nil, &NotLoadedError{edge: "roles"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -127,6 +138,11 @@ func (u *User) QueryFollowers() *UserQuery {
 // QueryFollowing queries the "following" edge of the User entity.
 func (u *User) QueryFollowing() *UserQuery {
 	return (&UserClient{config: u.config}).QueryFollowing(u)
+}
+
+// QueryRoles queries the "roles" edge of the User entity.
+func (u *User) QueryRoles() *RoleQuery {
+	return (&UserClient{config: u.config}).QueryRoles(u)
 }
 
 // Update returns a builder for updating this User.

@@ -8,6 +8,18 @@ import (
 )
 
 var (
+	// RolesColumns holds the columns for the "roles" table.
+	RolesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "title", Type: field.TypeString, Size: 32},
+		{Name: "hash", Type: field.TypeString, Size: 256},
+	}
+	// RolesTable holds the schema information for the "roles" table.
+	RolesTable = &schema.Table{
+		Name:       "roles",
+		Columns:    RolesColumns,
+		PrimaryKey: []*schema.Column{RolesColumns[0]},
+	}
 	// SqueaksColumns holds the columns for the "squeaks" table.
 	SqueaksColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -57,15 +69,44 @@ var (
 			},
 		},
 	}
+	// UserRolesColumns holds the columns for the "user_roles" table.
+	UserRolesColumns = []*schema.Column{
+		{Name: "user_id", Type: field.TypeInt},
+		{Name: "role_id", Type: field.TypeInt},
+	}
+	// UserRolesTable holds the schema information for the "user_roles" table.
+	UserRolesTable = &schema.Table{
+		Name:       "user_roles",
+		Columns:    UserRolesColumns,
+		PrimaryKey: []*schema.Column{UserRolesColumns[0], UserRolesColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "user_roles_user_id",
+				Columns:    []*schema.Column{UserRolesColumns[0]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "user_roles_role_id",
+				Columns:    []*schema.Column{UserRolesColumns[1]},
+				RefColumns: []*schema.Column{RolesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		RolesTable,
 		SqueaksTable,
 		UsersTable,
 		UserFollowingTable,
+		UserRolesTable,
 	}
 )
 
 func init() {
 	UserFollowingTable.ForeignKeys[0].RefTable = UsersTable
 	UserFollowingTable.ForeignKeys[1].RefTable = UsersTable
+	UserRolesTable.ForeignKeys[0].RefTable = UsersTable
+	UserRolesTable.ForeignKeys[1].RefTable = RolesTable
 }
