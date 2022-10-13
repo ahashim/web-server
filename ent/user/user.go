@@ -2,6 +2,12 @@
 
 package user
 
+import (
+	"fmt"
+
+	"github.com/ahashim/web-server/enums"
+)
+
 const (
 	// Label holds the string label denoting the user type in the database.
 	Label = "user"
@@ -15,8 +21,16 @@ const (
 	FieldStatus = "status"
 	// FieldScoutLevel holds the string denoting the scout_level field in the database.
 	FieldScoutLevel = "scout_level"
+	// EdgeFollowers holds the string denoting the followers edge name in mutations.
+	EdgeFollowers = "followers"
+	// EdgeFollowing holds the string denoting the following edge name in mutations.
+	EdgeFollowing = "following"
 	// Table holds the table name of the user in the database.
 	Table = "users"
+	// FollowersTable is the table that holds the followers relation/edge. The primary key declared below.
+	FollowersTable = "user_following"
+	// FollowingTable is the table that holds the following relation/edge. The primary key declared below.
+	FollowingTable = "user_following"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -27,6 +41,15 @@ var Columns = []string{
 	FieldStatus,
 	FieldScoutLevel,
 }
+
+var (
+	// FollowersPrimaryKey and FollowersColumn2 are the table columns denoting the
+	// primary key for the followers relation (M2M).
+	FollowersPrimaryKey = []string{"user_id", "follower_id"}
+	// FollowingPrimaryKey and FollowingColumn2 are the table columns denoting the
+	// primary key for the following relation (M2M).
+	FollowingPrimaryKey = []string{"user_id", "follower_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -43,8 +66,16 @@ var (
 	AddressValidator func(string) error
 	// UsernameValidator is a validator for the "username" field. It is called by the builders before save.
 	UsernameValidator func(string) error
-	// DefaultStatus holds the default value on creation for the "status" field.
-	DefaultStatus int8
 	// DefaultScoutLevel holds the default value on creation for the "scout_level" field.
 	DefaultScoutLevel int8
 )
+
+// StatusValidator is a validator for the "status" field enum values. It is called by the builders before save.
+func StatusValidator(s enums.Status) error {
+	switch s.String() {
+	case "UNKNOWN", "ACTIVE", "SUSPENDED", "BANNED":
+		return nil
+	default:
+		return fmt.Errorf("user: invalid enum value for status field: %q", s)
+	}
+}

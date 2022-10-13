@@ -5,6 +5,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/entsql"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/ahashim/web-server/enums"
 )
@@ -32,8 +33,8 @@ func (User) Fields() []ent.Field {
 			Annotations(entsql.Annotation{
 				Size: 32,
 			}),
-		field.Int8("status").
-			Default(int8(enums.Unknown)),
+		field.Enum("status").
+			GoType(enums.Status(0)),
 		field.Int8("scout_level").
 			Default(1),
 	}
@@ -41,5 +42,8 @@ func (User) Fields() []ent.Field {
 
 // Edges of the User.
 func (User) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		edge.To("following", User.Type).
+			From("followers"),
+	}
 }

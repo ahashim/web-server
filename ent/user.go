@@ -8,6 +8,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/ahashim/web-server/ent/user"
+	"github.com/ahashim/web-server/enums"
 )
 
 // User is the model entity for the User schema.
@@ -20,9 +21,41 @@ type User struct {
 	// Username holds the value of the "username" field.
 	Username string `json:"username,omitempty"`
 	// Status holds the value of the "status" field.
-	Status int8 `json:"status,omitempty"`
+	Status enums.Status `json:"status,omitempty"`
 	// ScoutLevel holds the value of the "scout_level" field.
 	ScoutLevel int8 `json:"scout_level,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the UserQuery when eager-loading is set.
+	Edges UserEdges `json:"edges"`
+}
+
+// UserEdges holds the relations/edges for other nodes in the graph.
+type UserEdges struct {
+	// Followers holds the value of the followers edge.
+	Followers []*User `json:"followers,omitempty"`
+	// Following holds the value of the following edge.
+	Following []*User `json:"following,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [2]bool
+}
+
+// FollowersOrErr returns the Followers value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) FollowersOrErr() ([]*User, error) {
+	if e.loadedTypes[0] {
+		return e.Followers, nil
+	}
+	return nil, &NotLoadedError{edge: "followers"}
+}
+
+// FollowingOrErr returns the Following value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) FollowingOrErr() ([]*User, error) {
+	if e.loadedTypes[1] {
+		return e.Following, nil
+	}
+	return nil, &NotLoadedError{edge: "following"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -30,7 +63,9 @@ func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case user.FieldID, user.FieldStatus, user.FieldScoutLevel:
+		case user.FieldStatus:
+			values[i] = new(enums.Status)
+		case user.FieldID, user.FieldScoutLevel:
 			values[i] = new(sql.NullInt64)
 		case user.FieldAddress, user.FieldUsername:
 			values[i] = new(sql.NullString)
@@ -68,10 +103,10 @@ func (u *User) assignValues(columns []string, values []any) error {
 				u.Username = value.String
 			}
 		case user.FieldStatus:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
+			if value, ok := values[i].(*enums.Status); !ok {
 				return fmt.Errorf("unexpected type %T for field status", values[i])
-			} else if value.Valid {
-				u.Status = int8(value.Int64)
+			} else if value != nil {
+				u.Status = *value
 			}
 		case user.FieldScoutLevel:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -82,6 +117,16 @@ func (u *User) assignValues(columns []string, values []any) error {
 		}
 	}
 	return nil
+}
+
+// QueryFollowers queries the "followers" edge of the User entity.
+func (u *User) QueryFollowers() *UserQuery {
+	return (&UserClient{config: u.config}).QueryFollowers(u)
+}
+
+// QueryFollowing queries the "following" edge of the User entity.
+func (u *User) QueryFollowing() *UserQuery {
+	return (&UserClient{config: u.config}).QueryFollowing(u)
 }
 
 // Update returns a builder for updating this User.

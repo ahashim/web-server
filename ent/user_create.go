@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/ahashim/web-server/ent/user"
+	"github.com/ahashim/web-server/enums"
 )
 
 // UserCreate is the builder for creating a User entity.
@@ -32,16 +33,8 @@ func (uc *UserCreate) SetUsername(s string) *UserCreate {
 }
 
 // SetStatus sets the "status" field.
-func (uc *UserCreate) SetStatus(i int8) *UserCreate {
-	uc.mutation.SetStatus(i)
-	return uc
-}
-
-// SetNillableStatus sets the "status" field if the given value is not nil.
-func (uc *UserCreate) SetNillableStatus(i *int8) *UserCreate {
-	if i != nil {
-		uc.SetStatus(*i)
-	}
+func (uc *UserCreate) SetStatus(e enums.Status) *UserCreate {
+	uc.mutation.SetStatus(e)
 	return uc
 }
 
@@ -57,6 +50,36 @@ func (uc *UserCreate) SetNillableScoutLevel(i *int8) *UserCreate {
 		uc.SetScoutLevel(*i)
 	}
 	return uc
+}
+
+// AddFollowerIDs adds the "followers" edge to the User entity by IDs.
+func (uc *UserCreate) AddFollowerIDs(ids ...int) *UserCreate {
+	uc.mutation.AddFollowerIDs(ids...)
+	return uc
+}
+
+// AddFollowers adds the "followers" edges to the User entity.
+func (uc *UserCreate) AddFollowers(u ...*User) *UserCreate {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return uc.AddFollowerIDs(ids...)
+}
+
+// AddFollowingIDs adds the "following" edge to the User entity by IDs.
+func (uc *UserCreate) AddFollowingIDs(ids ...int) *UserCreate {
+	uc.mutation.AddFollowingIDs(ids...)
+	return uc
+}
+
+// AddFollowing adds the "following" edges to the User entity.
+func (uc *UserCreate) AddFollowing(u ...*User) *UserCreate {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return uc.AddFollowingIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -136,10 +159,6 @@ func (uc *UserCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (uc *UserCreate) defaults() {
-	if _, ok := uc.mutation.Status(); !ok {
-		v := user.DefaultStatus
-		uc.mutation.SetStatus(v)
-	}
 	if _, ok := uc.mutation.ScoutLevel(); !ok {
 		v := user.DefaultScoutLevel
 		uc.mutation.SetScoutLevel(v)
@@ -166,6 +185,11 @@ func (uc *UserCreate) check() error {
 	}
 	if _, ok := uc.mutation.Status(); !ok {
 		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "User.status"`)}
+	}
+	if v, ok := uc.mutation.Status(); ok {
+		if err := user.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "User.status": %w`, err)}
+		}
 	}
 	if _, ok := uc.mutation.ScoutLevel(); !ok {
 		return &ValidationError{Name: "scout_level", err: errors.New(`ent: missing required field "User.scout_level"`)}
@@ -215,7 +239,7 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := uc.mutation.Status(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
+			Type:   field.TypeEnum,
 			Value:  value,
 			Column: user.FieldStatus,
 		})
@@ -228,6 +252,44 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Column: user.FieldScoutLevel,
 		})
 		_node.ScoutLevel = value
+	}
+	if nodes := uc.mutation.FollowersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   user.FollowersTable,
+			Columns: user.FollowersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.FollowingIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.FollowingTable,
+			Columns: user.FollowingPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

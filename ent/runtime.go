@@ -49,10 +49,6 @@ func init() {
 			return nil
 		}
 	}()
-	// userDescStatus is the schema descriptor for status field.
-	userDescStatus := userFields[2].Descriptor()
-	// user.DefaultStatus holds the default value on creation for the status field.
-	user.DefaultStatus = userDescStatus.Default.(int8)
 	// userDescScoutLevel is the schema descriptor for scout_level field.
 	userDescScoutLevel := userFields[3].Descriptor()
 	// user.DefaultScoutLevel holds the default value on creation for the scout_level field.

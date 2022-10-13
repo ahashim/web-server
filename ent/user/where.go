@@ -4,7 +4,9 @@ package user
 
 import (
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/ahashim/web-server/ent/predicate"
+	"github.com/ahashim/web-server/enums"
 )
 
 // ID filters vertices based on their ID field.
@@ -89,13 +91,6 @@ func Address(v string) predicate.User {
 func Username(v string) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldUsername), v))
-	})
-}
-
-// Status applies equality check predicate on the "status" field. It's identical to StatusEQ.
-func Status(v int8) predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldStatus), v))
 	})
 }
 
@@ -305,21 +300,21 @@ func UsernameContainsFold(v string) predicate.User {
 }
 
 // StatusEQ applies the EQ predicate on the "status" field.
-func StatusEQ(v int8) predicate.User {
+func StatusEQ(v enums.Status) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldStatus), v))
 	})
 }
 
 // StatusNEQ applies the NEQ predicate on the "status" field.
-func StatusNEQ(v int8) predicate.User {
+func StatusNEQ(v enums.Status) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldStatus), v))
 	})
 }
 
 // StatusIn applies the In predicate on the "status" field.
-func StatusIn(vs ...int8) predicate.User {
+func StatusIn(vs ...enums.Status) predicate.User {
 	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -330,41 +325,13 @@ func StatusIn(vs ...int8) predicate.User {
 }
 
 // StatusNotIn applies the NotIn predicate on the "status" field.
-func StatusNotIn(vs ...int8) predicate.User {
+func StatusNotIn(vs ...enums.Status) predicate.User {
 	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
 	return predicate.User(func(s *sql.Selector) {
 		s.Where(sql.NotIn(s.C(FieldStatus), v...))
-	})
-}
-
-// StatusGT applies the GT predicate on the "status" field.
-func StatusGT(v int8) predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldStatus), v))
-	})
-}
-
-// StatusGTE applies the GTE predicate on the "status" field.
-func StatusGTE(v int8) predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldStatus), v))
-	})
-}
-
-// StatusLT applies the LT predicate on the "status" field.
-func StatusLT(v int8) predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldStatus), v))
-	})
-}
-
-// StatusLTE applies the LTE predicate on the "status" field.
-func StatusLTE(v int8) predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldStatus), v))
 	})
 }
 
@@ -429,6 +396,62 @@ func ScoutLevelLT(v int8) predicate.User {
 func ScoutLevelLTE(v int8) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldScoutLevel), v))
+	})
+}
+
+// HasFollowers applies the HasEdge predicate on the "followers" edge.
+func HasFollowers() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(FollowersTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, FollowersTable, FollowersPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasFollowersWith applies the HasEdge predicate on the "followers" edge with a given conditions (other predicates).
+func HasFollowersWith(preds ...predicate.User) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, FollowersTable, FollowersPrimaryKey...),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasFollowing applies the HasEdge predicate on the "following" edge.
+func HasFollowing() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(FollowingTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, FollowingTable, FollowingPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasFollowingWith applies the HasEdge predicate on the "following" edge with a given conditions (other predicates).
+func HasFollowingWith(preds ...predicate.User) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, FollowingTable, FollowingPrimaryKey...),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
 	})
 }
 
