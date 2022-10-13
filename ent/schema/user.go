@@ -4,6 +4,7 @@ import (
 	"regexp"
 
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/field"
 	"github.com/ahashim/web-server/enums"
 )
@@ -19,14 +20,20 @@ func (User) Fields() []ent.Field {
 
 	return []ent.Field{
 		field.String("address").
+			Annotations(entsql.Annotation{
+				Size: 42, // eth address with `0x` prefix
+			}).
 			Immutable().
 			Match(ethAddress).
 			NotEmpty(),
 		field.String("username").
 			MaxLen(32).
-			NotEmpty(),
-		field.Enum("status").
-			GoType(enums.Status(0)),
+			NotEmpty().
+			Annotations(entsql.Annotation{
+				Size: 32,
+			}),
+		field.Int8("status").
+			Default(int8(enums.Unknown)),
 		field.Int8("scout_level").
 			Default(1),
 	}

@@ -56,11 +56,11 @@ func (p *Status) Scan(val any) error {
 	}
 
 	switch s {
-	case "ACTIVE":
+	case Active.String():
 		*p = Active
-	case "SUSPENDED":
+	case Suspended.String():
 		*p = Suspended
-	case "BANNED":
+	case Banned.String():
 		*p = Banned
 	default:
 		*p = Unknown

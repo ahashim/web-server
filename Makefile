@@ -32,7 +32,6 @@ ent-new:
 .PHONY: up
 up:
 	docker compose up -d
-	docker volume prune -f
 
 # Stop the Docker containers
 .PHONY: down

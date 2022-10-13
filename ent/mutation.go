@@ -10,7 +10,6 @@ import (
 
 	"github.com/ahashim/web-server/ent/predicate"
 	"github.com/ahashim/web-server/ent/user"
-	"github.com/ahashim/web-server/enums"
 
 	"entgo.io/ent"
 )
@@ -285,7 +284,8 @@ type UserMutation struct {
 	id             *int
 	address        *string
 	username       *string
-	status         *enums.Status
+	status         *int8
+	addstatus      *int8
 	scout_level    *int8
 	addscout_level *int8
 	clearedFields  map[string]struct{}
@@ -465,12 +465,13 @@ func (m *UserMutation) ResetUsername() {
 }
 
 // SetStatus sets the "status" field.
-func (m *UserMutation) SetStatus(e enums.Status) {
-	m.status = &e
+func (m *UserMutation) SetStatus(i int8) {
+	m.status = &i
+	m.addstatus = nil
 }
 
 // Status returns the value of the "status" field in the mutation.
-func (m *UserMutation) Status() (r enums.Status, exists bool) {
+func (m *UserMutation) Status() (r int8, exists bool) {
 	v := m.status
 	if v == nil {
 		return
@@ -481,7 +482,7 @@ func (m *UserMutation) Status() (r enums.Status, exists bool) {
 // OldStatus returns the old "status" field's value of the User entity.
 // If the User object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldStatus(ctx context.Context) (v enums.Status, err error) {
+func (m *UserMutation) OldStatus(ctx context.Context) (v int8, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
 	}
@@ -495,9 +496,28 @@ func (m *UserMutation) OldStatus(ctx context.Context) (v enums.Status, err error
 	return oldValue.Status, nil
 }
 
+// AddStatus adds i to the "status" field.
+func (m *UserMutation) AddStatus(i int8) {
+	if m.addstatus != nil {
+		*m.addstatus += i
+	} else {
+		m.addstatus = &i
+	}
+}
+
+// AddedStatus returns the value that was added to the "status" field in this mutation.
+func (m *UserMutation) AddedStatus() (r int8, exists bool) {
+	v := m.addstatus
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
 // ResetStatus resets all changes to the "status" field.
 func (m *UserMutation) ResetStatus() {
 	m.status = nil
+	m.addstatus = nil
 }
 
 // SetScoutLevel sets the "scout_level" field.
@@ -645,7 +665,7 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		m.SetUsername(v)
 		return nil
 	case user.FieldStatus:
-		v, ok := value.(enums.Status)
+		v, ok := value.(int8)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -666,6 +686,9 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 // this mutation.
 func (m *UserMutation) AddedFields() []string {
 	var fields []string
+	if m.addstatus != nil {
+		fields = append(fields, user.FieldStatus)
+	}
 	if m.addscout_level != nil {
 		fields = append(fields, user.FieldScoutLevel)
 	}
@@ -677,6 +700,8 @@ func (m *UserMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *UserMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
+	case user.FieldStatus:
+		return m.AddedStatus()
 	case user.FieldScoutLevel:
 		return m.AddedScoutLevel()
 	}
@@ -688,6 +713,13 @@ func (m *UserMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *UserMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case user.FieldStatus:
+		v, ok := value.(int8)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddStatus(v)
+		return nil
 	case user.FieldScoutLevel:
 		v, ok := value.(int8)
 		if !ok {

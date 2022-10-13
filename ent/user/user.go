@@ -2,12 +2,6 @@
 
 package user
 
-import (
-	"fmt"
-
-	"github.com/ahashim/web-server/enums"
-)
-
 const (
 	// Label holds the string label denoting the user type in the database.
 	Label = "user"
@@ -49,16 +43,8 @@ var (
 	AddressValidator func(string) error
 	// UsernameValidator is a validator for the "username" field. It is called by the builders before save.
 	UsernameValidator func(string) error
+	// DefaultStatus holds the default value on creation for the "status" field.
+	DefaultStatus int8
 	// DefaultScoutLevel holds the default value on creation for the "scout_level" field.
 	DefaultScoutLevel int8
 )
-
-// StatusValidator is a validator for the "status" field enum values. It is called by the builders before save.
-func StatusValidator(s enums.Status) error {
-	switch s.String() {
-	case "UNKNOWN", "ACTIVE", "SUSPENDED", "BANNED":
-		return nil
-	default:
-		return fmt.Errorf("user: invalid enum value for status field: %q", s)
-	}
-}

@@ -12,7 +12,6 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/ahashim/web-server/ent/predicate"
 	"github.com/ahashim/web-server/ent/user"
-	"github.com/ahashim/web-server/enums"
 )
 
 // UserUpdate is the builder for updating User entities.
@@ -35,8 +34,23 @@ func (uu *UserUpdate) SetUsername(s string) *UserUpdate {
 }
 
 // SetStatus sets the "status" field.
-func (uu *UserUpdate) SetStatus(e enums.Status) *UserUpdate {
-	uu.mutation.SetStatus(e)
+func (uu *UserUpdate) SetStatus(i int8) *UserUpdate {
+	uu.mutation.ResetStatus()
+	uu.mutation.SetStatus(i)
+	return uu
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableStatus(i *int8) *UserUpdate {
+	if i != nil {
+		uu.SetStatus(*i)
+	}
+	return uu
+}
+
+// AddStatus adds i to the "status" field.
+func (uu *UserUpdate) AddStatus(i int8) *UserUpdate {
+	uu.mutation.AddStatus(i)
 	return uu
 }
 
@@ -133,11 +147,6 @@ func (uu *UserUpdate) check() error {
 			return &ValidationError{Name: "username", err: fmt.Errorf(`ent: validator failed for field "User.username": %w`, err)}
 		}
 	}
-	if v, ok := uu.mutation.Status(); ok {
-		if err := user.StatusValidator(v); err != nil {
-			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "User.status": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -168,7 +177,14 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := uu.mutation.Status(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
+			Type:   field.TypeInt8,
+			Value:  value,
+			Column: user.FieldStatus,
+		})
+	}
+	if value, ok := uu.mutation.AddedStatus(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt8,
 			Value:  value,
 			Column: user.FieldStatus,
 		})
@@ -213,8 +229,23 @@ func (uuo *UserUpdateOne) SetUsername(s string) *UserUpdateOne {
 }
 
 // SetStatus sets the "status" field.
-func (uuo *UserUpdateOne) SetStatus(e enums.Status) *UserUpdateOne {
-	uuo.mutation.SetStatus(e)
+func (uuo *UserUpdateOne) SetStatus(i int8) *UserUpdateOne {
+	uuo.mutation.ResetStatus()
+	uuo.mutation.SetStatus(i)
+	return uuo
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableStatus(i *int8) *UserUpdateOne {
+	if i != nil {
+		uuo.SetStatus(*i)
+	}
+	return uuo
+}
+
+// AddStatus adds i to the "status" field.
+func (uuo *UserUpdateOne) AddStatus(i int8) *UserUpdateOne {
+	uuo.mutation.AddStatus(i)
 	return uuo
 }
 
@@ -324,11 +355,6 @@ func (uuo *UserUpdateOne) check() error {
 			return &ValidationError{Name: "username", err: fmt.Errorf(`ent: validator failed for field "User.username": %w`, err)}
 		}
 	}
-	if v, ok := uuo.mutation.Status(); ok {
-		if err := user.StatusValidator(v); err != nil {
-			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "User.status": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -376,7 +402,14 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if value, ok := uuo.mutation.Status(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
+			Type:   field.TypeInt8,
+			Value:  value,
+			Column: user.FieldStatus,
+		})
+	}
+	if value, ok := uuo.mutation.AddedStatus(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt8,
 			Value:  value,
 			Column: user.FieldStatus,
 		})

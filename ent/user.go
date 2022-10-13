@@ -8,7 +8,6 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/ahashim/web-server/ent/user"
-	"github.com/ahashim/web-server/enums"
 )
 
 // User is the model entity for the User schema.
@@ -21,7 +20,7 @@ type User struct {
 	// Username holds the value of the "username" field.
 	Username string `json:"username,omitempty"`
 	// Status holds the value of the "status" field.
-	Status enums.Status `json:"status,omitempty"`
+	Status int8 `json:"status,omitempty"`
 	// ScoutLevel holds the value of the "scout_level" field.
 	ScoutLevel int8 `json:"scout_level,omitempty"`
 }
@@ -31,9 +30,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case user.FieldStatus:
-			values[i] = new(enums.Status)
-		case user.FieldID, user.FieldScoutLevel:
+		case user.FieldID, user.FieldStatus, user.FieldScoutLevel:
 			values[i] = new(sql.NullInt64)
 		case user.FieldAddress, user.FieldUsername:
 			values[i] = new(sql.NullString)
@@ -71,10 +68,10 @@ func (u *User) assignValues(columns []string, values []any) error {
 				u.Username = value.String
 			}
 		case user.FieldStatus:
-			if value, ok := values[i].(*enums.Status); !ok {
+			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field status", values[i])
-			} else if value != nil {
-				u.Status = *value
+			} else if value.Valid {
+				u.Status = int8(value.Int64)
 			}
 		case user.FieldScoutLevel:
 			if value, ok := values[i].(*sql.NullInt64); !ok {

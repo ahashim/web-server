@@ -10,7 +10,6 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/ahashim/web-server/ent/user"
-	"github.com/ahashim/web-server/enums"
 )
 
 // UserCreate is the builder for creating a User entity.
@@ -33,8 +32,16 @@ func (uc *UserCreate) SetUsername(s string) *UserCreate {
 }
 
 // SetStatus sets the "status" field.
-func (uc *UserCreate) SetStatus(e enums.Status) *UserCreate {
-	uc.mutation.SetStatus(e)
+func (uc *UserCreate) SetStatus(i int8) *UserCreate {
+	uc.mutation.SetStatus(i)
+	return uc
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (uc *UserCreate) SetNillableStatus(i *int8) *UserCreate {
+	if i != nil {
+		uc.SetStatus(*i)
+	}
 	return uc
 }
 
@@ -129,6 +136,10 @@ func (uc *UserCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (uc *UserCreate) defaults() {
+	if _, ok := uc.mutation.Status(); !ok {
+		v := user.DefaultStatus
+		uc.mutation.SetStatus(v)
+	}
 	if _, ok := uc.mutation.ScoutLevel(); !ok {
 		v := user.DefaultScoutLevel
 		uc.mutation.SetScoutLevel(v)
@@ -155,11 +166,6 @@ func (uc *UserCreate) check() error {
 	}
 	if _, ok := uc.mutation.Status(); !ok {
 		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "User.status"`)}
-	}
-	if v, ok := uc.mutation.Status(); ok {
-		if err := user.StatusValidator(v); err != nil {
-			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "User.status": %w`, err)}
-		}
 	}
 	if _, ok := uc.mutation.ScoutLevel(); !ok {
 		return &ValidationError{Name: "scout_level", err: errors.New(`ent: missing required field "User.scout_level"`)}
@@ -209,7 +215,7 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := uc.mutation.Status(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
+			Type:   field.TypeInt8,
 			Value:  value,
 			Column: user.FieldStatus,
 		})
