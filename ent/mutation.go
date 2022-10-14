@@ -497,6 +497,7 @@ type SqueakMutation struct {
 	typ           string
 	id            *int
 	block_number  **types.Uint256
+	content       *string
 	clearedFields map[string]struct{}
 	done          bool
 	oldValue      func(context.Context) (*Squeak, error)
@@ -637,6 +638,42 @@ func (m *SqueakMutation) ResetBlockNumber() {
 	m.block_number = nil
 }
 
+// SetContent sets the "content" field.
+func (m *SqueakMutation) SetContent(s string) {
+	m.content = &s
+}
+
+// Content returns the value of the "content" field in the mutation.
+func (m *SqueakMutation) Content() (r string, exists bool) {
+	v := m.content
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContent returns the old "content" field's value of the Squeak entity.
+// If the Squeak object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SqueakMutation) OldContent(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContent is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContent requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContent: %w", err)
+	}
+	return oldValue.Content, nil
+}
+
+// ResetContent resets all changes to the "content" field.
+func (m *SqueakMutation) ResetContent() {
+	m.content = nil
+}
+
 // Where appends a list predicates to the SqueakMutation builder.
 func (m *SqueakMutation) Where(ps ...predicate.Squeak) {
 	m.predicates = append(m.predicates, ps...)
@@ -656,9 +693,12 @@ func (m *SqueakMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SqueakMutation) Fields() []string {
-	fields := make([]string, 0, 1)
+	fields := make([]string, 0, 2)
 	if m.block_number != nil {
 		fields = append(fields, squeak.FieldBlockNumber)
+	}
+	if m.content != nil {
+		fields = append(fields, squeak.FieldContent)
 	}
 	return fields
 }
@@ -670,6 +710,8 @@ func (m *SqueakMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case squeak.FieldBlockNumber:
 		return m.BlockNumber()
+	case squeak.FieldContent:
+		return m.Content()
 	}
 	return nil, false
 }
@@ -681,6 +723,8 @@ func (m *SqueakMutation) OldField(ctx context.Context, name string) (ent.Value, 
 	switch name {
 	case squeak.FieldBlockNumber:
 		return m.OldBlockNumber(ctx)
+	case squeak.FieldContent:
+		return m.OldContent(ctx)
 	}
 	return nil, fmt.Errorf("unknown Squeak field %s", name)
 }
@@ -696,6 +740,13 @@ func (m *SqueakMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetBlockNumber(v)
+		return nil
+	case squeak.FieldContent:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContent(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Squeak field %s", name)
@@ -751,6 +802,9 @@ func (m *SqueakMutation) ResetField(name string) error {
 	switch name {
 	case squeak.FieldBlockNumber:
 		m.ResetBlockNumber()
+		return nil
+	case squeak.FieldContent:
+		m.ResetContent()
 		return nil
 	}
 	return fmt.Errorf("unknown Squeak field %s", name)

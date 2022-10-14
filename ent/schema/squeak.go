@@ -5,7 +5,7 @@ import (
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/schema/field"
 
-  "github.com/ahashim/web-server/types"
+	"github.com/ahashim/web-server/types"
 )
 
 // Squeak holds the schema definition for the Squeak entity.
@@ -21,6 +21,10 @@ func (Squeak) Fields() []ent.Field {
 			SchemaType(map[string]string{
 				dialect.Postgres: "numeric(78, 0)", // uint256
 			}),
+		field.String("content").
+			Immutable().
+			MaxLen(256).
+			NotEmpty(),
 	}
 }
 

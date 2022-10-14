@@ -26,6 +26,12 @@ func (sc *SqueakCreate) SetBlockNumber(t *types.Uint256) *SqueakCreate {
 	return sc
 }
 
+// SetContent sets the "content" field.
+func (sc *SqueakCreate) SetContent(s string) *SqueakCreate {
+	sc.mutation.SetContent(s)
+	return sc
+}
+
 // Mutation returns the SqueakMutation object of the builder.
 func (sc *SqueakCreate) Mutation() *SqueakMutation {
 	return sc.mutation
@@ -105,6 +111,14 @@ func (sc *SqueakCreate) check() error {
 	if _, ok := sc.mutation.BlockNumber(); !ok {
 		return &ValidationError{Name: "block_number", err: errors.New(`ent: missing required field "Squeak.block_number"`)}
 	}
+	if _, ok := sc.mutation.Content(); !ok {
+		return &ValidationError{Name: "content", err: errors.New(`ent: missing required field "Squeak.content"`)}
+	}
+	if v, ok := sc.mutation.Content(); ok {
+		if err := squeak.ContentValidator(v); err != nil {
+			return &ValidationError{Name: "content", err: fmt.Errorf(`ent: validator failed for field "Squeak.content": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -139,6 +153,14 @@ func (sc *SqueakCreate) createSpec() (*Squeak, *sqlgraph.CreateSpec) {
 			Column: squeak.FieldBlockNumber,
 		})
 		_node.BlockNumber = value
+	}
+	if value, ok := sc.mutation.Content(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: squeak.FieldContent,
+		})
+		_node.Content = value
 	}
 	return _node, _spec
 }

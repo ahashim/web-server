@@ -5,6 +5,7 @@ package ent
 import (
 	"github.com/ahashim/web-server/ent/role"
 	"github.com/ahashim/web-server/ent/schema"
+	"github.com/ahashim/web-server/ent/squeak"
 	"github.com/ahashim/web-server/ent/user"
 )
 
@@ -30,6 +31,26 @@ func init() {
 		return func(hash string) error {
 			for _, fn := range fns {
 				if err := fn(hash); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	squeakFields := schema.Squeak{}.Fields()
+	_ = squeakFields
+	// squeakDescContent is the schema descriptor for content field.
+	squeakDescContent := squeakFields[1].Descriptor()
+	// squeak.ContentValidator is a validator for the "content" field. It is called by the builders before save.
+	squeak.ContentValidator = func() func(string) error {
+		validators := squeakDescContent.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(content string) error {
+			for _, fn := range fns {
+				if err := fn(content); err != nil {
 					return err
 				}
 			}

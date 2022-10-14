@@ -9,6 +9,8 @@ const (
 	FieldID = "id"
 	// FieldBlockNumber holds the string denoting the block_number field in the database.
 	FieldBlockNumber = "block_number"
+	// FieldContent holds the string denoting the content field in the database.
+	FieldContent = "content"
 	// Table holds the table name of the squeak in the database.
 	Table = "squeaks"
 )
@@ -17,6 +19,7 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldBlockNumber,
+	FieldContent,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -28,3 +31,8 @@ func ValidColumn(column string) bool {
 	}
 	return false
 }
+
+var (
+	// ContentValidator is a validator for the "content" field. It is called by the builders before save.
+	ContentValidator func(string) error
+)
