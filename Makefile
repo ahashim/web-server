@@ -1,12 +1,12 @@
 # Connect to the primary database
 .PHONY: db
 db:
-	docker compose exec -it db mysql -u critter -pcritter critter
+	docker compose exec -it db psql postgresql://postgres:password@localhost:5432/critter
 
 # Connect to the test database
 .PHONY: db-test
 db-test:
-	docker compose exec -it db mysql -u critter -pcritter critter_test
+	docker compose exec -it db psql postgresql://postgres:password@localhost:5432/critter_test
 
 # Connect to the primary cache
 .PHONY: cache

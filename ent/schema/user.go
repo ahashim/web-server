@@ -4,7 +4,6 @@ import (
 	"regexp"
 
 	"entgo.io/ent"
-	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/ahashim/web-server/enums"
@@ -19,16 +18,10 @@ type User struct {
 func (User) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("address").
-			Annotations(entsql.Annotation{
-				Size: 42, // eth address with `0x` prefix
-			}).
 			Immutable().
 			Match(regexp.MustCompile("^0x[0-9a-fA-F]{40}$")).
 			NotEmpty(),
 		field.String("username").
-			Annotations(entsql.Annotation{
-				Size: 32,
-			}).
 			MaxLen(32).
 			NotEmpty(),
 		field.Enum("status").

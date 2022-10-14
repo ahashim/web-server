@@ -9,15 +9,12 @@ import (
 	entsql "entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/schema"
 
-	// Required by ent
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
+	_ "github.com/lib/pq"
 
 	"github.com/ahashim/web-server/config"
 	"github.com/ahashim/web-server/ent"
-
-	// Require by ent
 	_ "github.com/ahashim/web-server/ent/runtime"
 )
 
@@ -133,19 +130,18 @@ func (c *Container) initDatabase() {
 	var err error
 
 	getAddr := func(dbName string) string {
-		return fmt.Sprintf("%s:%s@%s(%s:%d)/%s?parseTime=True",
-			c.Config.Database.User,
-			c.Config.Database.Password,
-			c.Config.Database.Protocol,
+		return fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 			c.Config.Database.Hostname,
 			c.Config.Database.Port,
+			c.Config.Database.User,
+			c.Config.Database.Password,
 			dbName,
 		)
 	}
 
 	// connect
 	c.Database, err = sql.Open(
-		c.Config.Database.Type,
+		"postgres",
 		getAddr(c.Config.Database.Database),
 	)
 	if err != nil {
@@ -166,7 +162,7 @@ func (c *Container) initDatabase() {
 		if err = c.Database.Close(); err != nil {
 			panic(fmt.Sprintf("failed to close database connection: %v", err))
 		}
-		c.Database, err = sql.Open(c.Config.Database.Type, getAddr(c.Config.Database.TestDatabase))
+		c.Database, err = sql.Open("postgres", getAddr(c.Config.Database.TestDatabase))
 		if err != nil {
 			panic(fmt.Sprintf("failed to connect to database: %v", err))
 		}
@@ -175,7 +171,7 @@ func (c *Container) initDatabase() {
 
 // initORM initializes the ORM
 func (c *Container) initORM() {
-	drv := entsql.OpenDB(dialect.MySQL, c.Database)
+	drv := entsql.OpenDB(dialect.Postgres, c.Database)
 	c.ORM = ent.NewClient(ent.Driver(drv))
 	if err := c.ORM.Schema.Create(context.Background(), schema.WithAtlas(true)); err != nil {
 		panic(fmt.Sprintf("failed to create database schema: %v", err))

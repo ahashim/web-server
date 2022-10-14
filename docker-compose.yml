@@ -6,17 +6,16 @@ services:
     ports:
       - "6379:6379"
   db:
-    image: "mariadb:10.9.3"
+    image: "postgres:15rc2-alpine"
     environment:
-      MYSQL_ROOT_PASSWORD: "root"
-      MYSQL_DATABASE: "critter"
-      MYSQL_USER: "critter"
-      MYSQL_PASSWORD: "critter"
+      POSTGRES_DB: "critter"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "password"
     ports:
-      - "3306:3306"
+      - "5432:5432"
     restart: "always"
     volumes:
-      - "data:/var/lib/mysql"
+      - "data:/var/lib/postgres/data"
 
 volumes:
   data:

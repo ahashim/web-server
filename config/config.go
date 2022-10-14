@@ -106,12 +106,10 @@ type (
 
 	// DatabaseConfig stores the database configuration
 	DatabaseConfig struct {
-		Type         string `env:"DB_TYPE,default=mysql"`
 		Hostname     string `env:"DB_HOSTNAME,default=localhost"`
-		Port         uint16 `env:"DB_PORT,default=3306"`
-		Protocol     string `env:"DB_PROTOCOL,default=tcp"`
-		User         string `env:"DB_USER,default=critter"`
-		Password     string `env:"DB_PASSWORD,default=critter"`
+		Port         uint16 `env:"DB_PORT,default=5432"`
+		User         string `env:"DB_USER,default=postgres"`
+		Password     string `env:"DB_PASSWORD,default=password"`
 		Database     string `env:"DB_NAME,default=critter"`
 		TestDatabase string `env:"DB_NAME_TEST,default=critter_test"`
 	}

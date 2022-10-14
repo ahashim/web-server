@@ -33,7 +33,7 @@ var (
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "address", Type: field.TypeString, Size: 42},
+		{Name: "address", Type: field.TypeString},
 		{Name: "username", Type: field.TypeString, Size: 32},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"UNKNOWN", "ACTIVE", "SUSPENDED", "BANNED"}},
 		{Name: "scout_level", Type: field.TypeInt8, Default: 1},
