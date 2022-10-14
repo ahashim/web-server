@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/ahashim/web-server/ent/predicate"
 	"github.com/ahashim/web-server/ent/squeak"
+	"github.com/ahashim/web-server/types"
 )
 
 // SqueakUpdate is the builder for updating Squeak entities.
@@ -24,6 +25,12 @@ type SqueakUpdate struct {
 // Where appends a list predicates to the SqueakUpdate builder.
 func (su *SqueakUpdate) Where(ps ...predicate.Squeak) *SqueakUpdate {
 	su.mutation.Where(ps...)
+	return su
+}
+
+// SetBlockNumber sets the "block_number" field.
+func (su *SqueakUpdate) SetBlockNumber(t *types.Uint256) *SqueakUpdate {
+	su.mutation.SetBlockNumber(t)
 	return su
 }
 
@@ -104,6 +111,13 @@ func (su *SqueakUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
+	if value, ok := su.mutation.BlockNumber(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: squeak.FieldBlockNumber,
+		})
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, su.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{squeak.Label}
@@ -121,6 +135,12 @@ type SqueakUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *SqueakMutation
+}
+
+// SetBlockNumber sets the "block_number" field.
+func (suo *SqueakUpdateOne) SetBlockNumber(t *types.Uint256) *SqueakUpdateOne {
+	suo.mutation.SetBlockNumber(t)
+	return suo
 }
 
 // Mutation returns the SqueakMutation object of the builder.
@@ -229,6 +249,13 @@ func (suo *SqueakUpdateOne) sqlSave(ctx context.Context) (_node *Squeak, err err
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := suo.mutation.BlockNumber(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: squeak.FieldBlockNumber,
+		})
 	}
 	_node = &Squeak{config: suo.config}
 	_spec.Assign = _node.assignValues

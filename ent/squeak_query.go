@@ -249,6 +249,18 @@ func (sq *SqueakQuery) Clone() *SqueakQuery {
 
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
+//
+// Example:
+//
+//	var v []struct {
+//		BlockNumber *types.Uint256 `json:"block_number,omitempty"`
+//		Count int `json:"count,omitempty"`
+//	}
+//
+//	client.Squeak.Query().
+//		GroupBy(squeak.FieldBlockNumber).
+//		Aggregate(ent.Count()).
+//		Scan(ctx, &v)
 func (sq *SqueakQuery) GroupBy(field string, fields ...string) *SqueakGroupBy {
 	grbuild := &SqueakGroupBy{config: sq.config}
 	grbuild.fields = append([]string{field}, fields...)
@@ -265,6 +277,16 @@ func (sq *SqueakQuery) GroupBy(field string, fields ...string) *SqueakGroupBy {
 
 // Select allows the selection one or more fields/columns for the given query,
 // instead of selecting all fields in the entity.
+//
+// Example:
+//
+//	var v []struct {
+//		BlockNumber *types.Uint256 `json:"block_number,omitempty"`
+//	}
+//
+//	client.Squeak.Query().
+//		Select(squeak.FieldBlockNumber).
+//		Scan(ctx, &v)
 func (sq *SqueakQuery) Select(fields ...string) *SqueakSelect {
 	sq.fields = append(sq.fields, fields...)
 	selbuild := &SqueakSelect{SqueakQuery: sq}

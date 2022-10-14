@@ -5,6 +5,7 @@ package squeak
 import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/ahashim/web-server/ent/predicate"
+	"github.com/ahashim/web-server/types"
 )
 
 // ID filters vertices based on their ID field.
@@ -75,6 +76,77 @@ func IDLT(id int) predicate.Squeak {
 func IDLTE(id int) predicate.Squeak {
 	return predicate.Squeak(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldID), id))
+	})
+}
+
+// BlockNumber applies equality check predicate on the "block_number" field. It's identical to BlockNumberEQ.
+func BlockNumber(v *types.Uint256) predicate.Squeak {
+	return predicate.Squeak(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldBlockNumber), v))
+	})
+}
+
+// BlockNumberEQ applies the EQ predicate on the "block_number" field.
+func BlockNumberEQ(v *types.Uint256) predicate.Squeak {
+	return predicate.Squeak(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldBlockNumber), v))
+	})
+}
+
+// BlockNumberNEQ applies the NEQ predicate on the "block_number" field.
+func BlockNumberNEQ(v *types.Uint256) predicate.Squeak {
+	return predicate.Squeak(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldBlockNumber), v))
+	})
+}
+
+// BlockNumberIn applies the In predicate on the "block_number" field.
+func BlockNumberIn(vs ...*types.Uint256) predicate.Squeak {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Squeak(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldBlockNumber), v...))
+	})
+}
+
+// BlockNumberNotIn applies the NotIn predicate on the "block_number" field.
+func BlockNumberNotIn(vs ...*types.Uint256) predicate.Squeak {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Squeak(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldBlockNumber), v...))
+	})
+}
+
+// BlockNumberGT applies the GT predicate on the "block_number" field.
+func BlockNumberGT(v *types.Uint256) predicate.Squeak {
+	return predicate.Squeak(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldBlockNumber), v))
+	})
+}
+
+// BlockNumberGTE applies the GTE predicate on the "block_number" field.
+func BlockNumberGTE(v *types.Uint256) predicate.Squeak {
+	return predicate.Squeak(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldBlockNumber), v))
+	})
+}
+
+// BlockNumberLT applies the LT predicate on the "block_number" field.
+func BlockNumberLT(v *types.Uint256) predicate.Squeak {
+	return predicate.Squeak(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldBlockNumber), v))
+	})
+}
+
+// BlockNumberLTE applies the LTE predicate on the "block_number" field.
+func BlockNumberLTE(v *types.Uint256) predicate.Squeak {
+	return predicate.Squeak(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldBlockNumber), v))
 	})
 }
 

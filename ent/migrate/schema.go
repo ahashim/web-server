@@ -23,6 +23,7 @@ var (
 	// SqueaksColumns holds the columns for the "squeaks" table.
 	SqueaksColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "block_number", Type: field.TypeInt, SchemaType: map[string]string{"postgres": "numeric(78, 0)"}},
 	}
 	// SqueaksTable holds the schema information for the "squeaks" table.
 	SqueaksTable = &schema.Table{

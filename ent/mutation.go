@@ -10,8 +10,10 @@ import (
 
 	"github.com/ahashim/web-server/ent/predicate"
 	"github.com/ahashim/web-server/ent/role"
+	"github.com/ahashim/web-server/ent/squeak"
 	"github.com/ahashim/web-server/ent/user"
 	"github.com/ahashim/web-server/enums"
+	"github.com/ahashim/web-server/types"
 
 	"entgo.io/ent"
 )
@@ -494,6 +496,7 @@ type SqueakMutation struct {
 	op            Op
 	typ           string
 	id            *int
+	block_number  **types.Uint256
 	clearedFields map[string]struct{}
 	done          bool
 	oldValue      func(context.Context) (*Squeak, error)
@@ -598,6 +601,42 @@ func (m *SqueakMutation) IDs(ctx context.Context) ([]int, error) {
 	}
 }
 
+// SetBlockNumber sets the "block_number" field.
+func (m *SqueakMutation) SetBlockNumber(t *types.Uint256) {
+	m.block_number = &t
+}
+
+// BlockNumber returns the value of the "block_number" field in the mutation.
+func (m *SqueakMutation) BlockNumber() (r *types.Uint256, exists bool) {
+	v := m.block_number
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBlockNumber returns the old "block_number" field's value of the Squeak entity.
+// If the Squeak object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SqueakMutation) OldBlockNumber(ctx context.Context) (v *types.Uint256, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBlockNumber is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBlockNumber requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBlockNumber: %w", err)
+	}
+	return oldValue.BlockNumber, nil
+}
+
+// ResetBlockNumber resets all changes to the "block_number" field.
+func (m *SqueakMutation) ResetBlockNumber() {
+	m.block_number = nil
+}
+
 // Where appends a list predicates to the SqueakMutation builder.
 func (m *SqueakMutation) Where(ps ...predicate.Squeak) {
 	m.predicates = append(m.predicates, ps...)
@@ -617,7 +656,10 @@ func (m *SqueakMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SqueakMutation) Fields() []string {
-	fields := make([]string, 0, 0)
+	fields := make([]string, 0, 1)
+	if m.block_number != nil {
+		fields = append(fields, squeak.FieldBlockNumber)
+	}
 	return fields
 }
 
@@ -625,6 +667,10 @@ func (m *SqueakMutation) Fields() []string {
 // return value indicates that this field was not set, or was not defined in the
 // schema.
 func (m *SqueakMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case squeak.FieldBlockNumber:
+		return m.BlockNumber()
+	}
 	return nil, false
 }
 
@@ -632,6 +678,10 @@ func (m *SqueakMutation) Field(name string) (ent.Value, bool) {
 // returned if the mutation operation is not UpdateOne, or the query to the
 // database failed.
 func (m *SqueakMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case squeak.FieldBlockNumber:
+		return m.OldBlockNumber(ctx)
+	}
 	return nil, fmt.Errorf("unknown Squeak field %s", name)
 }
 
@@ -640,6 +690,13 @@ func (m *SqueakMutation) OldField(ctx context.Context, name string) (ent.Value, 
 // type.
 func (m *SqueakMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case squeak.FieldBlockNumber:
+		v, ok := value.(*types.Uint256)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBlockNumber(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Squeak field %s", name)
 }
@@ -647,13 +704,16 @@ func (m *SqueakMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *SqueakMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *SqueakMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	}
 	return nil, false
 }
 
@@ -661,6 +721,8 @@ func (m *SqueakMutation) AddedField(name string) (ent.Value, bool) {
 // the field is not defined in the schema, or if the type mismatched the field
 // type.
 func (m *SqueakMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
 	return fmt.Errorf("unknown Squeak numeric field %s", name)
 }
 
@@ -686,6 +748,11 @@ func (m *SqueakMutation) ClearField(name string) error {
 // ResetField resets all changes in the mutation for the field with the given name.
 // It returns an error if the field is not defined in the schema.
 func (m *SqueakMutation) ResetField(name string) error {
+	switch name {
+	case squeak.FieldBlockNumber:
+		m.ResetBlockNumber()
+		return nil
+	}
 	return fmt.Errorf("unknown Squeak field %s", name)
 }
 

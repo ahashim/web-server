@@ -4,11 +4,13 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/ahashim/web-server/ent/squeak"
+	"github.com/ahashim/web-server/types"
 )
 
 // SqueakCreate is the builder for creating a Squeak entity.
@@ -16,6 +18,12 @@ type SqueakCreate struct {
 	config
 	mutation *SqueakMutation
 	hooks    []Hook
+}
+
+// SetBlockNumber sets the "block_number" field.
+func (sc *SqueakCreate) SetBlockNumber(t *types.Uint256) *SqueakCreate {
+	sc.mutation.SetBlockNumber(t)
+	return sc
 }
 
 // Mutation returns the SqueakMutation object of the builder.
@@ -94,6 +102,9 @@ func (sc *SqueakCreate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (sc *SqueakCreate) check() error {
+	if _, ok := sc.mutation.BlockNumber(); !ok {
+		return &ValidationError{Name: "block_number", err: errors.New(`ent: missing required field "Squeak.block_number"`)}
+	}
 	return nil
 }
 
@@ -121,6 +132,14 @@ func (sc *SqueakCreate) createSpec() (*Squeak, *sqlgraph.CreateSpec) {
 			},
 		}
 	)
+	if value, ok := sc.mutation.BlockNumber(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: squeak.FieldBlockNumber,
+		})
+		_node.BlockNumber = value
+	}
 	return _node, _spec
 }
 

@@ -8,13 +8,16 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/ahashim/web-server/ent/squeak"
+	"github.com/ahashim/web-server/types"
 )
 
 // Squeak is the model entity for the Squeak schema.
 type Squeak struct {
-	config
+	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
+	// BlockNumber holds the value of the "block_number" field.
+	BlockNumber *types.Uint256 `json:"block_number,omitempty"`
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -24,6 +27,8 @@ func (*Squeak) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case squeak.FieldID:
 			values[i] = new(sql.NullInt64)
+		case squeak.FieldBlockNumber:
+			values[i] = new(types.Uint256)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Squeak", columns[i])
 		}
@@ -45,6 +50,12 @@ func (s *Squeak) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			s.ID = int(value.Int64)
+		case squeak.FieldBlockNumber:
+			if value, ok := values[i].(*types.Uint256); !ok {
+				return fmt.Errorf("unexpected type %T for field block_number", values[i])
+			} else if value != nil {
+				s.BlockNumber = value
+			}
 		}
 	}
 	return nil
@@ -72,7 +83,9 @@ func (s *Squeak) Unwrap() *Squeak {
 func (s *Squeak) String() string {
 	var builder strings.Builder
 	builder.WriteString("Squeak(")
-	builder.WriteString(fmt.Sprintf("id=%v", s.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", s.ID))
+	builder.WriteString("block_number=")
+	builder.WriteString(fmt.Sprintf("%v", s.BlockNumber))
 	builder.WriteByte(')')
 	return builder.String()
 }
