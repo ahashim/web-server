@@ -21,7 +21,21 @@ func init() {
 	// roleDescHash is the schema descriptor for hash field.
 	roleDescHash := roleFields[1].Descriptor()
 	// role.HashValidator is a validator for the "hash" field. It is called by the builders before save.
-	role.HashValidator = roleDescHash.Validators[0].(func(string) error)
+	role.HashValidator = func() func(string) error {
+		validators := roleDescHash.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(hash string) error {
+			for _, fn := range fns {
+				if err := fn(hash); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescAddress is the schema descriptor for address field.

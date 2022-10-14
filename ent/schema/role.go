@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"regexp"
+
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
@@ -15,25 +17,23 @@ type Role struct {
 // Fields of the Role.
 func (Role) Fields() []ent.Field {
 	return []ent.Field{
-    field.String("title").
+		field.String("title").
 			Annotations(entsql.Annotation{
 				Size: 32,
 			}).
-      Immutable().
-      NotEmpty(),
-    field.String("hash").
-			Annotations(entsql.Annotation{
-				Size: 256, // keccak256
-			}).
-      Immutable().
-      NotEmpty(),
-  }
+			Immutable().
+			NotEmpty(),
+		field.String("hash").
+			Immutable().
+			Match(regexp.MustCompile("^[0-9a-fA-F]{64}$")). // keccak256
+			NotEmpty(),
+	}
 }
 
 // Edges of the Role.
 func (Role) Edges() []ent.Edge {
 	return []ent.Edge{
-    edge.From("users", User.Type).
-      Ref("roles"),
-  }
+		edge.From("users", User.Type).
+			Ref("roles"),
+	}
 }

@@ -19,7 +19,7 @@ func (User) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("address").
 			Immutable().
-			Match(regexp.MustCompile("^0x[0-9a-fA-F]{40}$")).
+			Match(regexp.MustCompile("^0x[0-9a-fA-F]{40}$")). // eth address
 			NotEmpty(),
 		field.String("username").
 			MaxLen(32).

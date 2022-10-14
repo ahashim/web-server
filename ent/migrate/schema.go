@@ -12,7 +12,7 @@ var (
 	RolesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "title", Type: field.TypeString, Size: 32},
-		{Name: "hash", Type: field.TypeString, Size: 256},
+		{Name: "hash", Type: field.TypeString},
 	}
 	// RolesTable holds the schema information for the "roles" table.
 	RolesTable = &schema.Table{
