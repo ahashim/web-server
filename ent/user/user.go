@@ -27,6 +27,10 @@ const (
 	EdgeFollowing = "following"
 	// EdgeRoles holds the string denoting the roles edge name in mutations.
 	EdgeRoles = "roles"
+	// EdgeAuthored holds the string denoting the authored edge name in mutations.
+	EdgeAuthored = "authored"
+	// EdgeOwned holds the string denoting the owned edge name in mutations.
+	EdgeOwned = "owned"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// FollowersTable is the table that holds the followers relation/edge. The primary key declared below.
@@ -38,6 +42,20 @@ const (
 	// RolesInverseTable is the table name for the Role entity.
 	// It exists in this package in order to avoid circular dependency with the "role" package.
 	RolesInverseTable = "roles"
+	// AuthoredTable is the table that holds the authored relation/edge.
+	AuthoredTable = "squeaks"
+	// AuthoredInverseTable is the table name for the Squeak entity.
+	// It exists in this package in order to avoid circular dependency with the "squeak" package.
+	AuthoredInverseTable = "squeaks"
+	// AuthoredColumn is the table column denoting the authored relation/edge.
+	AuthoredColumn = "user_authored"
+	// OwnedTable is the table that holds the owned relation/edge.
+	OwnedTable = "squeaks"
+	// OwnedInverseTable is the table name for the Squeak entity.
+	// It exists in this package in order to avoid circular dependency with the "squeak" package.
+	OwnedInverseTable = "squeaks"
+	// OwnedColumn is the table column denoting the owned relation/edge.
+	OwnedColumn = "user_owned"
 )
 
 // Columns holds all SQL columns for user fields.

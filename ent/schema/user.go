@@ -37,5 +37,7 @@ func (User) Edges() []ent.Edge {
 		edge.To("following", User.Type).
 			From("followers"),
 		edge.To("roles", Role.Type),
+		edge.To("authored", Squeak.Type),
+		edge.To("owned", Squeak.Type),
 	}
 }

@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/ahashim/web-server/ent/squeak"
+	"github.com/ahashim/web-server/ent/user"
 	"github.com/ahashim/web-server/types"
 )
 
@@ -30,6 +31,44 @@ func (sc *SqueakCreate) SetBlockNumber(t *types.Uint256) *SqueakCreate {
 func (sc *SqueakCreate) SetContent(s string) *SqueakCreate {
 	sc.mutation.SetContent(s)
 	return sc
+}
+
+// SetAuthorID sets the "author" edge to the User entity by ID.
+func (sc *SqueakCreate) SetAuthorID(id int) *SqueakCreate {
+	sc.mutation.SetAuthorID(id)
+	return sc
+}
+
+// SetNillableAuthorID sets the "author" edge to the User entity by ID if the given value is not nil.
+func (sc *SqueakCreate) SetNillableAuthorID(id *int) *SqueakCreate {
+	if id != nil {
+		sc = sc.SetAuthorID(*id)
+	}
+	return sc
+}
+
+// SetAuthor sets the "author" edge to the User entity.
+func (sc *SqueakCreate) SetAuthor(u *User) *SqueakCreate {
+	return sc.SetAuthorID(u.ID)
+}
+
+// SetOwnerID sets the "owner" edge to the User entity by ID.
+func (sc *SqueakCreate) SetOwnerID(id int) *SqueakCreate {
+	sc.mutation.SetOwnerID(id)
+	return sc
+}
+
+// SetNillableOwnerID sets the "owner" edge to the User entity by ID if the given value is not nil.
+func (sc *SqueakCreate) SetNillableOwnerID(id *int) *SqueakCreate {
+	if id != nil {
+		sc = sc.SetOwnerID(*id)
+	}
+	return sc
+}
+
+// SetOwner sets the "owner" edge to the User entity.
+func (sc *SqueakCreate) SetOwner(u *User) *SqueakCreate {
+	return sc.SetOwnerID(u.ID)
 }
 
 // Mutation returns the SqueakMutation object of the builder.
@@ -161,6 +200,46 @@ func (sc *SqueakCreate) createSpec() (*Squeak, *sqlgraph.CreateSpec) {
 			Column: squeak.FieldContent,
 		})
 		_node.Content = value
+	}
+	if nodes := sc.mutation.AuthorIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   squeak.AuthorTable,
+			Columns: []string{squeak.AuthorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.user_authored = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := sc.mutation.OwnerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   squeak.OwnerTable,
+			Columns: []string{squeak.OwnerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.user_owned = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

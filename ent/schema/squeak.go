@@ -3,6 +3,7 @@ package schema
 import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 
 	"github.com/ahashim/web-server/types"
@@ -30,5 +31,12 @@ func (Squeak) Fields() []ent.Field {
 
 // Edges of the Squeak.
 func (Squeak) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		edge.From("author", User.Type).
+			Ref("authored").
+      Unique(),
+		edge.From("owner", User.Type).
+			Ref("owned").
+      Unique(),
+	}
 }

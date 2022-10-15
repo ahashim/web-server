@@ -37,9 +37,13 @@ type UserEdges struct {
 	Following []*User `json:"following,omitempty"`
 	// Roles holds the value of the roles edge.
 	Roles []*Role `json:"roles,omitempty"`
+	// Authored holds the value of the authored edge.
+	Authored []*Squeak `json:"authored,omitempty"`
+	// Owned holds the value of the owned edge.
+	Owned []*Squeak `json:"owned,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [5]bool
 }
 
 // FollowersOrErr returns the Followers value or an error if the edge
@@ -67,6 +71,24 @@ func (e UserEdges) RolesOrErr() ([]*Role, error) {
 		return e.Roles, nil
 	}
 	return nil, &NotLoadedError{edge: "roles"}
+}
+
+// AuthoredOrErr returns the Authored value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) AuthoredOrErr() ([]*Squeak, error) {
+	if e.loadedTypes[3] {
+		return e.Authored, nil
+	}
+	return nil, &NotLoadedError{edge: "authored"}
+}
+
+// OwnedOrErr returns the Owned value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) OwnedOrErr() ([]*Squeak, error) {
+	if e.loadedTypes[4] {
+		return e.Owned, nil
+	}
+	return nil, &NotLoadedError{edge: "owned"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -143,6 +165,16 @@ func (u *User) QueryFollowing() *UserQuery {
 // QueryRoles queries the "roles" edge of the User entity.
 func (u *User) QueryRoles() *RoleQuery {
 	return (&UserClient{config: u.config}).QueryRoles(u)
+}
+
+// QueryAuthored queries the "authored" edge of the User entity.
+func (u *User) QueryAuthored() *SqueakQuery {
+	return (&UserClient{config: u.config}).QueryAuthored(u)
+}
+
+// QueryOwned queries the "owned" edge of the User entity.
+func (u *User) QueryOwned() *SqueakQuery {
+	return (&UserClient{config: u.config}).QueryOwned(u)
 }
 
 // Update returns a builder for updating this User.

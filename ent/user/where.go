@@ -483,6 +483,62 @@ func HasRolesWith(preds ...predicate.Role) predicate.User {
 	})
 }
 
+// HasAuthored applies the HasEdge predicate on the "authored" edge.
+func HasAuthored() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(AuthoredTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, AuthoredTable, AuthoredColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAuthoredWith applies the HasEdge predicate on the "authored" edge with a given conditions (other predicates).
+func HasAuthoredWith(preds ...predicate.Squeak) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(AuthoredInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, AuthoredTable, AuthoredColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasOwned applies the HasEdge predicate on the "owned" edge.
+func HasOwned() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(OwnedTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, OwnedTable, OwnedColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasOwnedWith applies the HasEdge predicate on the "owned" edge with a given conditions (other predicates).
+func HasOwnedWith(preds ...predicate.Squeak) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(OwnedInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, OwnedTable, OwnedColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.User) predicate.User {
 	return predicate.User(func(s *sql.Selector) {

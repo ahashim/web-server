@@ -25,12 +25,28 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "block_number", Type: field.TypeInt, SchemaType: map[string]string{"postgres": "numeric(78, 0)"}},
 		{Name: "content", Type: field.TypeString, Size: 256},
+		{Name: "user_authored", Type: field.TypeInt, Nullable: true},
+		{Name: "user_owned", Type: field.TypeInt, Nullable: true},
 	}
 	// SqueaksTable holds the schema information for the "squeaks" table.
 	SqueaksTable = &schema.Table{
 		Name:       "squeaks",
 		Columns:    SqueaksColumns,
 		PrimaryKey: []*schema.Column{SqueaksColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "squeaks_users_authored",
+				Columns:    []*schema.Column{SqueaksColumns[3]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "squeaks_users_owned",
+				Columns:    []*schema.Column{SqueaksColumns[4]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
@@ -107,6 +123,8 @@ var (
 )
 
 func init() {
+	SqueaksTable.ForeignKeys[0].RefTable = UsersTable
+	SqueaksTable.ForeignKeys[1].RefTable = UsersTable
 	UserFollowingTable.ForeignKeys[0].RefTable = UsersTable
 	UserFollowingTable.ForeignKeys[1].RefTable = UsersTable
 	UserRolesTable.ForeignKeys[0].RefTable = UsersTable

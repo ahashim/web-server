@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/ahashim/web-server/ent/role"
+	"github.com/ahashim/web-server/ent/squeak"
 	"github.com/ahashim/web-server/ent/user"
 	"github.com/ahashim/web-server/enums"
 )
@@ -96,6 +97,36 @@ func (uc *UserCreate) AddRoles(r ...*Role) *UserCreate {
 		ids[i] = r[i].ID
 	}
 	return uc.AddRoleIDs(ids...)
+}
+
+// AddAuthoredIDs adds the "authored" edge to the Squeak entity by IDs.
+func (uc *UserCreate) AddAuthoredIDs(ids ...int) *UserCreate {
+	uc.mutation.AddAuthoredIDs(ids...)
+	return uc
+}
+
+// AddAuthored adds the "authored" edges to the Squeak entity.
+func (uc *UserCreate) AddAuthored(s ...*Squeak) *UserCreate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return uc.AddAuthoredIDs(ids...)
+}
+
+// AddOwnedIDs adds the "owned" edge to the Squeak entity by IDs.
+func (uc *UserCreate) AddOwnedIDs(ids ...int) *UserCreate {
+	uc.mutation.AddOwnedIDs(ids...)
+	return uc
+}
+
+// AddOwned adds the "owned" edges to the Squeak entity.
+func (uc *UserCreate) AddOwned(s ...*Squeak) *UserCreate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return uc.AddOwnedIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -318,6 +349,44 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: role.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.AuthoredIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.AuthoredTable,
+			Columns: []string{user.AuthoredColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: squeak.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.OwnedIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.OwnedTable,
+			Columns: []string{user.OwnedColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: squeak.FieldID,
 				},
 			},
 		}
