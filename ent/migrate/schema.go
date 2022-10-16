@@ -8,6 +8,33 @@ import (
 )
 
 var (
+	// InteractionsColumns holds the columns for the "interactions" table.
+	InteractionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "type", Type: field.TypeEnum, Enums: []string{"DELETE", "DISLIKE", "LIKE", "RESQUEAK", "UNDO_DISLIKE", "UNDO_LIKE", "UNDO_RESQUEAK"}},
+		{Name: "squeak_interactions", Type: field.TypeInt, Nullable: true},
+		{Name: "user_interactions", Type: field.TypeInt, Nullable: true},
+	}
+	// InteractionsTable holds the schema information for the "interactions" table.
+	InteractionsTable = &schema.Table{
+		Name:       "interactions",
+		Columns:    InteractionsColumns,
+		PrimaryKey: []*schema.Column{InteractionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "interactions_squeaks_interactions",
+				Columns:    []*schema.Column{InteractionsColumns[2]},
+				RefColumns: []*schema.Column{SqueaksColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "interactions_users_interactions",
+				Columns:    []*schema.Column{InteractionsColumns[3]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// RolesColumns holds the columns for the "roles" table.
 	RolesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -62,31 +89,6 @@ var (
 		Columns:    UsersColumns,
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
 	}
-	// UserFollowingColumns holds the columns for the "user_following" table.
-	UserFollowingColumns = []*schema.Column{
-		{Name: "user_id", Type: field.TypeInt},
-		{Name: "follower_id", Type: field.TypeInt},
-	}
-	// UserFollowingTable holds the schema information for the "user_following" table.
-	UserFollowingTable = &schema.Table{
-		Name:       "user_following",
-		Columns:    UserFollowingColumns,
-		PrimaryKey: []*schema.Column{UserFollowingColumns[0], UserFollowingColumns[1]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "user_following_user_id",
-				Columns:    []*schema.Column{UserFollowingColumns[0]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.Cascade,
-			},
-			{
-				Symbol:     "user_following_follower_id",
-				Columns:    []*schema.Column{UserFollowingColumns[1]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.Cascade,
-			},
-		},
-	}
 	// UserRolesColumns holds the columns for the "user_roles" table.
 	UserRolesColumns = []*schema.Column{
 		{Name: "user_id", Type: field.TypeInt},
@@ -112,21 +114,49 @@ var (
 			},
 		},
 	}
+	// UserFollowingColumns holds the columns for the "user_following" table.
+	UserFollowingColumns = []*schema.Column{
+		{Name: "user_id", Type: field.TypeInt},
+		{Name: "follower_id", Type: field.TypeInt},
+	}
+	// UserFollowingTable holds the schema information for the "user_following" table.
+	UserFollowingTable = &schema.Table{
+		Name:       "user_following",
+		Columns:    UserFollowingColumns,
+		PrimaryKey: []*schema.Column{UserFollowingColumns[0], UserFollowingColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "user_following_user_id",
+				Columns:    []*schema.Column{UserFollowingColumns[0]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "user_following_follower_id",
+				Columns:    []*schema.Column{UserFollowingColumns[1]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		InteractionsTable,
 		RolesTable,
 		SqueaksTable,
 		UsersTable,
-		UserFollowingTable,
 		UserRolesTable,
+		UserFollowingTable,
 	}
 )
 
 func init() {
+	InteractionsTable.ForeignKeys[0].RefTable = SqueaksTable
+	InteractionsTable.ForeignKeys[1].RefTable = UsersTable
 	SqueaksTable.ForeignKeys[0].RefTable = UsersTable
 	SqueaksTable.ForeignKeys[1].RefTable = UsersTable
-	UserFollowingTable.ForeignKeys[0].RefTable = UsersTable
-	UserFollowingTable.ForeignKeys[1].RefTable = UsersTable
 	UserRolesTable.ForeignKeys[0].RefTable = UsersTable
 	UserRolesTable.ForeignKeys[1].RefTable = RolesTable
+	UserFollowingTable.ForeignKeys[0].RefTable = UsersTable
+	UserFollowingTable.ForeignKeys[1].RefTable = UsersTable
 }

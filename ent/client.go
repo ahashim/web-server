@@ -10,6 +10,7 @@ import (
 
 	"github.com/ahashim/web-server/ent/migrate"
 
+	"github.com/ahashim/web-server/ent/interaction"
 	"github.com/ahashim/web-server/ent/role"
 	"github.com/ahashim/web-server/ent/squeak"
 	"github.com/ahashim/web-server/ent/user"
@@ -24,6 +25,8 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// Interaction is the client for interacting with the Interaction builders.
+	Interaction *InteractionClient
 	// Role is the client for interacting with the Role builders.
 	Role *RoleClient
 	// Squeak is the client for interacting with the Squeak builders.
@@ -43,6 +46,7 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.Interaction = NewInteractionClient(c.config)
 	c.Role = NewRoleClient(c.config)
 	c.Squeak = NewSqueakClient(c.config)
 	c.User = NewUserClient(c.config)
@@ -77,11 +81,12 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:    ctx,
-		config: cfg,
-		Role:   NewRoleClient(cfg),
-		Squeak: NewSqueakClient(cfg),
-		User:   NewUserClient(cfg),
+		ctx:         ctx,
+		config:      cfg,
+		Interaction: NewInteractionClient(cfg),
+		Role:        NewRoleClient(cfg),
+		Squeak:      NewSqueakClient(cfg),
+		User:        NewUserClient(cfg),
 	}, nil
 }
 
@@ -99,18 +104,19 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:    ctx,
-		config: cfg,
-		Role:   NewRoleClient(cfg),
-		Squeak: NewSqueakClient(cfg),
-		User:   NewUserClient(cfg),
+		ctx:         ctx,
+		config:      cfg,
+		Interaction: NewInteractionClient(cfg),
+		Role:        NewRoleClient(cfg),
+		Squeak:      NewSqueakClient(cfg),
+		User:        NewUserClient(cfg),
 	}, nil
 }
 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		Role.
+//		Interaction.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -132,9 +138,132 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
+	c.Interaction.Use(hooks...)
 	c.Role.Use(hooks...)
 	c.Squeak.Use(hooks...)
 	c.User.Use(hooks...)
+}
+
+// InteractionClient is a client for the Interaction schema.
+type InteractionClient struct {
+	config
+}
+
+// NewInteractionClient returns a client for the Interaction from the given config.
+func NewInteractionClient(c config) *InteractionClient {
+	return &InteractionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `interaction.Hooks(f(g(h())))`.
+func (c *InteractionClient) Use(hooks ...Hook) {
+	c.hooks.Interaction = append(c.hooks.Interaction, hooks...)
+}
+
+// Create returns a builder for creating a Interaction entity.
+func (c *InteractionClient) Create() *InteractionCreate {
+	mutation := newInteractionMutation(c.config, OpCreate)
+	return &InteractionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Interaction entities.
+func (c *InteractionClient) CreateBulk(builders ...*InteractionCreate) *InteractionCreateBulk {
+	return &InteractionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Interaction.
+func (c *InteractionClient) Update() *InteractionUpdate {
+	mutation := newInteractionMutation(c.config, OpUpdate)
+	return &InteractionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *InteractionClient) UpdateOne(i *Interaction) *InteractionUpdateOne {
+	mutation := newInteractionMutation(c.config, OpUpdateOne, withInteraction(i))
+	return &InteractionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *InteractionClient) UpdateOneID(id int) *InteractionUpdateOne {
+	mutation := newInteractionMutation(c.config, OpUpdateOne, withInteractionID(id))
+	return &InteractionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Interaction.
+func (c *InteractionClient) Delete() *InteractionDelete {
+	mutation := newInteractionMutation(c.config, OpDelete)
+	return &InteractionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *InteractionClient) DeleteOne(i *Interaction) *InteractionDeleteOne {
+	return c.DeleteOneID(i.ID)
+}
+
+// DeleteOne returns a builder for deleting the given entity by its id.
+func (c *InteractionClient) DeleteOneID(id int) *InteractionDeleteOne {
+	builder := c.Delete().Where(interaction.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &InteractionDeleteOne{builder}
+}
+
+// Query returns a query builder for Interaction.
+func (c *InteractionClient) Query() *InteractionQuery {
+	return &InteractionQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a Interaction entity by its id.
+func (c *InteractionClient) Get(ctx context.Context, id int) (*Interaction, error) {
+	return c.Query().Where(interaction.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *InteractionClient) GetX(ctx context.Context, id int) *Interaction {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a Interaction.
+func (c *InteractionClient) QueryUser(i *Interaction) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := i.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(interaction.Table, interaction.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, interaction.UserTable, interaction.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(i.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySqueak queries the squeak edge of a Interaction.
+func (c *InteractionClient) QuerySqueak(i *Interaction) *SqueakQuery {
+	query := &SqueakQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := i.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(interaction.Table, interaction.FieldID, id),
+			sqlgraph.To(squeak.Table, squeak.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, interaction.SqueakTable, interaction.SqueakColumn),
+		)
+		fromV = sqlgraph.Neighbors(i.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *InteractionClient) Hooks() []Hook {
+	return c.hooks.Interaction
 }
 
 // RoleClient is a client for the Role schema.
@@ -328,6 +457,22 @@ func (c *SqueakClient) GetX(ctx context.Context, id int) *Squeak {
 	return obj
 }
 
+// QueryInteractions queries the interactions edge of a Squeak.
+func (c *SqueakClient) QueryInteractions(s *Squeak) *InteractionQuery {
+	query := &InteractionQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := s.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(squeak.Table, squeak.FieldID, id),
+			sqlgraph.To(interaction.Table, interaction.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, squeak.InteractionsTable, squeak.InteractionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryCreator queries the creator edge of a Squeak.
 func (c *SqueakClient) QueryCreator(s *Squeak) *UserQuery {
 	query := &UserQuery{config: c.config}
@@ -450,31 +595,15 @@ func (c *UserClient) GetX(ctx context.Context, id int) *User {
 	return obj
 }
 
-// QueryFollowers queries the followers edge of a User.
-func (c *UserClient) QueryFollowers(u *User) *UserQuery {
-	query := &UserQuery{config: c.config}
+// QueryInteractions queries the interactions edge of a User.
+func (c *UserClient) QueryInteractions(u *User) *InteractionQuery {
+	query := &InteractionQuery{config: c.config}
 	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, user.FollowersTable, user.FollowersPrimaryKey...),
-		)
-		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryFollowing queries the following edge of a User.
-func (c *UserClient) QueryFollowing(u *User) *UserQuery {
-	query := &UserQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
-		id := u.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(user.Table, user.FieldID, id),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, user.FollowingTable, user.FollowingPrimaryKey...),
+			sqlgraph.To(interaction.Table, interaction.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.InteractionsTable, user.InteractionsColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil
@@ -523,6 +652,38 @@ func (c *UserClient) QueryOwned(u *User) *SqueakQuery {
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(squeak.Table, squeak.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.OwnedTable, user.OwnedColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryFollowers queries the followers edge of a User.
+func (c *UserClient) QueryFollowers(u *User) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, user.FollowersTable, user.FollowersPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryFollowing queries the following edge of a User.
+func (c *UserClient) QueryFollowing(u *User) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, user.FollowingTable, user.FollowingPrimaryKey...),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil

@@ -12,6 +12,8 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// Interaction is the client for interacting with the Interaction builders.
+	Interaction *InteractionClient
 	// Role is the client for interacting with the Role builders.
 	Role *RoleClient
 	// Squeak is the client for interacting with the Squeak builders.
@@ -153,6 +155,7 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.Interaction = NewInteractionClient(tx.config)
 	tx.Role = NewRoleClient(tx.config)
 	tx.Squeak = NewSqueakClient(tx.config)
 	tx.User = NewUserClient(tx.config)
@@ -165,7 +168,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: Role.QueryXXX(), the query will be executed
+// applies a query, for example: Interaction.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

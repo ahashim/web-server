@@ -4,12 +4,14 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/ahashim/web-server/ent/interaction"
 	"github.com/ahashim/web-server/ent/predicate"
 	"github.com/ahashim/web-server/ent/squeak"
 	"github.com/ahashim/web-server/ent/user"
@@ -18,15 +20,16 @@ import (
 // SqueakQuery is the builder for querying Squeak entities.
 type SqueakQuery struct {
 	config
-	limit       *int
-	offset      *int
-	unique      *bool
-	order       []OrderFunc
-	fields      []string
-	predicates  []predicate.Squeak
-	withCreator *UserQuery
-	withOwner   *UserQuery
-	withFKs     bool
+	limit            *int
+	offset           *int
+	unique           *bool
+	order            []OrderFunc
+	fields           []string
+	predicates       []predicate.Squeak
+	withInteractions *InteractionQuery
+	withCreator      *UserQuery
+	withOwner        *UserQuery
+	withFKs          bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -61,6 +64,28 @@ func (sq *SqueakQuery) Unique(unique bool) *SqueakQuery {
 func (sq *SqueakQuery) Order(o ...OrderFunc) *SqueakQuery {
 	sq.order = append(sq.order, o...)
 	return sq
+}
+
+// QueryInteractions chains the current query on the "interactions" edge.
+func (sq *SqueakQuery) QueryInteractions() *InteractionQuery {
+	query := &InteractionQuery{config: sq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := sq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := sq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(squeak.Table, squeak.FieldID, selector),
+			sqlgraph.To(interaction.Table, interaction.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, squeak.InteractionsTable, squeak.InteractionsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // QueryCreator chains the current query on the "creator" edge.
@@ -283,18 +308,30 @@ func (sq *SqueakQuery) Clone() *SqueakQuery {
 		return nil
 	}
 	return &SqueakQuery{
-		config:      sq.config,
-		limit:       sq.limit,
-		offset:      sq.offset,
-		order:       append([]OrderFunc{}, sq.order...),
-		predicates:  append([]predicate.Squeak{}, sq.predicates...),
-		withCreator: sq.withCreator.Clone(),
-		withOwner:   sq.withOwner.Clone(),
+		config:           sq.config,
+		limit:            sq.limit,
+		offset:           sq.offset,
+		order:            append([]OrderFunc{}, sq.order...),
+		predicates:       append([]predicate.Squeak{}, sq.predicates...),
+		withInteractions: sq.withInteractions.Clone(),
+		withCreator:      sq.withCreator.Clone(),
+		withOwner:        sq.withOwner.Clone(),
 		// clone intermediate query.
 		sql:    sq.sql.Clone(),
 		path:   sq.path,
 		unique: sq.unique,
 	}
+}
+
+// WithInteractions tells the query-builder to eager-load the nodes that are connected to
+// the "interactions" edge. The optional arguments are used to configure the query builder of the edge.
+func (sq *SqueakQuery) WithInteractions(opts ...func(*InteractionQuery)) *SqueakQuery {
+	query := &InteractionQuery{config: sq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	sq.withInteractions = query
+	return sq
 }
 
 // WithCreator tells the query-builder to eager-load the nodes that are connected to
@@ -388,7 +425,8 @@ func (sq *SqueakQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Squea
 		nodes       = []*Squeak{}
 		withFKs     = sq.withFKs
 		_spec       = sq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
+			sq.withInteractions != nil,
 			sq.withCreator != nil,
 			sq.withOwner != nil,
 		}
@@ -417,6 +455,13 @@ func (sq *SqueakQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Squea
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := sq.withInteractions; query != nil {
+		if err := sq.loadInteractions(ctx, query, nodes,
+			func(n *Squeak) { n.Edges.Interactions = []*Interaction{} },
+			func(n *Squeak, e *Interaction) { n.Edges.Interactions = append(n.Edges.Interactions, e) }); err != nil {
+			return nil, err
+		}
+	}
 	if query := sq.withCreator; query != nil {
 		if err := sq.loadCreator(ctx, query, nodes, nil,
 			func(n *Squeak, e *User) { n.Edges.Creator = e }); err != nil {
@@ -432,6 +477,37 @@ func (sq *SqueakQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Squea
 	return nodes, nil
 }
 
+func (sq *SqueakQuery) loadInteractions(ctx context.Context, query *InteractionQuery, nodes []*Squeak, init func(*Squeak), assign func(*Squeak, *Interaction)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*Squeak)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.Interaction(func(s *sql.Selector) {
+		s.Where(sql.InValues(squeak.InteractionsColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.squeak_interactions
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "squeak_interactions" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "squeak_interactions" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
 func (sq *SqueakQuery) loadCreator(ctx context.Context, query *UserQuery, nodes []*Squeak, init func(*Squeak), assign func(*Squeak, *User)) error {
 	ids := make([]int, 0, len(nodes))
 	nodeids := make(map[int][]*Squeak)

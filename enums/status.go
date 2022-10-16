@@ -3,7 +3,7 @@ package enums
 import "database/sql/driver"
 
 // Status is the state a user can be in.
-type Status uint8
+type Status int8
 
 // Enum of user statuses.
 const (
@@ -16,6 +16,8 @@ const (
 // String provides a string value for a Status int.
 func (p Status) String() string {
 	switch p {
+	case Unknown:
+		return "UNKNOWN"
 	case Active:
 		return "ACTIVE"
 	case Suspended:
@@ -23,7 +25,7 @@ func (p Status) String() string {
 	case Banned:
 		return "BANNED"
 	default:
-		return "UNKNOWN"
+		return ""
 	}
 }
 
@@ -56,6 +58,8 @@ func (p *Status) Scan(val any) error {
 	}
 
 	switch s {
+	case Unknown.String():
+		*p = Unknown
 	case Active.String():
 		*p = Active
 	case Suspended.String():
@@ -63,7 +67,7 @@ func (p *Status) Scan(val any) error {
 	case Banned.String():
 		*p = Banned
 	default:
-		*p = Unknown
+		*p = -1
 	}
 
 	return nil

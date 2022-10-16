@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/ahashim/web-server/ent/interaction"
 	"github.com/ahashim/web-server/ent/predicate"
 	"github.com/ahashim/web-server/ent/squeak"
 	"github.com/ahashim/web-server/ent/user"
@@ -33,6 +34,21 @@ func (su *SqueakUpdate) Where(ps ...predicate.Squeak) *SqueakUpdate {
 func (su *SqueakUpdate) SetBlockNumber(t *types.Uint256) *SqueakUpdate {
 	su.mutation.SetBlockNumber(t)
 	return su
+}
+
+// AddInteractionIDs adds the "interactions" edge to the Interaction entity by IDs.
+func (su *SqueakUpdate) AddInteractionIDs(ids ...int) *SqueakUpdate {
+	su.mutation.AddInteractionIDs(ids...)
+	return su
+}
+
+// AddInteractions adds the "interactions" edges to the Interaction entity.
+func (su *SqueakUpdate) AddInteractions(i ...*Interaction) *SqueakUpdate {
+	ids := make([]int, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return su.AddInteractionIDs(ids...)
 }
 
 // SetCreatorID sets the "creator" edge to the User entity by ID.
@@ -76,6 +92,27 @@ func (su *SqueakUpdate) SetOwner(u *User) *SqueakUpdate {
 // Mutation returns the SqueakMutation object of the builder.
 func (su *SqueakUpdate) Mutation() *SqueakMutation {
 	return su.mutation
+}
+
+// ClearInteractions clears all "interactions" edges to the Interaction entity.
+func (su *SqueakUpdate) ClearInteractions() *SqueakUpdate {
+	su.mutation.ClearInteractions()
+	return su
+}
+
+// RemoveInteractionIDs removes the "interactions" edge to Interaction entities by IDs.
+func (su *SqueakUpdate) RemoveInteractionIDs(ids ...int) *SqueakUpdate {
+	su.mutation.RemoveInteractionIDs(ids...)
+	return su
+}
+
+// RemoveInteractions removes "interactions" edges to Interaction entities.
+func (su *SqueakUpdate) RemoveInteractions(i ...*Interaction) *SqueakUpdate {
+	ids := make([]int, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return su.RemoveInteractionIDs(ids...)
 }
 
 // ClearCreator clears the "creator" edge to the User entity.
@@ -168,6 +205,60 @@ func (su *SqueakUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Value:  value,
 			Column: squeak.FieldBlockNumber,
 		})
+	}
+	if su.mutation.InteractionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   squeak.InteractionsTable,
+			Columns: []string{squeak.InteractionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: interaction.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := su.mutation.RemovedInteractionsIDs(); len(nodes) > 0 && !su.mutation.InteractionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   squeak.InteractionsTable,
+			Columns: []string{squeak.InteractionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: interaction.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := su.mutation.InteractionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   squeak.InteractionsTable,
+			Columns: []string{squeak.InteractionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: interaction.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if su.mutation.CreatorCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -264,6 +355,21 @@ func (suo *SqueakUpdateOne) SetBlockNumber(t *types.Uint256) *SqueakUpdateOne {
 	return suo
 }
 
+// AddInteractionIDs adds the "interactions" edge to the Interaction entity by IDs.
+func (suo *SqueakUpdateOne) AddInteractionIDs(ids ...int) *SqueakUpdateOne {
+	suo.mutation.AddInteractionIDs(ids...)
+	return suo
+}
+
+// AddInteractions adds the "interactions" edges to the Interaction entity.
+func (suo *SqueakUpdateOne) AddInteractions(i ...*Interaction) *SqueakUpdateOne {
+	ids := make([]int, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return suo.AddInteractionIDs(ids...)
+}
+
 // SetCreatorID sets the "creator" edge to the User entity by ID.
 func (suo *SqueakUpdateOne) SetCreatorID(id int) *SqueakUpdateOne {
 	suo.mutation.SetCreatorID(id)
@@ -305,6 +411,27 @@ func (suo *SqueakUpdateOne) SetOwner(u *User) *SqueakUpdateOne {
 // Mutation returns the SqueakMutation object of the builder.
 func (suo *SqueakUpdateOne) Mutation() *SqueakMutation {
 	return suo.mutation
+}
+
+// ClearInteractions clears all "interactions" edges to the Interaction entity.
+func (suo *SqueakUpdateOne) ClearInteractions() *SqueakUpdateOne {
+	suo.mutation.ClearInteractions()
+	return suo
+}
+
+// RemoveInteractionIDs removes the "interactions" edge to Interaction entities by IDs.
+func (suo *SqueakUpdateOne) RemoveInteractionIDs(ids ...int) *SqueakUpdateOne {
+	suo.mutation.RemoveInteractionIDs(ids...)
+	return suo
+}
+
+// RemoveInteractions removes "interactions" edges to Interaction entities.
+func (suo *SqueakUpdateOne) RemoveInteractions(i ...*Interaction) *SqueakUpdateOne {
+	ids := make([]int, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return suo.RemoveInteractionIDs(ids...)
 }
 
 // ClearCreator clears the "creator" edge to the User entity.
@@ -427,6 +554,60 @@ func (suo *SqueakUpdateOne) sqlSave(ctx context.Context) (_node *Squeak, err err
 			Value:  value,
 			Column: squeak.FieldBlockNumber,
 		})
+	}
+	if suo.mutation.InteractionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   squeak.InteractionsTable,
+			Columns: []string{squeak.InteractionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: interaction.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := suo.mutation.RemovedInteractionsIDs(); len(nodes) > 0 && !suo.mutation.InteractionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   squeak.InteractionsTable,
+			Columns: []string{squeak.InteractionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: interaction.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := suo.mutation.InteractionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   squeak.InteractionsTable,
+			Columns: []string{squeak.InteractionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: interaction.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if suo.mutation.CreatorCleared() {
 		edge := &sqlgraph.EdgeSpec{

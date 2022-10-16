@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/ahashim/web-server/ent/interaction"
 	"github.com/ahashim/web-server/ent/squeak"
 	"github.com/ahashim/web-server/ent/user"
 	"github.com/ahashim/web-server/types"
@@ -31,6 +32,21 @@ func (sc *SqueakCreate) SetBlockNumber(t *types.Uint256) *SqueakCreate {
 func (sc *SqueakCreate) SetContent(s string) *SqueakCreate {
 	sc.mutation.SetContent(s)
 	return sc
+}
+
+// AddInteractionIDs adds the "interactions" edge to the Interaction entity by IDs.
+func (sc *SqueakCreate) AddInteractionIDs(ids ...int) *SqueakCreate {
+	sc.mutation.AddInteractionIDs(ids...)
+	return sc
+}
+
+// AddInteractions adds the "interactions" edges to the Interaction entity.
+func (sc *SqueakCreate) AddInteractions(i ...*Interaction) *SqueakCreate {
+	ids := make([]int, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return sc.AddInteractionIDs(ids...)
 }
 
 // SetCreatorID sets the "creator" edge to the User entity by ID.
@@ -200,6 +216,25 @@ func (sc *SqueakCreate) createSpec() (*Squeak, *sqlgraph.CreateSpec) {
 			Column: squeak.FieldContent,
 		})
 		_node.Content = value
+	}
+	if nodes := sc.mutation.InteractionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   squeak.InteractionsTable,
+			Columns: []string{squeak.InteractionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: interaction.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := sc.mutation.CreatorIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

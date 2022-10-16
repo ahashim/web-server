@@ -11,12 +11,21 @@ const (
 	FieldBlockNumber = "block_number"
 	// FieldContent holds the string denoting the content field in the database.
 	FieldContent = "content"
+	// EdgeInteractions holds the string denoting the interactions edge name in mutations.
+	EdgeInteractions = "interactions"
 	// EdgeCreator holds the string denoting the creator edge name in mutations.
 	EdgeCreator = "creator"
 	// EdgeOwner holds the string denoting the owner edge name in mutations.
 	EdgeOwner = "owner"
 	// Table holds the table name of the squeak in the database.
 	Table = "squeaks"
+	// InteractionsTable is the table that holds the interactions relation/edge.
+	InteractionsTable = "interactions"
+	// InteractionsInverseTable is the table name for the Interaction entity.
+	// It exists in this package in order to avoid circular dependency with the "interaction" package.
+	InteractionsInverseTable = "interactions"
+	// InteractionsColumn is the table column denoting the interactions relation/edge.
+	InteractionsColumn = "squeak_interactions"
 	// CreatorTable is the table that holds the creator relation/edge.
 	CreatorTable = "squeaks"
 	// CreatorInverseTable is the table name for the User entity.

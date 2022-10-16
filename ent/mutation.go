@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/ahashim/web-server/ent/interaction"
 	"github.com/ahashim/web-server/ent/predicate"
 	"github.com/ahashim/web-server/ent/role"
 	"github.com/ahashim/web-server/ent/squeak"
@@ -27,10 +28,448 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeRole   = "Role"
-	TypeSqueak = "Squeak"
-	TypeUser   = "User"
+	TypeInteraction = "Interaction"
+	TypeRole        = "Role"
+	TypeSqueak      = "Squeak"
+	TypeUser        = "User"
 )
+
+// InteractionMutation represents an operation that mutates the Interaction nodes in the graph.
+type InteractionMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	_type         *enums.Interaction
+	clearedFields map[string]struct{}
+	user          *int
+	cleareduser   bool
+	squeak        *int
+	clearedsqueak bool
+	done          bool
+	oldValue      func(context.Context) (*Interaction, error)
+	predicates    []predicate.Interaction
+}
+
+var _ ent.Mutation = (*InteractionMutation)(nil)
+
+// interactionOption allows management of the mutation configuration using functional options.
+type interactionOption func(*InteractionMutation)
+
+// newInteractionMutation creates new mutation for the Interaction entity.
+func newInteractionMutation(c config, op Op, opts ...interactionOption) *InteractionMutation {
+	m := &InteractionMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeInteraction,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withInteractionID sets the ID field of the mutation.
+func withInteractionID(id int) interactionOption {
+	return func(m *InteractionMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Interaction
+		)
+		m.oldValue = func(ctx context.Context) (*Interaction, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Interaction.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withInteraction sets the old Interaction of the mutation.
+func withInteraction(node *Interaction) interactionOption {
+	return func(m *InteractionMutation) {
+		m.oldValue = func(context.Context) (*Interaction, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m InteractionMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m InteractionMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *InteractionMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *InteractionMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Interaction.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetType sets the "type" field.
+func (m *InteractionMutation) SetType(e enums.Interaction) {
+	m._type = &e
+}
+
+// GetType returns the value of the "type" field in the mutation.
+func (m *InteractionMutation) GetType() (r enums.Interaction, exists bool) {
+	v := m._type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldType returns the old "type" field's value of the Interaction entity.
+// If the Interaction object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InteractionMutation) OldType(ctx context.Context) (v enums.Interaction, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldType: %w", err)
+	}
+	return oldValue.Type, nil
+}
+
+// ResetType resets all changes to the "type" field.
+func (m *InteractionMutation) ResetType() {
+	m._type = nil
+}
+
+// SetUserID sets the "user" edge to the User entity by id.
+func (m *InteractionMutation) SetUserID(id int) {
+	m.user = &id
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (m *InteractionMutation) ClearUser() {
+	m.cleareduser = true
+}
+
+// UserCleared reports if the "user" edge to the User entity was cleared.
+func (m *InteractionMutation) UserCleared() bool {
+	return m.cleareduser
+}
+
+// UserID returns the "user" edge ID in the mutation.
+func (m *InteractionMutation) UserID() (id int, exists bool) {
+	if m.user != nil {
+		return *m.user, true
+	}
+	return
+}
+
+// UserIDs returns the "user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserID instead. It exists only for internal usage by the builders.
+func (m *InteractionMutation) UserIDs() (ids []int) {
+	if id := m.user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUser resets all changes to the "user" edge.
+func (m *InteractionMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
+}
+
+// SetSqueakID sets the "squeak" edge to the Squeak entity by id.
+func (m *InteractionMutation) SetSqueakID(id int) {
+	m.squeak = &id
+}
+
+// ClearSqueak clears the "squeak" edge to the Squeak entity.
+func (m *InteractionMutation) ClearSqueak() {
+	m.clearedsqueak = true
+}
+
+// SqueakCleared reports if the "squeak" edge to the Squeak entity was cleared.
+func (m *InteractionMutation) SqueakCleared() bool {
+	return m.clearedsqueak
+}
+
+// SqueakID returns the "squeak" edge ID in the mutation.
+func (m *InteractionMutation) SqueakID() (id int, exists bool) {
+	if m.squeak != nil {
+		return *m.squeak, true
+	}
+	return
+}
+
+// SqueakIDs returns the "squeak" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// SqueakID instead. It exists only for internal usage by the builders.
+func (m *InteractionMutation) SqueakIDs() (ids []int) {
+	if id := m.squeak; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetSqueak resets all changes to the "squeak" edge.
+func (m *InteractionMutation) ResetSqueak() {
+	m.squeak = nil
+	m.clearedsqueak = false
+}
+
+// Where appends a list predicates to the InteractionMutation builder.
+func (m *InteractionMutation) Where(ps ...predicate.Interaction) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// Op returns the operation name.
+func (m *InteractionMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (Interaction).
+func (m *InteractionMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *InteractionMutation) Fields() []string {
+	fields := make([]string, 0, 1)
+	if m._type != nil {
+		fields = append(fields, interaction.FieldType)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *InteractionMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case interaction.FieldType:
+		return m.GetType()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *InteractionMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case interaction.FieldType:
+		return m.OldType(ctx)
+	}
+	return nil, fmt.Errorf("unknown Interaction field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *InteractionMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case interaction.FieldType:
+		v, ok := value.(enums.Interaction)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetType(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Interaction field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *InteractionMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *InteractionMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *InteractionMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Interaction numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *InteractionMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *InteractionMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *InteractionMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Interaction nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *InteractionMutation) ResetField(name string) error {
+	switch name {
+	case interaction.FieldType:
+		m.ResetType()
+		return nil
+	}
+	return fmt.Errorf("unknown Interaction field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *InteractionMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.user != nil {
+		edges = append(edges, interaction.EdgeUser)
+	}
+	if m.squeak != nil {
+		edges = append(edges, interaction.EdgeSqueak)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *InteractionMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case interaction.EdgeUser:
+		if id := m.user; id != nil {
+			return []ent.Value{*id}
+		}
+	case interaction.EdgeSqueak:
+		if id := m.squeak; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *InteractionMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *InteractionMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *InteractionMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.cleareduser {
+		edges = append(edges, interaction.EdgeUser)
+	}
+	if m.clearedsqueak {
+		edges = append(edges, interaction.EdgeSqueak)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *InteractionMutation) EdgeCleared(name string) bool {
+	switch name {
+	case interaction.EdgeUser:
+		return m.cleareduser
+	case interaction.EdgeSqueak:
+		return m.clearedsqueak
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *InteractionMutation) ClearEdge(name string) error {
+	switch name {
+	case interaction.EdgeUser:
+		m.ClearUser()
+		return nil
+	case interaction.EdgeSqueak:
+		m.ClearSqueak()
+		return nil
+	}
+	return fmt.Errorf("unknown Interaction unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *InteractionMutation) ResetEdge(name string) error {
+	switch name {
+	case interaction.EdgeUser:
+		m.ResetUser()
+		return nil
+	case interaction.EdgeSqueak:
+		m.ResetSqueak()
+		return nil
+	}
+	return fmt.Errorf("unknown Interaction edge %s", name)
+}
 
 // RoleMutation represents an operation that mutates the Role nodes in the graph.
 type RoleMutation struct {
@@ -493,19 +932,22 @@ func (m *RoleMutation) ResetEdge(name string) error {
 // SqueakMutation represents an operation that mutates the Squeak nodes in the graph.
 type SqueakMutation struct {
 	config
-	op             Op
-	typ            string
-	id             *int
-	block_number   **types.Uint256
-	content        *string
-	clearedFields  map[string]struct{}
-	creator        *int
-	clearedcreator bool
-	owner          *int
-	clearedowner   bool
-	done           bool
-	oldValue       func(context.Context) (*Squeak, error)
-	predicates     []predicate.Squeak
+	op                  Op
+	typ                 string
+	id                  *int
+	block_number        **types.Uint256
+	content             *string
+	clearedFields       map[string]struct{}
+	interactions        map[int]struct{}
+	removedinteractions map[int]struct{}
+	clearedinteractions bool
+	creator             *int
+	clearedcreator      bool
+	owner               *int
+	clearedowner        bool
+	done                bool
+	oldValue            func(context.Context) (*Squeak, error)
+	predicates          []predicate.Squeak
 }
 
 var _ ent.Mutation = (*SqueakMutation)(nil)
@@ -676,6 +1118,60 @@ func (m *SqueakMutation) OldContent(ctx context.Context) (v string, err error) {
 // ResetContent resets all changes to the "content" field.
 func (m *SqueakMutation) ResetContent() {
 	m.content = nil
+}
+
+// AddInteractionIDs adds the "interactions" edge to the Interaction entity by ids.
+func (m *SqueakMutation) AddInteractionIDs(ids ...int) {
+	if m.interactions == nil {
+		m.interactions = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.interactions[ids[i]] = struct{}{}
+	}
+}
+
+// ClearInteractions clears the "interactions" edge to the Interaction entity.
+func (m *SqueakMutation) ClearInteractions() {
+	m.clearedinteractions = true
+}
+
+// InteractionsCleared reports if the "interactions" edge to the Interaction entity was cleared.
+func (m *SqueakMutation) InteractionsCleared() bool {
+	return m.clearedinteractions
+}
+
+// RemoveInteractionIDs removes the "interactions" edge to the Interaction entity by IDs.
+func (m *SqueakMutation) RemoveInteractionIDs(ids ...int) {
+	if m.removedinteractions == nil {
+		m.removedinteractions = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.interactions, ids[i])
+		m.removedinteractions[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedInteractions returns the removed IDs of the "interactions" edge to the Interaction entity.
+func (m *SqueakMutation) RemovedInteractionsIDs() (ids []int) {
+	for id := range m.removedinteractions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// InteractionsIDs returns the "interactions" edge IDs in the mutation.
+func (m *SqueakMutation) InteractionsIDs() (ids []int) {
+	for id := range m.interactions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetInteractions resets all changes to the "interactions" edge.
+func (m *SqueakMutation) ResetInteractions() {
+	m.interactions = nil
+	m.clearedinteractions = false
+	m.removedinteractions = nil
 }
 
 // SetCreatorID sets the "creator" edge to the User entity by id.
@@ -894,7 +1390,10 @@ func (m *SqueakMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *SqueakMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
+	if m.interactions != nil {
+		edges = append(edges, squeak.EdgeInteractions)
+	}
 	if m.creator != nil {
 		edges = append(edges, squeak.EdgeCreator)
 	}
@@ -908,6 +1407,12 @@ func (m *SqueakMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *SqueakMutation) AddedIDs(name string) []ent.Value {
 	switch name {
+	case squeak.EdgeInteractions:
+		ids := make([]ent.Value, 0, len(m.interactions))
+		for id := range m.interactions {
+			ids = append(ids, id)
+		}
+		return ids
 	case squeak.EdgeCreator:
 		if id := m.creator; id != nil {
 			return []ent.Value{*id}
@@ -922,19 +1427,33 @@ func (m *SqueakMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *SqueakMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
+	if m.removedinteractions != nil {
+		edges = append(edges, squeak.EdgeInteractions)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *SqueakMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case squeak.EdgeInteractions:
+		ids := make([]ent.Value, 0, len(m.removedinteractions))
+		for id := range m.removedinteractions {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *SqueakMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
+	if m.clearedinteractions {
+		edges = append(edges, squeak.EdgeInteractions)
+	}
 	if m.clearedcreator {
 		edges = append(edges, squeak.EdgeCreator)
 	}
@@ -948,6 +1467,8 @@ func (m *SqueakMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *SqueakMutation) EdgeCleared(name string) bool {
 	switch name {
+	case squeak.EdgeInteractions:
+		return m.clearedinteractions
 	case squeak.EdgeCreator:
 		return m.clearedcreator
 	case squeak.EdgeOwner:
@@ -974,6 +1495,9 @@ func (m *SqueakMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *SqueakMutation) ResetEdge(name string) error {
 	switch name {
+	case squeak.EdgeInteractions:
+		m.ResetInteractions()
+		return nil
 	case squeak.EdgeCreator:
 		m.ResetCreator()
 		return nil
@@ -987,33 +1511,36 @@ func (m *SqueakMutation) ResetEdge(name string) error {
 // UserMutation represents an operation that mutates the User nodes in the graph.
 type UserMutation struct {
 	config
-	op               Op
-	typ              string
-	id               *int
-	address          *string
-	username         *string
-	status           *enums.Status
-	scout_level      *int8
-	addscout_level   *int8
-	clearedFields    map[string]struct{}
-	followers        map[int]struct{}
-	removedfollowers map[int]struct{}
-	clearedfollowers bool
-	following        map[int]struct{}
-	removedfollowing map[int]struct{}
-	clearedfollowing bool
-	roles            map[int]struct{}
-	removedroles     map[int]struct{}
-	clearedroles     bool
-	created          map[int]struct{}
-	removedcreated   map[int]struct{}
-	clearedcreated   bool
-	owned            map[int]struct{}
-	removedowned     map[int]struct{}
-	clearedowned     bool
-	done             bool
-	oldValue         func(context.Context) (*User, error)
-	predicates       []predicate.User
+	op                  Op
+	typ                 string
+	id                  *int
+	address             *string
+	username            *string
+	status              *enums.Status
+	scout_level         *int8
+	addscout_level      *int8
+	clearedFields       map[string]struct{}
+	interactions        map[int]struct{}
+	removedinteractions map[int]struct{}
+	clearedinteractions bool
+	roles               map[int]struct{}
+	removedroles        map[int]struct{}
+	clearedroles        bool
+	created             map[int]struct{}
+	removedcreated      map[int]struct{}
+	clearedcreated      bool
+	owned               map[int]struct{}
+	removedowned        map[int]struct{}
+	clearedowned        bool
+	followers           map[int]struct{}
+	removedfollowers    map[int]struct{}
+	clearedfollowers    bool
+	following           map[int]struct{}
+	removedfollowing    map[int]struct{}
+	clearedfollowing    bool
+	done                bool
+	oldValue            func(context.Context) (*User, error)
+	predicates          []predicate.User
 }
 
 var _ ent.Mutation = (*UserMutation)(nil)
@@ -1278,112 +1805,58 @@ func (m *UserMutation) ResetScoutLevel() {
 	m.addscout_level = nil
 }
 
-// AddFollowerIDs adds the "followers" edge to the User entity by ids.
-func (m *UserMutation) AddFollowerIDs(ids ...int) {
-	if m.followers == nil {
-		m.followers = make(map[int]struct{})
+// AddInteractionIDs adds the "interactions" edge to the Interaction entity by ids.
+func (m *UserMutation) AddInteractionIDs(ids ...int) {
+	if m.interactions == nil {
+		m.interactions = make(map[int]struct{})
 	}
 	for i := range ids {
-		m.followers[ids[i]] = struct{}{}
+		m.interactions[ids[i]] = struct{}{}
 	}
 }
 
-// ClearFollowers clears the "followers" edge to the User entity.
-func (m *UserMutation) ClearFollowers() {
-	m.clearedfollowers = true
+// ClearInteractions clears the "interactions" edge to the Interaction entity.
+func (m *UserMutation) ClearInteractions() {
+	m.clearedinteractions = true
 }
 
-// FollowersCleared reports if the "followers" edge to the User entity was cleared.
-func (m *UserMutation) FollowersCleared() bool {
-	return m.clearedfollowers
+// InteractionsCleared reports if the "interactions" edge to the Interaction entity was cleared.
+func (m *UserMutation) InteractionsCleared() bool {
+	return m.clearedinteractions
 }
 
-// RemoveFollowerIDs removes the "followers" edge to the User entity by IDs.
-func (m *UserMutation) RemoveFollowerIDs(ids ...int) {
-	if m.removedfollowers == nil {
-		m.removedfollowers = make(map[int]struct{})
+// RemoveInteractionIDs removes the "interactions" edge to the Interaction entity by IDs.
+func (m *UserMutation) RemoveInteractionIDs(ids ...int) {
+	if m.removedinteractions == nil {
+		m.removedinteractions = make(map[int]struct{})
 	}
 	for i := range ids {
-		delete(m.followers, ids[i])
-		m.removedfollowers[ids[i]] = struct{}{}
+		delete(m.interactions, ids[i])
+		m.removedinteractions[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedFollowers returns the removed IDs of the "followers" edge to the User entity.
-func (m *UserMutation) RemovedFollowersIDs() (ids []int) {
-	for id := range m.removedfollowers {
+// RemovedInteractions returns the removed IDs of the "interactions" edge to the Interaction entity.
+func (m *UserMutation) RemovedInteractionsIDs() (ids []int) {
+	for id := range m.removedinteractions {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// FollowersIDs returns the "followers" edge IDs in the mutation.
-func (m *UserMutation) FollowersIDs() (ids []int) {
-	for id := range m.followers {
+// InteractionsIDs returns the "interactions" edge IDs in the mutation.
+func (m *UserMutation) InteractionsIDs() (ids []int) {
+	for id := range m.interactions {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetFollowers resets all changes to the "followers" edge.
-func (m *UserMutation) ResetFollowers() {
-	m.followers = nil
-	m.clearedfollowers = false
-	m.removedfollowers = nil
-}
-
-// AddFollowingIDs adds the "following" edge to the User entity by ids.
-func (m *UserMutation) AddFollowingIDs(ids ...int) {
-	if m.following == nil {
-		m.following = make(map[int]struct{})
-	}
-	for i := range ids {
-		m.following[ids[i]] = struct{}{}
-	}
-}
-
-// ClearFollowing clears the "following" edge to the User entity.
-func (m *UserMutation) ClearFollowing() {
-	m.clearedfollowing = true
-}
-
-// FollowingCleared reports if the "following" edge to the User entity was cleared.
-func (m *UserMutation) FollowingCleared() bool {
-	return m.clearedfollowing
-}
-
-// RemoveFollowingIDs removes the "following" edge to the User entity by IDs.
-func (m *UserMutation) RemoveFollowingIDs(ids ...int) {
-	if m.removedfollowing == nil {
-		m.removedfollowing = make(map[int]struct{})
-	}
-	for i := range ids {
-		delete(m.following, ids[i])
-		m.removedfollowing[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedFollowing returns the removed IDs of the "following" edge to the User entity.
-func (m *UserMutation) RemovedFollowingIDs() (ids []int) {
-	for id := range m.removedfollowing {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// FollowingIDs returns the "following" edge IDs in the mutation.
-func (m *UserMutation) FollowingIDs() (ids []int) {
-	for id := range m.following {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetFollowing resets all changes to the "following" edge.
-func (m *UserMutation) ResetFollowing() {
-	m.following = nil
-	m.clearedfollowing = false
-	m.removedfollowing = nil
+// ResetInteractions resets all changes to the "interactions" edge.
+func (m *UserMutation) ResetInteractions() {
+	m.interactions = nil
+	m.clearedinteractions = false
+	m.removedinteractions = nil
 }
 
 // AddRoleIDs adds the "roles" edge to the Role entity by ids.
@@ -1546,6 +2019,114 @@ func (m *UserMutation) ResetOwned() {
 	m.owned = nil
 	m.clearedowned = false
 	m.removedowned = nil
+}
+
+// AddFollowerIDs adds the "followers" edge to the User entity by ids.
+func (m *UserMutation) AddFollowerIDs(ids ...int) {
+	if m.followers == nil {
+		m.followers = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.followers[ids[i]] = struct{}{}
+	}
+}
+
+// ClearFollowers clears the "followers" edge to the User entity.
+func (m *UserMutation) ClearFollowers() {
+	m.clearedfollowers = true
+}
+
+// FollowersCleared reports if the "followers" edge to the User entity was cleared.
+func (m *UserMutation) FollowersCleared() bool {
+	return m.clearedfollowers
+}
+
+// RemoveFollowerIDs removes the "followers" edge to the User entity by IDs.
+func (m *UserMutation) RemoveFollowerIDs(ids ...int) {
+	if m.removedfollowers == nil {
+		m.removedfollowers = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.followers, ids[i])
+		m.removedfollowers[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedFollowers returns the removed IDs of the "followers" edge to the User entity.
+func (m *UserMutation) RemovedFollowersIDs() (ids []int) {
+	for id := range m.removedfollowers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// FollowersIDs returns the "followers" edge IDs in the mutation.
+func (m *UserMutation) FollowersIDs() (ids []int) {
+	for id := range m.followers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetFollowers resets all changes to the "followers" edge.
+func (m *UserMutation) ResetFollowers() {
+	m.followers = nil
+	m.clearedfollowers = false
+	m.removedfollowers = nil
+}
+
+// AddFollowingIDs adds the "following" edge to the User entity by ids.
+func (m *UserMutation) AddFollowingIDs(ids ...int) {
+	if m.following == nil {
+		m.following = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.following[ids[i]] = struct{}{}
+	}
+}
+
+// ClearFollowing clears the "following" edge to the User entity.
+func (m *UserMutation) ClearFollowing() {
+	m.clearedfollowing = true
+}
+
+// FollowingCleared reports if the "following" edge to the User entity was cleared.
+func (m *UserMutation) FollowingCleared() bool {
+	return m.clearedfollowing
+}
+
+// RemoveFollowingIDs removes the "following" edge to the User entity by IDs.
+func (m *UserMutation) RemoveFollowingIDs(ids ...int) {
+	if m.removedfollowing == nil {
+		m.removedfollowing = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.following, ids[i])
+		m.removedfollowing[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedFollowing returns the removed IDs of the "following" edge to the User entity.
+func (m *UserMutation) RemovedFollowingIDs() (ids []int) {
+	for id := range m.removedfollowing {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// FollowingIDs returns the "following" edge IDs in the mutation.
+func (m *UserMutation) FollowingIDs() (ids []int) {
+	for id := range m.following {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetFollowing resets all changes to the "following" edge.
+func (m *UserMutation) ResetFollowing() {
+	m.following = nil
+	m.clearedfollowing = false
+	m.removedfollowing = nil
 }
 
 // Where appends a list predicates to the UserMutation builder.
@@ -1732,12 +2313,9 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 5)
-	if m.followers != nil {
-		edges = append(edges, user.EdgeFollowers)
-	}
-	if m.following != nil {
-		edges = append(edges, user.EdgeFollowing)
+	edges := make([]string, 0, 6)
+	if m.interactions != nil {
+		edges = append(edges, user.EdgeInteractions)
 	}
 	if m.roles != nil {
 		edges = append(edges, user.EdgeRoles)
@@ -1748,6 +2326,12 @@ func (m *UserMutation) AddedEdges() []string {
 	if m.owned != nil {
 		edges = append(edges, user.EdgeOwned)
 	}
+	if m.followers != nil {
+		edges = append(edges, user.EdgeFollowers)
+	}
+	if m.following != nil {
+		edges = append(edges, user.EdgeFollowing)
+	}
 	return edges
 }
 
@@ -1755,15 +2339,9 @@ func (m *UserMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *UserMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case user.EdgeFollowers:
-		ids := make([]ent.Value, 0, len(m.followers))
-		for id := range m.followers {
-			ids = append(ids, id)
-		}
-		return ids
-	case user.EdgeFollowing:
-		ids := make([]ent.Value, 0, len(m.following))
-		for id := range m.following {
+	case user.EdgeInteractions:
+		ids := make([]ent.Value, 0, len(m.interactions))
+		for id := range m.interactions {
 			ids = append(ids, id)
 		}
 		return ids
@@ -1785,18 +2363,27 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeFollowers:
+		ids := make([]ent.Value, 0, len(m.followers))
+		for id := range m.followers {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeFollowing:
+		ids := make([]ent.Value, 0, len(m.following))
+		for id := range m.following {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 5)
-	if m.removedfollowers != nil {
-		edges = append(edges, user.EdgeFollowers)
-	}
-	if m.removedfollowing != nil {
-		edges = append(edges, user.EdgeFollowing)
+	edges := make([]string, 0, 6)
+	if m.removedinteractions != nil {
+		edges = append(edges, user.EdgeInteractions)
 	}
 	if m.removedroles != nil {
 		edges = append(edges, user.EdgeRoles)
@@ -1807,6 +2394,12 @@ func (m *UserMutation) RemovedEdges() []string {
 	if m.removedowned != nil {
 		edges = append(edges, user.EdgeOwned)
 	}
+	if m.removedfollowers != nil {
+		edges = append(edges, user.EdgeFollowers)
+	}
+	if m.removedfollowing != nil {
+		edges = append(edges, user.EdgeFollowing)
+	}
 	return edges
 }
 
@@ -1814,15 +2407,9 @@ func (m *UserMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
-	case user.EdgeFollowers:
-		ids := make([]ent.Value, 0, len(m.removedfollowers))
-		for id := range m.removedfollowers {
-			ids = append(ids, id)
-		}
-		return ids
-	case user.EdgeFollowing:
-		ids := make([]ent.Value, 0, len(m.removedfollowing))
-		for id := range m.removedfollowing {
+	case user.EdgeInteractions:
+		ids := make([]ent.Value, 0, len(m.removedinteractions))
+		for id := range m.removedinteractions {
 			ids = append(ids, id)
 		}
 		return ids
@@ -1844,18 +2431,27 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeFollowers:
+		ids := make([]ent.Value, 0, len(m.removedfollowers))
+		for id := range m.removedfollowers {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeFollowing:
+		ids := make([]ent.Value, 0, len(m.removedfollowing))
+		for id := range m.removedfollowing {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 5)
-	if m.clearedfollowers {
-		edges = append(edges, user.EdgeFollowers)
-	}
-	if m.clearedfollowing {
-		edges = append(edges, user.EdgeFollowing)
+	edges := make([]string, 0, 6)
+	if m.clearedinteractions {
+		edges = append(edges, user.EdgeInteractions)
 	}
 	if m.clearedroles {
 		edges = append(edges, user.EdgeRoles)
@@ -1866,6 +2462,12 @@ func (m *UserMutation) ClearedEdges() []string {
 	if m.clearedowned {
 		edges = append(edges, user.EdgeOwned)
 	}
+	if m.clearedfollowers {
+		edges = append(edges, user.EdgeFollowers)
+	}
+	if m.clearedfollowing {
+		edges = append(edges, user.EdgeFollowing)
+	}
 	return edges
 }
 
@@ -1873,16 +2475,18 @@ func (m *UserMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *UserMutation) EdgeCleared(name string) bool {
 	switch name {
-	case user.EdgeFollowers:
-		return m.clearedfollowers
-	case user.EdgeFollowing:
-		return m.clearedfollowing
+	case user.EdgeInteractions:
+		return m.clearedinteractions
 	case user.EdgeRoles:
 		return m.clearedroles
 	case user.EdgeCreated:
 		return m.clearedcreated
 	case user.EdgeOwned:
 		return m.clearedowned
+	case user.EdgeFollowers:
+		return m.clearedfollowers
+	case user.EdgeFollowing:
+		return m.clearedfollowing
 	}
 	return false
 }
@@ -1899,11 +2503,8 @@ func (m *UserMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *UserMutation) ResetEdge(name string) error {
 	switch name {
-	case user.EdgeFollowers:
-		m.ResetFollowers()
-		return nil
-	case user.EdgeFollowing:
-		m.ResetFollowing()
+	case user.EdgeInteractions:
+		m.ResetInteractions()
 		return nil
 	case user.EdgeRoles:
 		m.ResetRoles()
@@ -1913,6 +2514,12 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgeOwned:
 		m.ResetOwned()
+		return nil
+	case user.EdgeFollowers:
+		m.ResetFollowers()
+		return nil
+	case user.EdgeFollowing:
+		m.ResetFollowing()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)

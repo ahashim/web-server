@@ -21,22 +21,27 @@ const (
 	FieldStatus = "status"
 	// FieldScoutLevel holds the string denoting the scout_level field in the database.
 	FieldScoutLevel = "scout_level"
-	// EdgeFollowers holds the string denoting the followers edge name in mutations.
-	EdgeFollowers = "followers"
-	// EdgeFollowing holds the string denoting the following edge name in mutations.
-	EdgeFollowing = "following"
+	// EdgeInteractions holds the string denoting the interactions edge name in mutations.
+	EdgeInteractions = "interactions"
 	// EdgeRoles holds the string denoting the roles edge name in mutations.
 	EdgeRoles = "roles"
 	// EdgeCreated holds the string denoting the created edge name in mutations.
 	EdgeCreated = "created"
 	// EdgeOwned holds the string denoting the owned edge name in mutations.
 	EdgeOwned = "owned"
+	// EdgeFollowers holds the string denoting the followers edge name in mutations.
+	EdgeFollowers = "followers"
+	// EdgeFollowing holds the string denoting the following edge name in mutations.
+	EdgeFollowing = "following"
 	// Table holds the table name of the user in the database.
 	Table = "users"
-	// FollowersTable is the table that holds the followers relation/edge. The primary key declared below.
-	FollowersTable = "user_following"
-	// FollowingTable is the table that holds the following relation/edge. The primary key declared below.
-	FollowingTable = "user_following"
+	// InteractionsTable is the table that holds the interactions relation/edge.
+	InteractionsTable = "interactions"
+	// InteractionsInverseTable is the table name for the Interaction entity.
+	// It exists in this package in order to avoid circular dependency with the "interaction" package.
+	InteractionsInverseTable = "interactions"
+	// InteractionsColumn is the table column denoting the interactions relation/edge.
+	InteractionsColumn = "user_interactions"
 	// RolesTable is the table that holds the roles relation/edge. The primary key declared below.
 	RolesTable = "user_roles"
 	// RolesInverseTable is the table name for the Role entity.
@@ -56,6 +61,10 @@ const (
 	OwnedInverseTable = "squeaks"
 	// OwnedColumn is the table column denoting the owned relation/edge.
 	OwnedColumn = "user_owned"
+	// FollowersTable is the table that holds the followers relation/edge. The primary key declared below.
+	FollowersTable = "user_following"
+	// FollowingTable is the table that holds the following relation/edge. The primary key declared below.
+	FollowingTable = "user_following"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -68,15 +77,15 @@ var Columns = []string{
 }
 
 var (
+	// RolesPrimaryKey and RolesColumn2 are the table columns denoting the
+	// primary key for the roles relation (M2M).
+	RolesPrimaryKey = []string{"user_id", "role_id"}
 	// FollowersPrimaryKey and FollowersColumn2 are the table columns denoting the
 	// primary key for the followers relation (M2M).
 	FollowersPrimaryKey = []string{"user_id", "follower_id"}
 	// FollowingPrimaryKey and FollowingColumn2 are the table columns denoting the
 	// primary key for the following relation (M2M).
 	FollowingPrimaryKey = []string{"user_id", "follower_id"}
-	// RolesPrimaryKey and RolesColumn2 are the table columns denoting the
-	// primary key for the roles relation (M2M).
-	RolesPrimaryKey = []string{"user_id", "role_id"}
 )
 
 // ValidColumn reports if the column name is valid (part of the table columns).

@@ -9,6 +9,19 @@ import (
 	"github.com/ahashim/web-server/ent"
 )
 
+// The InteractionFunc type is an adapter to allow the use of ordinary
+// function as Interaction mutator.
+type InteractionFunc func(context.Context, *ent.InteractionMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f InteractionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.InteractionMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.InteractionMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The RoleFunc type is an adapter to allow the use of ordinary
 // function as Role mutator.
 type RoleFunc func(context.Context, *ent.RoleMutation) (ent.Value, error)

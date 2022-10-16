@@ -257,6 +257,34 @@ func ContentContainsFold(v string) predicate.Squeak {
 	})
 }
 
+// HasInteractions applies the HasEdge predicate on the "interactions" edge.
+func HasInteractions() predicate.Squeak {
+	return predicate.Squeak(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(InteractionsTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, InteractionsTable, InteractionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasInteractionsWith applies the HasEdge predicate on the "interactions" edge with a given conditions (other predicates).
+func HasInteractionsWith(preds ...predicate.Interaction) predicate.Squeak {
+	return predicate.Squeak(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(InteractionsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, InteractionsTable, InteractionsColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasCreator applies the HasEdge predicate on the "creator" edge.
 func HasCreator() predicate.Squeak {
 	return predicate.Squeak(func(s *sql.Selector) {

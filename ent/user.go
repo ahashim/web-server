@@ -31,43 +31,36 @@ type User struct {
 
 // UserEdges holds the relations/edges for other nodes in the graph.
 type UserEdges struct {
-	// Followers holds the value of the followers edge.
-	Followers []*User `json:"followers,omitempty"`
-	// Following holds the value of the following edge.
-	Following []*User `json:"following,omitempty"`
+	// Interactions holds the value of the interactions edge.
+	Interactions []*Interaction `json:"interactions,omitempty"`
 	// Roles holds the value of the roles edge.
 	Roles []*Role `json:"roles,omitempty"`
 	// Created holds the value of the created edge.
 	Created []*Squeak `json:"created,omitempty"`
 	// Owned holds the value of the owned edge.
 	Owned []*Squeak `json:"owned,omitempty"`
+	// Followers holds the value of the followers edge.
+	Followers []*User `json:"followers,omitempty"`
+	// Following holds the value of the following edge.
+	Following []*User `json:"following,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [5]bool
+	loadedTypes [6]bool
 }
 
-// FollowersOrErr returns the Followers value or an error if the edge
+// InteractionsOrErr returns the Interactions value or an error if the edge
 // was not loaded in eager-loading.
-func (e UserEdges) FollowersOrErr() ([]*User, error) {
+func (e UserEdges) InteractionsOrErr() ([]*Interaction, error) {
 	if e.loadedTypes[0] {
-		return e.Followers, nil
+		return e.Interactions, nil
 	}
-	return nil, &NotLoadedError{edge: "followers"}
-}
-
-// FollowingOrErr returns the Following value or an error if the edge
-// was not loaded in eager-loading.
-func (e UserEdges) FollowingOrErr() ([]*User, error) {
-	if e.loadedTypes[1] {
-		return e.Following, nil
-	}
-	return nil, &NotLoadedError{edge: "following"}
+	return nil, &NotLoadedError{edge: "interactions"}
 }
 
 // RolesOrErr returns the Roles value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) RolesOrErr() ([]*Role, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[1] {
 		return e.Roles, nil
 	}
 	return nil, &NotLoadedError{edge: "roles"}
@@ -76,7 +69,7 @@ func (e UserEdges) RolesOrErr() ([]*Role, error) {
 // CreatedOrErr returns the Created value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) CreatedOrErr() ([]*Squeak, error) {
-	if e.loadedTypes[3] {
+	if e.loadedTypes[2] {
 		return e.Created, nil
 	}
 	return nil, &NotLoadedError{edge: "created"}
@@ -85,10 +78,28 @@ func (e UserEdges) CreatedOrErr() ([]*Squeak, error) {
 // OwnedOrErr returns the Owned value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) OwnedOrErr() ([]*Squeak, error) {
-	if e.loadedTypes[4] {
+	if e.loadedTypes[3] {
 		return e.Owned, nil
 	}
 	return nil, &NotLoadedError{edge: "owned"}
+}
+
+// FollowersOrErr returns the Followers value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) FollowersOrErr() ([]*User, error) {
+	if e.loadedTypes[4] {
+		return e.Followers, nil
+	}
+	return nil, &NotLoadedError{edge: "followers"}
+}
+
+// FollowingOrErr returns the Following value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) FollowingOrErr() ([]*User, error) {
+	if e.loadedTypes[5] {
+		return e.Following, nil
+	}
+	return nil, &NotLoadedError{edge: "following"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -152,14 +163,9 @@ func (u *User) assignValues(columns []string, values []any) error {
 	return nil
 }
 
-// QueryFollowers queries the "followers" edge of the User entity.
-func (u *User) QueryFollowers() *UserQuery {
-	return (&UserClient{config: u.config}).QueryFollowers(u)
-}
-
-// QueryFollowing queries the "following" edge of the User entity.
-func (u *User) QueryFollowing() *UserQuery {
-	return (&UserClient{config: u.config}).QueryFollowing(u)
+// QueryInteractions queries the "interactions" edge of the User entity.
+func (u *User) QueryInteractions() *InteractionQuery {
+	return (&UserClient{config: u.config}).QueryInteractions(u)
 }
 
 // QueryRoles queries the "roles" edge of the User entity.
@@ -175,6 +181,16 @@ func (u *User) QueryCreated() *SqueakQuery {
 // QueryOwned queries the "owned" edge of the User entity.
 func (u *User) QueryOwned() *SqueakQuery {
 	return (&UserClient{config: u.config}).QueryOwned(u)
+}
+
+// QueryFollowers queries the "followers" edge of the User entity.
+func (u *User) QueryFollowers() *UserQuery {
+	return (&UserClient{config: u.config}).QueryFollowers(u)
+}
+
+// QueryFollowing queries the "following" edge of the User entity.
+func (u *User) QueryFollowing() *UserQuery {
+	return (&UserClient{config: u.config}).QueryFollowing(u)
 }
 
 // Update returns a builder for updating this User.
