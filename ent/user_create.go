@@ -99,19 +99,19 @@ func (uc *UserCreate) AddRoles(r ...*Role) *UserCreate {
 	return uc.AddRoleIDs(ids...)
 }
 
-// AddAuthoredIDs adds the "authored" edge to the Squeak entity by IDs.
-func (uc *UserCreate) AddAuthoredIDs(ids ...int) *UserCreate {
-	uc.mutation.AddAuthoredIDs(ids...)
+// AddCreatedIDs adds the "created" edge to the Squeak entity by IDs.
+func (uc *UserCreate) AddCreatedIDs(ids ...int) *UserCreate {
+	uc.mutation.AddCreatedIDs(ids...)
 	return uc
 }
 
-// AddAuthored adds the "authored" edges to the Squeak entity.
-func (uc *UserCreate) AddAuthored(s ...*Squeak) *UserCreate {
+// AddCreated adds the "created" edges to the Squeak entity.
+func (uc *UserCreate) AddCreated(s ...*Squeak) *UserCreate {
 	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
-	return uc.AddAuthoredIDs(ids...)
+	return uc.AddCreatedIDs(ids...)
 }
 
 // AddOwnedIDs adds the "owned" edge to the Squeak entity by IDs.
@@ -357,12 +357,12 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := uc.mutation.AuthoredIDs(); len(nodes) > 0 {
+	if nodes := uc.mutation.CreatedIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.AuthoredTable,
-			Columns: []string{user.AuthoredColumn},
+			Table:   user.CreatedTable,
+			Columns: []string{user.CreatedColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{

@@ -18,15 +18,15 @@ import (
 // SqueakQuery is the builder for querying Squeak entities.
 type SqueakQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
-	order      []OrderFunc
-	fields     []string
-	predicates []predicate.Squeak
-	withAuthor *UserQuery
-	withOwner  *UserQuery
-	withFKs    bool
+	limit       *int
+	offset      *int
+	unique      *bool
+	order       []OrderFunc
+	fields      []string
+	predicates  []predicate.Squeak
+	withCreator *UserQuery
+	withOwner   *UserQuery
+	withFKs     bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -63,8 +63,8 @@ func (sq *SqueakQuery) Order(o ...OrderFunc) *SqueakQuery {
 	return sq
 }
 
-// QueryAuthor chains the current query on the "author" edge.
-func (sq *SqueakQuery) QueryAuthor() *UserQuery {
+// QueryCreator chains the current query on the "creator" edge.
+func (sq *SqueakQuery) QueryCreator() *UserQuery {
 	query := &UserQuery{config: sq.config}
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := sq.prepareQuery(ctx); err != nil {
@@ -77,7 +77,7 @@ func (sq *SqueakQuery) QueryAuthor() *UserQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(squeak.Table, squeak.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, squeak.AuthorTable, squeak.AuthorColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, squeak.CreatorTable, squeak.CreatorColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
 		return fromU, nil
@@ -283,13 +283,13 @@ func (sq *SqueakQuery) Clone() *SqueakQuery {
 		return nil
 	}
 	return &SqueakQuery{
-		config:     sq.config,
-		limit:      sq.limit,
-		offset:     sq.offset,
-		order:      append([]OrderFunc{}, sq.order...),
-		predicates: append([]predicate.Squeak{}, sq.predicates...),
-		withAuthor: sq.withAuthor.Clone(),
-		withOwner:  sq.withOwner.Clone(),
+		config:      sq.config,
+		limit:       sq.limit,
+		offset:      sq.offset,
+		order:       append([]OrderFunc{}, sq.order...),
+		predicates:  append([]predicate.Squeak{}, sq.predicates...),
+		withCreator: sq.withCreator.Clone(),
+		withOwner:   sq.withOwner.Clone(),
 		// clone intermediate query.
 		sql:    sq.sql.Clone(),
 		path:   sq.path,
@@ -297,14 +297,14 @@ func (sq *SqueakQuery) Clone() *SqueakQuery {
 	}
 }
 
-// WithAuthor tells the query-builder to eager-load the nodes that are connected to
-// the "author" edge. The optional arguments are used to configure the query builder of the edge.
-func (sq *SqueakQuery) WithAuthor(opts ...func(*UserQuery)) *SqueakQuery {
+// WithCreator tells the query-builder to eager-load the nodes that are connected to
+// the "creator" edge. The optional arguments are used to configure the query builder of the edge.
+func (sq *SqueakQuery) WithCreator(opts ...func(*UserQuery)) *SqueakQuery {
 	query := &UserQuery{config: sq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	sq.withAuthor = query
+	sq.withCreator = query
 	return sq
 }
 
@@ -389,11 +389,11 @@ func (sq *SqueakQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Squea
 		withFKs     = sq.withFKs
 		_spec       = sq.querySpec()
 		loadedTypes = [2]bool{
-			sq.withAuthor != nil,
+			sq.withCreator != nil,
 			sq.withOwner != nil,
 		}
 	)
-	if sq.withAuthor != nil || sq.withOwner != nil {
+	if sq.withCreator != nil || sq.withOwner != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -417,9 +417,9 @@ func (sq *SqueakQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Squea
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := sq.withAuthor; query != nil {
-		if err := sq.loadAuthor(ctx, query, nodes, nil,
-			func(n *Squeak, e *User) { n.Edges.Author = e }); err != nil {
+	if query := sq.withCreator; query != nil {
+		if err := sq.loadCreator(ctx, query, nodes, nil,
+			func(n *Squeak, e *User) { n.Edges.Creator = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -432,14 +432,14 @@ func (sq *SqueakQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Squea
 	return nodes, nil
 }
 
-func (sq *SqueakQuery) loadAuthor(ctx context.Context, query *UserQuery, nodes []*Squeak, init func(*Squeak), assign func(*Squeak, *User)) error {
+func (sq *SqueakQuery) loadCreator(ctx context.Context, query *UserQuery, nodes []*Squeak, init func(*Squeak), assign func(*Squeak, *User)) error {
 	ids := make([]int, 0, len(nodes))
 	nodeids := make(map[int][]*Squeak)
 	for i := range nodes {
-		if nodes[i].user_authored == nil {
+		if nodes[i].user_created == nil {
 			continue
 		}
-		fk := *nodes[i].user_authored
+		fk := *nodes[i].user_created
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -453,7 +453,7 @@ func (sq *SqueakQuery) loadAuthor(ctx context.Context, query *UserQuery, nodes [
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_authored" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "user_created" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)

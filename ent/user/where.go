@@ -483,25 +483,25 @@ func HasRolesWith(preds ...predicate.Role) predicate.User {
 	})
 }
 
-// HasAuthored applies the HasEdge predicate on the "authored" edge.
-func HasAuthored() predicate.User {
+// HasCreated applies the HasEdge predicate on the "created" edge.
+func HasCreated() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(AuthoredTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, AuthoredTable, AuthoredColumn),
+			sqlgraph.To(CreatedTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CreatedTable, CreatedColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasAuthoredWith applies the HasEdge predicate on the "authored" edge with a given conditions (other predicates).
-func HasAuthoredWith(preds ...predicate.Squeak) predicate.User {
+// HasCreatedWith applies the HasEdge predicate on the "created" edge with a given conditions (other predicates).
+func HasCreatedWith(preds ...predicate.Squeak) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(AuthoredInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, AuthoredTable, AuthoredColumn),
+			sqlgraph.To(CreatedInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CreatedTable, CreatedColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

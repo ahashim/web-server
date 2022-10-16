@@ -37,8 +37,8 @@ type UserEdges struct {
 	Following []*User `json:"following,omitempty"`
 	// Roles holds the value of the roles edge.
 	Roles []*Role `json:"roles,omitempty"`
-	// Authored holds the value of the authored edge.
-	Authored []*Squeak `json:"authored,omitempty"`
+	// Created holds the value of the created edge.
+	Created []*Squeak `json:"created,omitempty"`
 	// Owned holds the value of the owned edge.
 	Owned []*Squeak `json:"owned,omitempty"`
 	// loadedTypes holds the information for reporting if a
@@ -73,13 +73,13 @@ func (e UserEdges) RolesOrErr() ([]*Role, error) {
 	return nil, &NotLoadedError{edge: "roles"}
 }
 
-// AuthoredOrErr returns the Authored value or an error if the edge
+// CreatedOrErr returns the Created value or an error if the edge
 // was not loaded in eager-loading.
-func (e UserEdges) AuthoredOrErr() ([]*Squeak, error) {
+func (e UserEdges) CreatedOrErr() ([]*Squeak, error) {
 	if e.loadedTypes[3] {
-		return e.Authored, nil
+		return e.Created, nil
 	}
-	return nil, &NotLoadedError{edge: "authored"}
+	return nil, &NotLoadedError{edge: "created"}
 }
 
 // OwnedOrErr returns the Owned value or an error if the edge
@@ -167,9 +167,9 @@ func (u *User) QueryRoles() *RoleQuery {
 	return (&UserClient{config: u.config}).QueryRoles(u)
 }
 
-// QueryAuthored queries the "authored" edge of the User entity.
-func (u *User) QueryAuthored() *SqueakQuery {
-	return (&UserClient{config: u.config}).QueryAuthored(u)
+// QueryCreated queries the "created" edge of the User entity.
+func (u *User) QueryCreated() *SqueakQuery {
+	return (&UserClient{config: u.config}).QueryCreated(u)
 }
 
 // QueryOwned queries the "owned" edge of the User entity.

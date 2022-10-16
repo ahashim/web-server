@@ -29,7 +29,7 @@ type UserQuery struct {
 	withFollowers *UserQuery
 	withFollowing *UserQuery
 	withRoles     *RoleQuery
-	withAuthored  *SqueakQuery
+	withCreated   *SqueakQuery
 	withOwned     *SqueakQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -133,8 +133,8 @@ func (uq *UserQuery) QueryRoles() *RoleQuery {
 	return query
 }
 
-// QueryAuthored chains the current query on the "authored" edge.
-func (uq *UserQuery) QueryAuthored() *SqueakQuery {
+// QueryCreated chains the current query on the "created" edge.
+func (uq *UserQuery) QueryCreated() *SqueakQuery {
 	query := &SqueakQuery{config: uq.config}
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := uq.prepareQuery(ctx); err != nil {
@@ -147,7 +147,7 @@ func (uq *UserQuery) QueryAuthored() *SqueakQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(squeak.Table, squeak.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.AuthoredTable, user.AuthoredColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CreatedTable, user.CreatedColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -361,7 +361,7 @@ func (uq *UserQuery) Clone() *UserQuery {
 		withFollowers: uq.withFollowers.Clone(),
 		withFollowing: uq.withFollowing.Clone(),
 		withRoles:     uq.withRoles.Clone(),
-		withAuthored:  uq.withAuthored.Clone(),
+		withCreated:   uq.withCreated.Clone(),
 		withOwned:     uq.withOwned.Clone(),
 		// clone intermediate query.
 		sql:    uq.sql.Clone(),
@@ -403,14 +403,14 @@ func (uq *UserQuery) WithRoles(opts ...func(*RoleQuery)) *UserQuery {
 	return uq
 }
 
-// WithAuthored tells the query-builder to eager-load the nodes that are connected to
-// the "authored" edge. The optional arguments are used to configure the query builder of the edge.
-func (uq *UserQuery) WithAuthored(opts ...func(*SqueakQuery)) *UserQuery {
+// WithCreated tells the query-builder to eager-load the nodes that are connected to
+// the "created" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithCreated(opts ...func(*SqueakQuery)) *UserQuery {
 	query := &SqueakQuery{config: uq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	uq.withAuthored = query
+	uq.withCreated = query
 	return uq
 }
 
@@ -497,7 +497,7 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			uq.withFollowers != nil,
 			uq.withFollowing != nil,
 			uq.withRoles != nil,
-			uq.withAuthored != nil,
+			uq.withCreated != nil,
 			uq.withOwned != nil,
 		}
 	)
@@ -540,10 +540,10 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			return nil, err
 		}
 	}
-	if query := uq.withAuthored; query != nil {
-		if err := uq.loadAuthored(ctx, query, nodes,
-			func(n *User) { n.Edges.Authored = []*Squeak{} },
-			func(n *User, e *Squeak) { n.Edges.Authored = append(n.Edges.Authored, e) }); err != nil {
+	if query := uq.withCreated; query != nil {
+		if err := uq.loadCreated(ctx, query, nodes,
+			func(n *User) { n.Edges.Created = []*Squeak{} },
+			func(n *User, e *Squeak) { n.Edges.Created = append(n.Edges.Created, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -731,7 +731,7 @@ func (uq *UserQuery) loadRoles(ctx context.Context, query *RoleQuery, nodes []*U
 	}
 	return nil
 }
-func (uq *UserQuery) loadAuthored(ctx context.Context, query *SqueakQuery, nodes []*User, init func(*User), assign func(*User, *Squeak)) error {
+func (uq *UserQuery) loadCreated(ctx context.Context, query *SqueakQuery, nodes []*User, init func(*User), assign func(*User, *Squeak)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[int]*User)
 	for i := range nodes {
@@ -743,20 +743,20 @@ func (uq *UserQuery) loadAuthored(ctx context.Context, query *SqueakQuery, nodes
 	}
 	query.withFKs = true
 	query.Where(predicate.Squeak(func(s *sql.Selector) {
-		s.Where(sql.InValues(user.AuthoredColumn, fks...))
+		s.Where(sql.InValues(user.CreatedColumn, fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.user_authored
+		fk := n.user_created
 		if fk == nil {
-			return fmt.Errorf(`foreign-key "user_authored" is nil for node %v`, n.ID)
+			return fmt.Errorf(`foreign-key "user_created" is nil for node %v`, n.ID)
 		}
 		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_authored" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "user_created" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

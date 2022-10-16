@@ -328,15 +328,15 @@ func (c *SqueakClient) GetX(ctx context.Context, id int) *Squeak {
 	return obj
 }
 
-// QueryAuthor queries the author edge of a Squeak.
-func (c *SqueakClient) QueryAuthor(s *Squeak) *UserQuery {
+// QueryCreator queries the creator edge of a Squeak.
+func (c *SqueakClient) QueryCreator(s *Squeak) *UserQuery {
 	query := &UserQuery{config: c.config}
 	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
 		id := s.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(squeak.Table, squeak.FieldID, id),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, squeak.AuthorTable, squeak.AuthorColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, squeak.CreatorTable, squeak.CreatorColumn),
 		)
 		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
 		return fromV, nil
@@ -498,15 +498,15 @@ func (c *UserClient) QueryRoles(u *User) *RoleQuery {
 	return query
 }
 
-// QueryAuthored queries the authored edge of a User.
-func (c *UserClient) QueryAuthored(u *User) *SqueakQuery {
+// QueryCreated queries the created edge of a User.
+func (c *UserClient) QueryCreated(u *User) *SqueakQuery {
 	query := &SqueakQuery{config: c.config}
 	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(squeak.Table, squeak.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.AuthoredTable, user.AuthoredColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CreatedTable, user.CreatedColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil

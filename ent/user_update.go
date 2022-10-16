@@ -108,19 +108,19 @@ func (uu *UserUpdate) AddRoles(r ...*Role) *UserUpdate {
 	return uu.AddRoleIDs(ids...)
 }
 
-// AddAuthoredIDs adds the "authored" edge to the Squeak entity by IDs.
-func (uu *UserUpdate) AddAuthoredIDs(ids ...int) *UserUpdate {
-	uu.mutation.AddAuthoredIDs(ids...)
+// AddCreatedIDs adds the "created" edge to the Squeak entity by IDs.
+func (uu *UserUpdate) AddCreatedIDs(ids ...int) *UserUpdate {
+	uu.mutation.AddCreatedIDs(ids...)
 	return uu
 }
 
-// AddAuthored adds the "authored" edges to the Squeak entity.
-func (uu *UserUpdate) AddAuthored(s ...*Squeak) *UserUpdate {
+// AddCreated adds the "created" edges to the Squeak entity.
+func (uu *UserUpdate) AddCreated(s ...*Squeak) *UserUpdate {
 	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
-	return uu.AddAuthoredIDs(ids...)
+	return uu.AddCreatedIDs(ids...)
 }
 
 // AddOwnedIDs adds the "owned" edge to the Squeak entity by IDs.
@@ -206,25 +206,25 @@ func (uu *UserUpdate) RemoveRoles(r ...*Role) *UserUpdate {
 	return uu.RemoveRoleIDs(ids...)
 }
 
-// ClearAuthored clears all "authored" edges to the Squeak entity.
-func (uu *UserUpdate) ClearAuthored() *UserUpdate {
-	uu.mutation.ClearAuthored()
+// ClearCreated clears all "created" edges to the Squeak entity.
+func (uu *UserUpdate) ClearCreated() *UserUpdate {
+	uu.mutation.ClearCreated()
 	return uu
 }
 
-// RemoveAuthoredIDs removes the "authored" edge to Squeak entities by IDs.
-func (uu *UserUpdate) RemoveAuthoredIDs(ids ...int) *UserUpdate {
-	uu.mutation.RemoveAuthoredIDs(ids...)
+// RemoveCreatedIDs removes the "created" edge to Squeak entities by IDs.
+func (uu *UserUpdate) RemoveCreatedIDs(ids ...int) *UserUpdate {
+	uu.mutation.RemoveCreatedIDs(ids...)
 	return uu
 }
 
-// RemoveAuthored removes "authored" edges to Squeak entities.
-func (uu *UserUpdate) RemoveAuthored(s ...*Squeak) *UserUpdate {
+// RemoveCreated removes "created" edges to Squeak entities.
+func (uu *UserUpdate) RemoveCreated(s ...*Squeak) *UserUpdate {
 	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
-	return uu.RemoveAuthoredIDs(ids...)
+	return uu.RemoveCreatedIDs(ids...)
 }
 
 // ClearOwned clears all "owned" edges to the Squeak entity.
@@ -531,12 +531,12 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if uu.mutation.AuthoredCleared() {
+	if uu.mutation.CreatedCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.AuthoredTable,
-			Columns: []string{user.AuthoredColumn},
+			Table:   user.CreatedTable,
+			Columns: []string{user.CreatedColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -547,12 +547,12 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.mutation.RemovedAuthoredIDs(); len(nodes) > 0 && !uu.mutation.AuthoredCleared() {
+	if nodes := uu.mutation.RemovedCreatedIDs(); len(nodes) > 0 && !uu.mutation.CreatedCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.AuthoredTable,
-			Columns: []string{user.AuthoredColumn},
+			Table:   user.CreatedTable,
+			Columns: []string{user.CreatedColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -566,12 +566,12 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.mutation.AuthoredIDs(); len(nodes) > 0 {
+	if nodes := uu.mutation.CreatedIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.AuthoredTable,
-			Columns: []string{user.AuthoredColumn},
+			Table:   user.CreatedTable,
+			Columns: []string{user.CreatedColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -736,19 +736,19 @@ func (uuo *UserUpdateOne) AddRoles(r ...*Role) *UserUpdateOne {
 	return uuo.AddRoleIDs(ids...)
 }
 
-// AddAuthoredIDs adds the "authored" edge to the Squeak entity by IDs.
-func (uuo *UserUpdateOne) AddAuthoredIDs(ids ...int) *UserUpdateOne {
-	uuo.mutation.AddAuthoredIDs(ids...)
+// AddCreatedIDs adds the "created" edge to the Squeak entity by IDs.
+func (uuo *UserUpdateOne) AddCreatedIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.AddCreatedIDs(ids...)
 	return uuo
 }
 
-// AddAuthored adds the "authored" edges to the Squeak entity.
-func (uuo *UserUpdateOne) AddAuthored(s ...*Squeak) *UserUpdateOne {
+// AddCreated adds the "created" edges to the Squeak entity.
+func (uuo *UserUpdateOne) AddCreated(s ...*Squeak) *UserUpdateOne {
 	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
-	return uuo.AddAuthoredIDs(ids...)
+	return uuo.AddCreatedIDs(ids...)
 }
 
 // AddOwnedIDs adds the "owned" edge to the Squeak entity by IDs.
@@ -834,25 +834,25 @@ func (uuo *UserUpdateOne) RemoveRoles(r ...*Role) *UserUpdateOne {
 	return uuo.RemoveRoleIDs(ids...)
 }
 
-// ClearAuthored clears all "authored" edges to the Squeak entity.
-func (uuo *UserUpdateOne) ClearAuthored() *UserUpdateOne {
-	uuo.mutation.ClearAuthored()
+// ClearCreated clears all "created" edges to the Squeak entity.
+func (uuo *UserUpdateOne) ClearCreated() *UserUpdateOne {
+	uuo.mutation.ClearCreated()
 	return uuo
 }
 
-// RemoveAuthoredIDs removes the "authored" edge to Squeak entities by IDs.
-func (uuo *UserUpdateOne) RemoveAuthoredIDs(ids ...int) *UserUpdateOne {
-	uuo.mutation.RemoveAuthoredIDs(ids...)
+// RemoveCreatedIDs removes the "created" edge to Squeak entities by IDs.
+func (uuo *UserUpdateOne) RemoveCreatedIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.RemoveCreatedIDs(ids...)
 	return uuo
 }
 
-// RemoveAuthored removes "authored" edges to Squeak entities.
-func (uuo *UserUpdateOne) RemoveAuthored(s ...*Squeak) *UserUpdateOne {
+// RemoveCreated removes "created" edges to Squeak entities.
+func (uuo *UserUpdateOne) RemoveCreated(s ...*Squeak) *UserUpdateOne {
 	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
-	return uuo.RemoveAuthoredIDs(ids...)
+	return uuo.RemoveCreatedIDs(ids...)
 }
 
 // ClearOwned clears all "owned" edges to the Squeak entity.
@@ -1189,12 +1189,12 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if uuo.mutation.AuthoredCleared() {
+	if uuo.mutation.CreatedCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.AuthoredTable,
-			Columns: []string{user.AuthoredColumn},
+			Table:   user.CreatedTable,
+			Columns: []string{user.CreatedColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -1205,12 +1205,12 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.mutation.RemovedAuthoredIDs(); len(nodes) > 0 && !uuo.mutation.AuthoredCleared() {
+	if nodes := uuo.mutation.RemovedCreatedIDs(); len(nodes) > 0 && !uuo.mutation.CreatedCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.AuthoredTable,
-			Columns: []string{user.AuthoredColumn},
+			Table:   user.CreatedTable,
+			Columns: []string{user.CreatedColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -1224,12 +1224,12 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.mutation.AuthoredIDs(); len(nodes) > 0 {
+	if nodes := uuo.mutation.CreatedIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.AuthoredTable,
-			Columns: []string{user.AuthoredColumn},
+			Table:   user.CreatedTable,
+			Columns: []string{user.CreatedColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{

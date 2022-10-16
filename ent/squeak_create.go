@@ -33,23 +33,23 @@ func (sc *SqueakCreate) SetContent(s string) *SqueakCreate {
 	return sc
 }
 
-// SetAuthorID sets the "author" edge to the User entity by ID.
-func (sc *SqueakCreate) SetAuthorID(id int) *SqueakCreate {
-	sc.mutation.SetAuthorID(id)
+// SetCreatorID sets the "creator" edge to the User entity by ID.
+func (sc *SqueakCreate) SetCreatorID(id int) *SqueakCreate {
+	sc.mutation.SetCreatorID(id)
 	return sc
 }
 
-// SetNillableAuthorID sets the "author" edge to the User entity by ID if the given value is not nil.
-func (sc *SqueakCreate) SetNillableAuthorID(id *int) *SqueakCreate {
+// SetNillableCreatorID sets the "creator" edge to the User entity by ID if the given value is not nil.
+func (sc *SqueakCreate) SetNillableCreatorID(id *int) *SqueakCreate {
 	if id != nil {
-		sc = sc.SetAuthorID(*id)
+		sc = sc.SetCreatorID(*id)
 	}
 	return sc
 }
 
-// SetAuthor sets the "author" edge to the User entity.
-func (sc *SqueakCreate) SetAuthor(u *User) *SqueakCreate {
-	return sc.SetAuthorID(u.ID)
+// SetCreator sets the "creator" edge to the User entity.
+func (sc *SqueakCreate) SetCreator(u *User) *SqueakCreate {
+	return sc.SetCreatorID(u.ID)
 }
 
 // SetOwnerID sets the "owner" edge to the User entity by ID.
@@ -201,12 +201,12 @@ func (sc *SqueakCreate) createSpec() (*Squeak, *sqlgraph.CreateSpec) {
 		})
 		_node.Content = value
 	}
-	if nodes := sc.mutation.AuthorIDs(); len(nodes) > 0 {
+	if nodes := sc.mutation.CreatorIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   squeak.AuthorTable,
-			Columns: []string{squeak.AuthorColumn},
+			Table:   squeak.CreatorTable,
+			Columns: []string{squeak.CreatorColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -218,7 +218,7 @@ func (sc *SqueakCreate) createSpec() (*Squeak, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.user_authored = &nodes[0]
+		_node.user_created = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := sc.mutation.OwnerIDs(); len(nodes) > 0 {

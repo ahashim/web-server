@@ -35,23 +35,23 @@ func (su *SqueakUpdate) SetBlockNumber(t *types.Uint256) *SqueakUpdate {
 	return su
 }
 
-// SetAuthorID sets the "author" edge to the User entity by ID.
-func (su *SqueakUpdate) SetAuthorID(id int) *SqueakUpdate {
-	su.mutation.SetAuthorID(id)
+// SetCreatorID sets the "creator" edge to the User entity by ID.
+func (su *SqueakUpdate) SetCreatorID(id int) *SqueakUpdate {
+	su.mutation.SetCreatorID(id)
 	return su
 }
 
-// SetNillableAuthorID sets the "author" edge to the User entity by ID if the given value is not nil.
-func (su *SqueakUpdate) SetNillableAuthorID(id *int) *SqueakUpdate {
+// SetNillableCreatorID sets the "creator" edge to the User entity by ID if the given value is not nil.
+func (su *SqueakUpdate) SetNillableCreatorID(id *int) *SqueakUpdate {
 	if id != nil {
-		su = su.SetAuthorID(*id)
+		su = su.SetCreatorID(*id)
 	}
 	return su
 }
 
-// SetAuthor sets the "author" edge to the User entity.
-func (su *SqueakUpdate) SetAuthor(u *User) *SqueakUpdate {
-	return su.SetAuthorID(u.ID)
+// SetCreator sets the "creator" edge to the User entity.
+func (su *SqueakUpdate) SetCreator(u *User) *SqueakUpdate {
+	return su.SetCreatorID(u.ID)
 }
 
 // SetOwnerID sets the "owner" edge to the User entity by ID.
@@ -78,9 +78,9 @@ func (su *SqueakUpdate) Mutation() *SqueakMutation {
 	return su.mutation
 }
 
-// ClearAuthor clears the "author" edge to the User entity.
-func (su *SqueakUpdate) ClearAuthor() *SqueakUpdate {
-	su.mutation.ClearAuthor()
+// ClearCreator clears the "creator" edge to the User entity.
+func (su *SqueakUpdate) ClearCreator() *SqueakUpdate {
+	su.mutation.ClearCreator()
 	return su
 }
 
@@ -169,12 +169,12 @@ func (su *SqueakUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: squeak.FieldBlockNumber,
 		})
 	}
-	if su.mutation.AuthorCleared() {
+	if su.mutation.CreatorCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   squeak.AuthorTable,
-			Columns: []string{squeak.AuthorColumn},
+			Table:   squeak.CreatorTable,
+			Columns: []string{squeak.CreatorColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -185,12 +185,12 @@ func (su *SqueakUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := su.mutation.AuthorIDs(); len(nodes) > 0 {
+	if nodes := su.mutation.CreatorIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   squeak.AuthorTable,
-			Columns: []string{squeak.AuthorColumn},
+			Table:   squeak.CreatorTable,
+			Columns: []string{squeak.CreatorColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -264,23 +264,23 @@ func (suo *SqueakUpdateOne) SetBlockNumber(t *types.Uint256) *SqueakUpdateOne {
 	return suo
 }
 
-// SetAuthorID sets the "author" edge to the User entity by ID.
-func (suo *SqueakUpdateOne) SetAuthorID(id int) *SqueakUpdateOne {
-	suo.mutation.SetAuthorID(id)
+// SetCreatorID sets the "creator" edge to the User entity by ID.
+func (suo *SqueakUpdateOne) SetCreatorID(id int) *SqueakUpdateOne {
+	suo.mutation.SetCreatorID(id)
 	return suo
 }
 
-// SetNillableAuthorID sets the "author" edge to the User entity by ID if the given value is not nil.
-func (suo *SqueakUpdateOne) SetNillableAuthorID(id *int) *SqueakUpdateOne {
+// SetNillableCreatorID sets the "creator" edge to the User entity by ID if the given value is not nil.
+func (suo *SqueakUpdateOne) SetNillableCreatorID(id *int) *SqueakUpdateOne {
 	if id != nil {
-		suo = suo.SetAuthorID(*id)
+		suo = suo.SetCreatorID(*id)
 	}
 	return suo
 }
 
-// SetAuthor sets the "author" edge to the User entity.
-func (suo *SqueakUpdateOne) SetAuthor(u *User) *SqueakUpdateOne {
-	return suo.SetAuthorID(u.ID)
+// SetCreator sets the "creator" edge to the User entity.
+func (suo *SqueakUpdateOne) SetCreator(u *User) *SqueakUpdateOne {
+	return suo.SetCreatorID(u.ID)
 }
 
 // SetOwnerID sets the "owner" edge to the User entity by ID.
@@ -307,9 +307,9 @@ func (suo *SqueakUpdateOne) Mutation() *SqueakMutation {
 	return suo.mutation
 }
 
-// ClearAuthor clears the "author" edge to the User entity.
-func (suo *SqueakUpdateOne) ClearAuthor() *SqueakUpdateOne {
-	suo.mutation.ClearAuthor()
+// ClearCreator clears the "creator" edge to the User entity.
+func (suo *SqueakUpdateOne) ClearCreator() *SqueakUpdateOne {
+	suo.mutation.ClearCreator()
 	return suo
 }
 
@@ -428,12 +428,12 @@ func (suo *SqueakUpdateOne) sqlSave(ctx context.Context) (_node *Squeak, err err
 			Column: squeak.FieldBlockNumber,
 		})
 	}
-	if suo.mutation.AuthorCleared() {
+	if suo.mutation.CreatorCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   squeak.AuthorTable,
-			Columns: []string{squeak.AuthorColumn},
+			Table:   squeak.CreatorTable,
+			Columns: []string{squeak.CreatorColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -444,12 +444,12 @@ func (suo *SqueakUpdateOne) sqlSave(ctx context.Context) (_node *Squeak, err err
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := suo.mutation.AuthorIDs(); len(nodes) > 0 {
+	if nodes := suo.mutation.CreatorIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   squeak.AuthorTable,
-			Columns: []string{squeak.AuthorColumn},
+			Table:   squeak.CreatorTable,
+			Columns: []string{squeak.CreatorColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{

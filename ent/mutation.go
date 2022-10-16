@@ -493,19 +493,19 @@ func (m *RoleMutation) ResetEdge(name string) error {
 // SqueakMutation represents an operation that mutates the Squeak nodes in the graph.
 type SqueakMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int
-	block_number  **types.Uint256
-	content       *string
-	clearedFields map[string]struct{}
-	author        *int
-	clearedauthor bool
-	owner         *int
-	clearedowner  bool
-	done          bool
-	oldValue      func(context.Context) (*Squeak, error)
-	predicates    []predicate.Squeak
+	op             Op
+	typ            string
+	id             *int
+	block_number   **types.Uint256
+	content        *string
+	clearedFields  map[string]struct{}
+	creator        *int
+	clearedcreator bool
+	owner          *int
+	clearedowner   bool
+	done           bool
+	oldValue       func(context.Context) (*Squeak, error)
+	predicates     []predicate.Squeak
 }
 
 var _ ent.Mutation = (*SqueakMutation)(nil)
@@ -678,43 +678,43 @@ func (m *SqueakMutation) ResetContent() {
 	m.content = nil
 }
 
-// SetAuthorID sets the "author" edge to the User entity by id.
-func (m *SqueakMutation) SetAuthorID(id int) {
-	m.author = &id
+// SetCreatorID sets the "creator" edge to the User entity by id.
+func (m *SqueakMutation) SetCreatorID(id int) {
+	m.creator = &id
 }
 
-// ClearAuthor clears the "author" edge to the User entity.
-func (m *SqueakMutation) ClearAuthor() {
-	m.clearedauthor = true
+// ClearCreator clears the "creator" edge to the User entity.
+func (m *SqueakMutation) ClearCreator() {
+	m.clearedcreator = true
 }
 
-// AuthorCleared reports if the "author" edge to the User entity was cleared.
-func (m *SqueakMutation) AuthorCleared() bool {
-	return m.clearedauthor
+// CreatorCleared reports if the "creator" edge to the User entity was cleared.
+func (m *SqueakMutation) CreatorCleared() bool {
+	return m.clearedcreator
 }
 
-// AuthorID returns the "author" edge ID in the mutation.
-func (m *SqueakMutation) AuthorID() (id int, exists bool) {
-	if m.author != nil {
-		return *m.author, true
+// CreatorID returns the "creator" edge ID in the mutation.
+func (m *SqueakMutation) CreatorID() (id int, exists bool) {
+	if m.creator != nil {
+		return *m.creator, true
 	}
 	return
 }
 
-// AuthorIDs returns the "author" edge IDs in the mutation.
+// CreatorIDs returns the "creator" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// AuthorID instead. It exists only for internal usage by the builders.
-func (m *SqueakMutation) AuthorIDs() (ids []int) {
-	if id := m.author; id != nil {
+// CreatorID instead. It exists only for internal usage by the builders.
+func (m *SqueakMutation) CreatorIDs() (ids []int) {
+	if id := m.creator; id != nil {
 		ids = append(ids, *id)
 	}
 	return
 }
 
-// ResetAuthor resets all changes to the "author" edge.
-func (m *SqueakMutation) ResetAuthor() {
-	m.author = nil
-	m.clearedauthor = false
+// ResetCreator resets all changes to the "creator" edge.
+func (m *SqueakMutation) ResetCreator() {
+	m.creator = nil
+	m.clearedcreator = false
 }
 
 // SetOwnerID sets the "owner" edge to the User entity by id.
@@ -895,8 +895,8 @@ func (m *SqueakMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *SqueakMutation) AddedEdges() []string {
 	edges := make([]string, 0, 2)
-	if m.author != nil {
-		edges = append(edges, squeak.EdgeAuthor)
+	if m.creator != nil {
+		edges = append(edges, squeak.EdgeCreator)
 	}
 	if m.owner != nil {
 		edges = append(edges, squeak.EdgeOwner)
@@ -908,8 +908,8 @@ func (m *SqueakMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *SqueakMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case squeak.EdgeAuthor:
-		if id := m.author; id != nil {
+	case squeak.EdgeCreator:
+		if id := m.creator; id != nil {
 			return []ent.Value{*id}
 		}
 	case squeak.EdgeOwner:
@@ -935,8 +935,8 @@ func (m *SqueakMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *SqueakMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 2)
-	if m.clearedauthor {
-		edges = append(edges, squeak.EdgeAuthor)
+	if m.clearedcreator {
+		edges = append(edges, squeak.EdgeCreator)
 	}
 	if m.clearedowner {
 		edges = append(edges, squeak.EdgeOwner)
@@ -948,8 +948,8 @@ func (m *SqueakMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *SqueakMutation) EdgeCleared(name string) bool {
 	switch name {
-	case squeak.EdgeAuthor:
-		return m.clearedauthor
+	case squeak.EdgeCreator:
+		return m.clearedcreator
 	case squeak.EdgeOwner:
 		return m.clearedowner
 	}
@@ -960,8 +960,8 @@ func (m *SqueakMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *SqueakMutation) ClearEdge(name string) error {
 	switch name {
-	case squeak.EdgeAuthor:
-		m.ClearAuthor()
+	case squeak.EdgeCreator:
+		m.ClearCreator()
 		return nil
 	case squeak.EdgeOwner:
 		m.ClearOwner()
@@ -974,8 +974,8 @@ func (m *SqueakMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *SqueakMutation) ResetEdge(name string) error {
 	switch name {
-	case squeak.EdgeAuthor:
-		m.ResetAuthor()
+	case squeak.EdgeCreator:
+		m.ResetCreator()
 		return nil
 	case squeak.EdgeOwner:
 		m.ResetOwner()
@@ -1005,9 +1005,9 @@ type UserMutation struct {
 	roles            map[int]struct{}
 	removedroles     map[int]struct{}
 	clearedroles     bool
-	authored         map[int]struct{}
-	removedauthored  map[int]struct{}
-	clearedauthored  bool
+	created          map[int]struct{}
+	removedcreated   map[int]struct{}
+	clearedcreated   bool
 	owned            map[int]struct{}
 	removedowned     map[int]struct{}
 	clearedowned     bool
@@ -1440,58 +1440,58 @@ func (m *UserMutation) ResetRoles() {
 	m.removedroles = nil
 }
 
-// AddAuthoredIDs adds the "authored" edge to the Squeak entity by ids.
-func (m *UserMutation) AddAuthoredIDs(ids ...int) {
-	if m.authored == nil {
-		m.authored = make(map[int]struct{})
+// AddCreatedIDs adds the "created" edge to the Squeak entity by ids.
+func (m *UserMutation) AddCreatedIDs(ids ...int) {
+	if m.created == nil {
+		m.created = make(map[int]struct{})
 	}
 	for i := range ids {
-		m.authored[ids[i]] = struct{}{}
+		m.created[ids[i]] = struct{}{}
 	}
 }
 
-// ClearAuthored clears the "authored" edge to the Squeak entity.
-func (m *UserMutation) ClearAuthored() {
-	m.clearedauthored = true
+// ClearCreated clears the "created" edge to the Squeak entity.
+func (m *UserMutation) ClearCreated() {
+	m.clearedcreated = true
 }
 
-// AuthoredCleared reports if the "authored" edge to the Squeak entity was cleared.
-func (m *UserMutation) AuthoredCleared() bool {
-	return m.clearedauthored
+// CreatedCleared reports if the "created" edge to the Squeak entity was cleared.
+func (m *UserMutation) CreatedCleared() bool {
+	return m.clearedcreated
 }
 
-// RemoveAuthoredIDs removes the "authored" edge to the Squeak entity by IDs.
-func (m *UserMutation) RemoveAuthoredIDs(ids ...int) {
-	if m.removedauthored == nil {
-		m.removedauthored = make(map[int]struct{})
+// RemoveCreatedIDs removes the "created" edge to the Squeak entity by IDs.
+func (m *UserMutation) RemoveCreatedIDs(ids ...int) {
+	if m.removedcreated == nil {
+		m.removedcreated = make(map[int]struct{})
 	}
 	for i := range ids {
-		delete(m.authored, ids[i])
-		m.removedauthored[ids[i]] = struct{}{}
+		delete(m.created, ids[i])
+		m.removedcreated[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedAuthored returns the removed IDs of the "authored" edge to the Squeak entity.
-func (m *UserMutation) RemovedAuthoredIDs() (ids []int) {
-	for id := range m.removedauthored {
+// RemovedCreated returns the removed IDs of the "created" edge to the Squeak entity.
+func (m *UserMutation) RemovedCreatedIDs() (ids []int) {
+	for id := range m.removedcreated {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// AuthoredIDs returns the "authored" edge IDs in the mutation.
-func (m *UserMutation) AuthoredIDs() (ids []int) {
-	for id := range m.authored {
+// CreatedIDs returns the "created" edge IDs in the mutation.
+func (m *UserMutation) CreatedIDs() (ids []int) {
+	for id := range m.created {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetAuthored resets all changes to the "authored" edge.
-func (m *UserMutation) ResetAuthored() {
-	m.authored = nil
-	m.clearedauthored = false
-	m.removedauthored = nil
+// ResetCreated resets all changes to the "created" edge.
+func (m *UserMutation) ResetCreated() {
+	m.created = nil
+	m.clearedcreated = false
+	m.removedcreated = nil
 }
 
 // AddOwnedIDs adds the "owned" edge to the Squeak entity by ids.
@@ -1742,8 +1742,8 @@ func (m *UserMutation) AddedEdges() []string {
 	if m.roles != nil {
 		edges = append(edges, user.EdgeRoles)
 	}
-	if m.authored != nil {
-		edges = append(edges, user.EdgeAuthored)
+	if m.created != nil {
+		edges = append(edges, user.EdgeCreated)
 	}
 	if m.owned != nil {
 		edges = append(edges, user.EdgeOwned)
@@ -1773,9 +1773,9 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case user.EdgeAuthored:
-		ids := make([]ent.Value, 0, len(m.authored))
-		for id := range m.authored {
+	case user.EdgeCreated:
+		ids := make([]ent.Value, 0, len(m.created))
+		for id := range m.created {
 			ids = append(ids, id)
 		}
 		return ids
@@ -1801,8 +1801,8 @@ func (m *UserMutation) RemovedEdges() []string {
 	if m.removedroles != nil {
 		edges = append(edges, user.EdgeRoles)
 	}
-	if m.removedauthored != nil {
-		edges = append(edges, user.EdgeAuthored)
+	if m.removedcreated != nil {
+		edges = append(edges, user.EdgeCreated)
 	}
 	if m.removedowned != nil {
 		edges = append(edges, user.EdgeOwned)
@@ -1832,9 +1832,9 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case user.EdgeAuthored:
-		ids := make([]ent.Value, 0, len(m.removedauthored))
-		for id := range m.removedauthored {
+	case user.EdgeCreated:
+		ids := make([]ent.Value, 0, len(m.removedcreated))
+		for id := range m.removedcreated {
 			ids = append(ids, id)
 		}
 		return ids
@@ -1860,8 +1860,8 @@ func (m *UserMutation) ClearedEdges() []string {
 	if m.clearedroles {
 		edges = append(edges, user.EdgeRoles)
 	}
-	if m.clearedauthored {
-		edges = append(edges, user.EdgeAuthored)
+	if m.clearedcreated {
+		edges = append(edges, user.EdgeCreated)
 	}
 	if m.clearedowned {
 		edges = append(edges, user.EdgeOwned)
@@ -1879,8 +1879,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedfollowing
 	case user.EdgeRoles:
 		return m.clearedroles
-	case user.EdgeAuthored:
-		return m.clearedauthored
+	case user.EdgeCreated:
+		return m.clearedcreated
 	case user.EdgeOwned:
 		return m.clearedowned
 	}
@@ -1908,8 +1908,8 @@ func (m *UserMutation) ResetEdge(name string) error {
 	case user.EdgeRoles:
 		m.ResetRoles()
 		return nil
-	case user.EdgeAuthored:
-		m.ResetAuthored()
+	case user.EdgeCreated:
+		m.ResetCreated()
 		return nil
 	case user.EdgeOwned:
 		m.ResetOwned()

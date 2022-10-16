@@ -25,7 +25,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "block_number", Type: field.TypeInt, SchemaType: map[string]string{"postgres": "numeric(78, 0)"}},
 		{Name: "content", Type: field.TypeString, Size: 256},
-		{Name: "user_authored", Type: field.TypeInt, Nullable: true},
+		{Name: "user_created", Type: field.TypeInt, Nullable: true},
 		{Name: "user_owned", Type: field.TypeInt, Nullable: true},
 	}
 	// SqueaksTable holds the schema information for the "squeaks" table.
@@ -35,7 +35,7 @@ var (
 		PrimaryKey: []*schema.Column{SqueaksColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "squeaks_users_authored",
+				Symbol:     "squeaks_users_created",
 				Columns:    []*schema.Column{SqueaksColumns[3]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,

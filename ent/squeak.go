@@ -23,15 +23,15 @@ type Squeak struct {
 	Content string `json:"content,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SqueakQuery when eager-loading is set.
-	Edges         SqueakEdges `json:"edges"`
-	user_authored *int
-	user_owned    *int
+	Edges        SqueakEdges `json:"edges"`
+	user_created *int
+	user_owned   *int
 }
 
 // SqueakEdges holds the relations/edges for other nodes in the graph.
 type SqueakEdges struct {
-	// Author holds the value of the author edge.
-	Author *User `json:"author,omitempty"`
+	// Creator holds the value of the creator edge.
+	Creator *User `json:"creator,omitempty"`
 	// Owner holds the value of the owner edge.
 	Owner *User `json:"owner,omitempty"`
 	// loadedTypes holds the information for reporting if a
@@ -39,17 +39,17 @@ type SqueakEdges struct {
 	loadedTypes [2]bool
 }
 
-// AuthorOrErr returns the Author value or an error if the edge
+// CreatorOrErr returns the Creator value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e SqueakEdges) AuthorOrErr() (*User, error) {
+func (e SqueakEdges) CreatorOrErr() (*User, error) {
 	if e.loadedTypes[0] {
-		if e.Author == nil {
+		if e.Creator == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: user.Label}
 		}
-		return e.Author, nil
+		return e.Creator, nil
 	}
-	return nil, &NotLoadedError{edge: "author"}
+	return nil, &NotLoadedError{edge: "creator"}
 }
 
 // OwnerOrErr returns the Owner value or an error if the edge
@@ -76,7 +76,7 @@ func (*Squeak) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case squeak.FieldBlockNumber:
 			values[i] = new(types.Uint256)
-		case squeak.ForeignKeys[0]: // user_authored
+		case squeak.ForeignKeys[0]: // user_created
 			values[i] = new(sql.NullInt64)
 		case squeak.ForeignKeys[1]: // user_owned
 			values[i] = new(sql.NullInt64)
@@ -115,10 +115,10 @@ func (s *Squeak) assignValues(columns []string, values []any) error {
 			}
 		case squeak.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for edge-field user_authored", value)
+				return fmt.Errorf("unexpected type %T for edge-field user_created", value)
 			} else if value.Valid {
-				s.user_authored = new(int)
-				*s.user_authored = int(value.Int64)
+				s.user_created = new(int)
+				*s.user_created = int(value.Int64)
 			}
 		case squeak.ForeignKeys[1]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -132,9 +132,9 @@ func (s *Squeak) assignValues(columns []string, values []any) error {
 	return nil
 }
 
-// QueryAuthor queries the "author" edge of the Squeak entity.
-func (s *Squeak) QueryAuthor() *UserQuery {
-	return (&SqueakClient{config: s.config}).QueryAuthor(s)
+// QueryCreator queries the "creator" edge of the Squeak entity.
+func (s *Squeak) QueryCreator() *UserQuery {
+	return (&SqueakClient{config: s.config}).QueryCreator(s)
 }
 
 // QueryOwner queries the "owner" edge of the Squeak entity.
