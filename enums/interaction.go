@@ -9,9 +9,7 @@ type Interaction uint8
 
 // Enum of user statuses.
 const (
-	UnknownInteraction Interaction = iota
-	Delete
-	Dislike
+	Dislike Interaction = iota
 	Like
 	Resqueak
 	UndoDislike
@@ -22,8 +20,6 @@ const (
 // String provides a string value for a Interaction int.
 func (p Interaction) String() string {
 	switch p {
-	case Delete:
-		return "DELETE"
 	case Dislike:
 		return "DISLIKE"
 	case Like:
@@ -44,7 +40,6 @@ func (p Interaction) String() string {
 // Values provides a list of valid values for Interaction.
 func (Interaction) Values() []string {
 	return []string{
-		Delete.String(),
 		Dislike.String(),
 		Like.String(),
 		Resqueak.String(),
@@ -73,8 +68,6 @@ func (p *Interaction) Scan(val any) error {
 	}
 
 	switch s {
-	case Delete.String():
-		*p = Delete
 	case Dislike.String():
 		*p = Dislike
 	case Like.String():
