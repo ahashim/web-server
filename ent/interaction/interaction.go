@@ -68,7 +68,7 @@ func ValidColumn(column string) bool {
 // TypeValidator is a validator for the "type" field enum values. It is called by the builders before save.
 func TypeValidator(_type enums.Interaction) error {
 	switch _type.String() {
-	case "DELETE", "DISLIKE", "LIKE", "RESQUEAK", "UNDO_DISLIKE", "UNDO_LIKE", "UNDO_RESQUEAK":
+	case "DISLIKE", "LIKE", "RESQUEAK", "UNDO_DISLIKE", "UNDO_LIKE", "UNDO_RESQUEAK":
 		return nil
 	default:
 		return fmt.Errorf("interaction: invalid enum value for type field: %q", _type)

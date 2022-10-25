@@ -11,7 +11,7 @@ var (
 	// InteractionsColumns holds the columns for the "interactions" table.
 	InteractionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "type", Type: field.TypeEnum, Enums: []string{"DELETE", "DISLIKE", "LIKE", "RESQUEAK", "UNDO_DISLIKE", "UNDO_LIKE", "UNDO_RESQUEAK"}},
+		{Name: "type", Type: field.TypeEnum, Enums: []string{"DISLIKE", "LIKE", "RESQUEAK", "UNDO_DISLIKE", "UNDO_LIKE", "UNDO_RESQUEAK"}},
 		{Name: "squeak_interactions", Type: field.TypeInt, Nullable: true},
 		{Name: "user_interactions", Type: field.TypeInt, Nullable: true},
 	}
