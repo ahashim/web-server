@@ -2,6 +2,8 @@ package enums
 
 import (
 	"database/sql/driver"
+	"errors"
+	"fmt"
 )
 
 // Interaction is the state a user can be in.
@@ -80,6 +82,8 @@ func (p *Interaction) Scan(val any) error {
 		*p = UndoLike
 	case UndoResqueak.String():
 		*p = UndoResqueak
+	default:
+    return errors.New(fmt.Sprintf("Invalid interaction: %s", s))
 	}
 
 	return nil

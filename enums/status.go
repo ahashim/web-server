@@ -1,6 +1,10 @@
 package enums
 
-import "database/sql/driver"
+import (
+	"database/sql/driver"
+	"errors"
+	"fmt"
+)
 
 // Status is the state a user can be in.
 type Status uint8
@@ -66,6 +70,8 @@ func (p *Status) Scan(val any) error {
 		*p = Suspended
 	case Banned.String():
 		*p = Banned
+	default:
+		return errors.New(fmt.Sprintf("Invalid status: %s", s))
 	}
 
 	return nil
