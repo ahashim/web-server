@@ -2,7 +2,6 @@ package enums
 
 import (
 	"database/sql/driver"
-	"errors"
 	"fmt"
 )
 
@@ -83,7 +82,7 @@ func (p *Interaction) Scan(val any) error {
 	case UndoResqueak.String():
 		*p = UndoResqueak
 	default:
-    return errors.New(fmt.Sprintf("Invalid interaction: %s", s))
+		return fmt.Errorf("Invalid interaction: %s", s)
 	}
 
 	return nil

@@ -2,7 +2,6 @@ package enums
 
 import (
 	"database/sql/driver"
-	"errors"
 	"fmt"
 )
 
@@ -71,7 +70,7 @@ func (p *Status) Scan(val any) error {
 	case Banned.String():
 		*p = Banned
 	default:
-		return errors.New(fmt.Sprintf("Invalid status: %s", s))
+		return fmt.Errorf("Invalid status: %s", s)
 	}
 
 	return nil
