@@ -1,9 +1,11 @@
 package enums
 
-import "database/sql/driver"
+import (
+	"database/sql/driver"
+)
 
 // Interaction is the state a user can be in.
-type Interaction int8
+type Interaction uint8
 
 // Enum of user statuses.
 const (
@@ -85,8 +87,6 @@ func (p *Interaction) Scan(val any) error {
 		*p = UndoLike
 	case UndoResqueak.String():
 		*p = UndoResqueak
-	default:
-		*p = -1
 	}
 
 	return nil
