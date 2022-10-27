@@ -47,6 +47,28 @@ var (
 		Columns:    RolesColumns,
 		PrimaryKey: []*schema.Column{RolesColumns[0]},
 	}
+	// ScoutsColumns holds the columns for the "scouts" table.
+	ScoutsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "shares", Type: field.TypeInt, SchemaType: map[string]string{"postgres": "numeric(78, 0)"}},
+	}
+	// ScoutsTable holds the schema information for the "scouts" table.
+	ScoutsTable = &schema.Table{
+		Name:       "scouts",
+		Columns:    ScoutsColumns,
+		PrimaryKey: []*schema.Column{ScoutsColumns[0]},
+	}
+	// ScoutPoolsColumns holds the columns for the "scout_pools" table.
+	ScoutPoolsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "amount", Type: field.TypeInt, SchemaType: map[string]string{"postgres": "numeric(78, 0)"}},
+	}
+	// ScoutPoolsTable holds the schema information for the "scout_pools" table.
+	ScoutPoolsTable = &schema.Table{
+		Name:       "scout_pools",
+		Columns:    ScoutPoolsColumns,
+		PrimaryKey: []*schema.Column{ScoutPoolsColumns[0]},
+	}
 	// SqueaksColumns holds the columns for the "squeaks" table.
 	SqueaksColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -143,6 +165,8 @@ var (
 	Tables = []*schema.Table{
 		InteractionsTable,
 		RolesTable,
+		ScoutsTable,
+		ScoutPoolsTable,
 		SqueaksTable,
 		UsersTable,
 		UserRolesTable,

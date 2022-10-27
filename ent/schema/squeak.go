@@ -20,7 +20,7 @@ func (Squeak) Fields() []ent.Field {
 		field.Int("block_number").
 			GoType(new(types.Uint256)).
 			SchemaType(map[string]string{
-				dialect.Postgres: "numeric(78, 0)", // uint256
+				dialect.Postgres: "numeric(78, 0)",
 			}),
 		field.String("content").
 			Immutable().

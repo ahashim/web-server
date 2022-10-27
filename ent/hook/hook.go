@@ -35,6 +35,32 @@ func (f RoleFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error)
 	return f(ctx, mv)
 }
 
+// The ScoutFunc type is an adapter to allow the use of ordinary
+// function as Scout mutator.
+type ScoutFunc func(context.Context, *ent.ScoutMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ScoutFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.ScoutMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ScoutMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The ScoutPoolFunc type is an adapter to allow the use of ordinary
+// function as ScoutPool mutator.
+type ScoutPoolFunc func(context.Context, *ent.ScoutPoolMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ScoutPoolFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.ScoutPoolMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ScoutPoolMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The SqueakFunc type is an adapter to allow the use of ordinary
 // function as Squeak mutator.
 type SqueakFunc func(context.Context, *ent.SqueakMutation) (ent.Value, error)

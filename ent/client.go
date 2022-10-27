@@ -12,6 +12,8 @@ import (
 
 	"github.com/ahashim/web-server/ent/interaction"
 	"github.com/ahashim/web-server/ent/role"
+	"github.com/ahashim/web-server/ent/scout"
+	"github.com/ahashim/web-server/ent/scoutpool"
 	"github.com/ahashim/web-server/ent/squeak"
 	"github.com/ahashim/web-server/ent/user"
 
@@ -29,6 +31,10 @@ type Client struct {
 	Interaction *InteractionClient
 	// Role is the client for interacting with the Role builders.
 	Role *RoleClient
+	// Scout is the client for interacting with the Scout builders.
+	Scout *ScoutClient
+	// ScoutPool is the client for interacting with the ScoutPool builders.
+	ScoutPool *ScoutPoolClient
 	// Squeak is the client for interacting with the Squeak builders.
 	Squeak *SqueakClient
 	// User is the client for interacting with the User builders.
@@ -48,6 +54,8 @@ func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Interaction = NewInteractionClient(c.config)
 	c.Role = NewRoleClient(c.config)
+	c.Scout = NewScoutClient(c.config)
+	c.ScoutPool = NewScoutPoolClient(c.config)
 	c.Squeak = NewSqueakClient(c.config)
 	c.User = NewUserClient(c.config)
 }
@@ -85,6 +93,8 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		config:      cfg,
 		Interaction: NewInteractionClient(cfg),
 		Role:        NewRoleClient(cfg),
+		Scout:       NewScoutClient(cfg),
+		ScoutPool:   NewScoutPoolClient(cfg),
 		Squeak:      NewSqueakClient(cfg),
 		User:        NewUserClient(cfg),
 	}, nil
@@ -108,6 +118,8 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		config:      cfg,
 		Interaction: NewInteractionClient(cfg),
 		Role:        NewRoleClient(cfg),
+		Scout:       NewScoutClient(cfg),
+		ScoutPool:   NewScoutPoolClient(cfg),
 		Squeak:      NewSqueakClient(cfg),
 		User:        NewUserClient(cfg),
 	}, nil
@@ -140,6 +152,8 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	c.Interaction.Use(hooks...)
 	c.Role.Use(hooks...)
+	c.Scout.Use(hooks...)
+	c.ScoutPool.Use(hooks...)
 	c.Squeak.Use(hooks...)
 	c.User.Use(hooks...)
 }
@@ -370,6 +384,186 @@ func (c *RoleClient) QueryUsers(r *Role) *UserQuery {
 // Hooks returns the client hooks.
 func (c *RoleClient) Hooks() []Hook {
 	return c.hooks.Role
+}
+
+// ScoutClient is a client for the Scout schema.
+type ScoutClient struct {
+	config
+}
+
+// NewScoutClient returns a client for the Scout from the given config.
+func NewScoutClient(c config) *ScoutClient {
+	return &ScoutClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `scout.Hooks(f(g(h())))`.
+func (c *ScoutClient) Use(hooks ...Hook) {
+	c.hooks.Scout = append(c.hooks.Scout, hooks...)
+}
+
+// Create returns a builder for creating a Scout entity.
+func (c *ScoutClient) Create() *ScoutCreate {
+	mutation := newScoutMutation(c.config, OpCreate)
+	return &ScoutCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Scout entities.
+func (c *ScoutClient) CreateBulk(builders ...*ScoutCreate) *ScoutCreateBulk {
+	return &ScoutCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Scout.
+func (c *ScoutClient) Update() *ScoutUpdate {
+	mutation := newScoutMutation(c.config, OpUpdate)
+	return &ScoutUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ScoutClient) UpdateOne(s *Scout) *ScoutUpdateOne {
+	mutation := newScoutMutation(c.config, OpUpdateOne, withScout(s))
+	return &ScoutUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ScoutClient) UpdateOneID(id int) *ScoutUpdateOne {
+	mutation := newScoutMutation(c.config, OpUpdateOne, withScoutID(id))
+	return &ScoutUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Scout.
+func (c *ScoutClient) Delete() *ScoutDelete {
+	mutation := newScoutMutation(c.config, OpDelete)
+	return &ScoutDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ScoutClient) DeleteOne(s *Scout) *ScoutDeleteOne {
+	return c.DeleteOneID(s.ID)
+}
+
+// DeleteOne returns a builder for deleting the given entity by its id.
+func (c *ScoutClient) DeleteOneID(id int) *ScoutDeleteOne {
+	builder := c.Delete().Where(scout.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ScoutDeleteOne{builder}
+}
+
+// Query returns a query builder for Scout.
+func (c *ScoutClient) Query() *ScoutQuery {
+	return &ScoutQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a Scout entity by its id.
+func (c *ScoutClient) Get(ctx context.Context, id int) (*Scout, error) {
+	return c.Query().Where(scout.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ScoutClient) GetX(ctx context.Context, id int) *Scout {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *ScoutClient) Hooks() []Hook {
+	return c.hooks.Scout
+}
+
+// ScoutPoolClient is a client for the ScoutPool schema.
+type ScoutPoolClient struct {
+	config
+}
+
+// NewScoutPoolClient returns a client for the ScoutPool from the given config.
+func NewScoutPoolClient(c config) *ScoutPoolClient {
+	return &ScoutPoolClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `scoutpool.Hooks(f(g(h())))`.
+func (c *ScoutPoolClient) Use(hooks ...Hook) {
+	c.hooks.ScoutPool = append(c.hooks.ScoutPool, hooks...)
+}
+
+// Create returns a builder for creating a ScoutPool entity.
+func (c *ScoutPoolClient) Create() *ScoutPoolCreate {
+	mutation := newScoutPoolMutation(c.config, OpCreate)
+	return &ScoutPoolCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ScoutPool entities.
+func (c *ScoutPoolClient) CreateBulk(builders ...*ScoutPoolCreate) *ScoutPoolCreateBulk {
+	return &ScoutPoolCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ScoutPool.
+func (c *ScoutPoolClient) Update() *ScoutPoolUpdate {
+	mutation := newScoutPoolMutation(c.config, OpUpdate)
+	return &ScoutPoolUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ScoutPoolClient) UpdateOne(sp *ScoutPool) *ScoutPoolUpdateOne {
+	mutation := newScoutPoolMutation(c.config, OpUpdateOne, withScoutPool(sp))
+	return &ScoutPoolUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ScoutPoolClient) UpdateOneID(id int) *ScoutPoolUpdateOne {
+	mutation := newScoutPoolMutation(c.config, OpUpdateOne, withScoutPoolID(id))
+	return &ScoutPoolUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ScoutPool.
+func (c *ScoutPoolClient) Delete() *ScoutPoolDelete {
+	mutation := newScoutPoolMutation(c.config, OpDelete)
+	return &ScoutPoolDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ScoutPoolClient) DeleteOne(sp *ScoutPool) *ScoutPoolDeleteOne {
+	return c.DeleteOneID(sp.ID)
+}
+
+// DeleteOne returns a builder for deleting the given entity by its id.
+func (c *ScoutPoolClient) DeleteOneID(id int) *ScoutPoolDeleteOne {
+	builder := c.Delete().Where(scoutpool.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ScoutPoolDeleteOne{builder}
+}
+
+// Query returns a query builder for ScoutPool.
+func (c *ScoutPoolClient) Query() *ScoutPoolQuery {
+	return &ScoutPoolQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a ScoutPool entity by its id.
+func (c *ScoutPoolClient) Get(ctx context.Context, id int) (*ScoutPool, error) {
+	return c.Query().Where(scoutpool.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ScoutPoolClient) GetX(ctx context.Context, id int) *ScoutPool {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *ScoutPoolClient) Hooks() []Hook {
+	return c.hooks.ScoutPool
 }
 
 // SqueakClient is a client for the Squeak schema.

@@ -12,6 +12,8 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/ahashim/web-server/ent/interaction"
 	"github.com/ahashim/web-server/ent/role"
+	"github.com/ahashim/web-server/ent/scout"
+	"github.com/ahashim/web-server/ent/scoutpool"
 	"github.com/ahashim/web-server/ent/squeak"
 	"github.com/ahashim/web-server/ent/user"
 )
@@ -36,6 +38,8 @@ func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
 		interaction.Table: interaction.ValidColumn,
 		role.Table:        role.ValidColumn,
+		scout.Table:       scout.ValidColumn,
+		scoutpool.Table:   scoutpool.ValidColumn,
 		squeak.Table:      squeak.ValidColumn,
 		user.Table:        user.ValidColumn,
 	}

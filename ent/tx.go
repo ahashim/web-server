@@ -16,6 +16,10 @@ type Tx struct {
 	Interaction *InteractionClient
 	// Role is the client for interacting with the Role builders.
 	Role *RoleClient
+	// Scout is the client for interacting with the Scout builders.
+	Scout *ScoutClient
+	// ScoutPool is the client for interacting with the ScoutPool builders.
+	ScoutPool *ScoutPoolClient
 	// Squeak is the client for interacting with the Squeak builders.
 	Squeak *SqueakClient
 	// User is the client for interacting with the User builders.
@@ -157,6 +161,8 @@ func (tx *Tx) Client() *Client {
 func (tx *Tx) init() {
 	tx.Interaction = NewInteractionClient(tx.config)
 	tx.Role = NewRoleClient(tx.config)
+	tx.Scout = NewScoutClient(tx.config)
+	tx.ScoutPool = NewScoutPoolClient(tx.config)
 	tx.Squeak = NewSqueakClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 }

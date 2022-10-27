@@ -26,6 +26,8 @@ type config struct {
 type hooks struct {
 	Interaction []ent.Hook
 	Role        []ent.Hook
+	Scout       []ent.Hook
+	ScoutPool   []ent.Hook
 	Squeak      []ent.Hook
 	User        []ent.Hook
 }
