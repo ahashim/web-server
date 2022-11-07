@@ -3,7 +3,7 @@ module github.com/ahashim/web-server
 go 1.18
 
 require (
-	entgo.io/ent v0.11.3
+	entgo.io/ent v0.11.4
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/PuerkitoBio/goquery v1.8.0
 	github.com/eko/gocache/v2 v2.3.1
@@ -24,7 +24,7 @@ require (
 )
 
 require (
-	ariga.io/atlas v0.7.2-0.20220927111110-867ee0cca56a // indirect
+	ariga.io/atlas v0.7.3-0.20221011160332-3ca609863edd // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/XiaoMi/pegasus-go-client v0.0.0-20210427083443-f3b6b08bc4c2 // indirect

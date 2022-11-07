@@ -63,4 +63,4 @@ worker:
 # Check for direct dependency updates
 .PHONY: check-updates
 check-updates:
-	go list -u -m -f '{{if not .Indirect}}{{.}}{{end}}' all | grep "\["
+	go list -u -m -f '{{if not .Indirect}}{{.}}{{end}}' all | rg "\["
