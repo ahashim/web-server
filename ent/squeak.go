@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"entgo.io/ent/dialect/sql"
+	"github.com/ahashim/web-server/ent/pool"
 	"github.com/ahashim/web-server/ent/squeak"
 	"github.com/ahashim/web-server/ent/user"
 	"github.com/ahashim/web-server/types"
@@ -32,13 +33,15 @@ type Squeak struct {
 type SqueakEdges struct {
 	// Interactions holds the value of the interactions edge.
 	Interactions []*Interaction `json:"interactions,omitempty"`
+	// Pool holds the value of the pool edge.
+	Pool *Pool `json:"pool,omitempty"`
 	// Creator holds the value of the creator edge.
 	Creator *User `json:"creator,omitempty"`
 	// Owner holds the value of the owner edge.
 	Owner *User `json:"owner,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 }
 
 // InteractionsOrErr returns the Interactions value or an error if the edge
@@ -50,10 +53,23 @@ func (e SqueakEdges) InteractionsOrErr() ([]*Interaction, error) {
 	return nil, &NotLoadedError{edge: "interactions"}
 }
 
+// PoolOrErr returns the Pool value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e SqueakEdges) PoolOrErr() (*Pool, error) {
+	if e.loadedTypes[1] {
+		if e.Pool == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: pool.Label}
+		}
+		return e.Pool, nil
+	}
+	return nil, &NotLoadedError{edge: "pool"}
+}
+
 // CreatorOrErr returns the Creator value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e SqueakEdges) CreatorOrErr() (*User, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[2] {
 		if e.Creator == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: user.Label}
@@ -66,7 +82,7 @@ func (e SqueakEdges) CreatorOrErr() (*User, error) {
 // OwnerOrErr returns the Owner value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e SqueakEdges) OwnerOrErr() (*User, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[3] {
 		if e.Owner == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: user.Label}
@@ -146,6 +162,11 @@ func (s *Squeak) assignValues(columns []string, values []any) error {
 // QueryInteractions queries the "interactions" edge of the Squeak entity.
 func (s *Squeak) QueryInteractions() *InteractionQuery {
 	return (&SqueakClient{config: s.config}).QueryInteractions(s)
+}
+
+// QueryPool queries the "pool" edge of the Squeak entity.
+func (s *Squeak) QueryPool() *PoolQuery {
+	return (&SqueakClient{config: s.config}).QueryPool(s)
 }
 
 // QueryCreator queries the "creator" edge of the Squeak entity.

@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/ahashim/web-server/ent/interaction"
+	"github.com/ahashim/web-server/ent/poolpass"
 	"github.com/ahashim/web-server/ent/predicate"
 	"github.com/ahashim/web-server/ent/role"
 	"github.com/ahashim/web-server/ent/squeak"
@@ -43,24 +44,24 @@ func (uu *UserUpdate) SetStatus(e enums.Status) *UserUpdate {
 	return uu
 }
 
-// SetScoutLevel sets the "scout_level" field.
-func (uu *UserUpdate) SetScoutLevel(i int8) *UserUpdate {
-	uu.mutation.ResetScoutLevel()
-	uu.mutation.SetScoutLevel(i)
+// SetLevel sets the "level" field.
+func (uu *UserUpdate) SetLevel(i int8) *UserUpdate {
+	uu.mutation.ResetLevel()
+	uu.mutation.SetLevel(i)
 	return uu
 }
 
-// SetNillableScoutLevel sets the "scout_level" field if the given value is not nil.
-func (uu *UserUpdate) SetNillableScoutLevel(i *int8) *UserUpdate {
+// SetNillableLevel sets the "level" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableLevel(i *int8) *UserUpdate {
 	if i != nil {
-		uu.SetScoutLevel(*i)
+		uu.SetLevel(*i)
 	}
 	return uu
 }
 
-// AddScoutLevel adds i to the "scout_level" field.
-func (uu *UserUpdate) AddScoutLevel(i int8) *UserUpdate {
-	uu.mutation.AddScoutLevel(i)
+// AddLevel adds i to the "level" field.
+func (uu *UserUpdate) AddLevel(i int8) *UserUpdate {
+	uu.mutation.AddLevel(i)
 	return uu
 }
 
@@ -77,6 +78,21 @@ func (uu *UserUpdate) AddInteractions(i ...*Interaction) *UserUpdate {
 		ids[j] = i[j].ID
 	}
 	return uu.AddInteractionIDs(ids...)
+}
+
+// AddPoolPassIDs adds the "pool_passes" edge to the PoolPass entity by IDs.
+func (uu *UserUpdate) AddPoolPassIDs(ids ...int) *UserUpdate {
+	uu.mutation.AddPoolPassIDs(ids...)
+	return uu
+}
+
+// AddPoolPasses adds the "pool_passes" edges to the PoolPass entity.
+func (uu *UserUpdate) AddPoolPasses(p ...*PoolPass) *UserUpdate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return uu.AddPoolPassIDs(ids...)
 }
 
 // AddRoleIDs adds the "roles" edge to the Role entity by IDs.
@@ -178,6 +194,27 @@ func (uu *UserUpdate) RemoveInteractions(i ...*Interaction) *UserUpdate {
 		ids[j] = i[j].ID
 	}
 	return uu.RemoveInteractionIDs(ids...)
+}
+
+// ClearPoolPasses clears all "pool_passes" edges to the PoolPass entity.
+func (uu *UserUpdate) ClearPoolPasses() *UserUpdate {
+	uu.mutation.ClearPoolPasses()
+	return uu
+}
+
+// RemovePoolPassIDs removes the "pool_passes" edge to PoolPass entities by IDs.
+func (uu *UserUpdate) RemovePoolPassIDs(ids ...int) *UserUpdate {
+	uu.mutation.RemovePoolPassIDs(ids...)
+	return uu
+}
+
+// RemovePoolPasses removes "pool_passes" edges to PoolPass entities.
+func (uu *UserUpdate) RemovePoolPasses(p ...*PoolPass) *UserUpdate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return uu.RemovePoolPassIDs(ids...)
 }
 
 // ClearRoles clears all "roles" edges to the Role entity.
@@ -384,11 +421,11 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := uu.mutation.Status(); ok {
 		_spec.SetField(user.FieldStatus, field.TypeEnum, value)
 	}
-	if value, ok := uu.mutation.ScoutLevel(); ok {
-		_spec.SetField(user.FieldScoutLevel, field.TypeInt8, value)
+	if value, ok := uu.mutation.Level(); ok {
+		_spec.SetField(user.FieldLevel, field.TypeInt8, value)
 	}
-	if value, ok := uu.mutation.AddedScoutLevel(); ok {
-		_spec.AddField(user.FieldScoutLevel, field.TypeInt8, value)
+	if value, ok := uu.mutation.AddedLevel(); ok {
+		_spec.AddField(user.FieldLevel, field.TypeInt8, value)
 	}
 	if uu.mutation.InteractionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -436,6 +473,60 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: interaction.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uu.mutation.PoolPassesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PoolPassesTable,
+			Columns: []string{user.PoolPassesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: poolpass.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedPoolPassesIDs(); len(nodes) > 0 && !uu.mutation.PoolPassesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PoolPassesTable,
+			Columns: []string{user.PoolPassesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: poolpass.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.PoolPassesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PoolPassesTable,
+			Columns: []string{user.PoolPassesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: poolpass.FieldID,
 				},
 			},
 		}
@@ -745,24 +836,24 @@ func (uuo *UserUpdateOne) SetStatus(e enums.Status) *UserUpdateOne {
 	return uuo
 }
 
-// SetScoutLevel sets the "scout_level" field.
-func (uuo *UserUpdateOne) SetScoutLevel(i int8) *UserUpdateOne {
-	uuo.mutation.ResetScoutLevel()
-	uuo.mutation.SetScoutLevel(i)
+// SetLevel sets the "level" field.
+func (uuo *UserUpdateOne) SetLevel(i int8) *UserUpdateOne {
+	uuo.mutation.ResetLevel()
+	uuo.mutation.SetLevel(i)
 	return uuo
 }
 
-// SetNillableScoutLevel sets the "scout_level" field if the given value is not nil.
-func (uuo *UserUpdateOne) SetNillableScoutLevel(i *int8) *UserUpdateOne {
+// SetNillableLevel sets the "level" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableLevel(i *int8) *UserUpdateOne {
 	if i != nil {
-		uuo.SetScoutLevel(*i)
+		uuo.SetLevel(*i)
 	}
 	return uuo
 }
 
-// AddScoutLevel adds i to the "scout_level" field.
-func (uuo *UserUpdateOne) AddScoutLevel(i int8) *UserUpdateOne {
-	uuo.mutation.AddScoutLevel(i)
+// AddLevel adds i to the "level" field.
+func (uuo *UserUpdateOne) AddLevel(i int8) *UserUpdateOne {
+	uuo.mutation.AddLevel(i)
 	return uuo
 }
 
@@ -779,6 +870,21 @@ func (uuo *UserUpdateOne) AddInteractions(i ...*Interaction) *UserUpdateOne {
 		ids[j] = i[j].ID
 	}
 	return uuo.AddInteractionIDs(ids...)
+}
+
+// AddPoolPassIDs adds the "pool_passes" edge to the PoolPass entity by IDs.
+func (uuo *UserUpdateOne) AddPoolPassIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.AddPoolPassIDs(ids...)
+	return uuo
+}
+
+// AddPoolPasses adds the "pool_passes" edges to the PoolPass entity.
+func (uuo *UserUpdateOne) AddPoolPasses(p ...*PoolPass) *UserUpdateOne {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return uuo.AddPoolPassIDs(ids...)
 }
 
 // AddRoleIDs adds the "roles" edge to the Role entity by IDs.
@@ -880,6 +986,27 @@ func (uuo *UserUpdateOne) RemoveInteractions(i ...*Interaction) *UserUpdateOne {
 		ids[j] = i[j].ID
 	}
 	return uuo.RemoveInteractionIDs(ids...)
+}
+
+// ClearPoolPasses clears all "pool_passes" edges to the PoolPass entity.
+func (uuo *UserUpdateOne) ClearPoolPasses() *UserUpdateOne {
+	uuo.mutation.ClearPoolPasses()
+	return uuo
+}
+
+// RemovePoolPassIDs removes the "pool_passes" edge to PoolPass entities by IDs.
+func (uuo *UserUpdateOne) RemovePoolPassIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.RemovePoolPassIDs(ids...)
+	return uuo
+}
+
+// RemovePoolPasses removes "pool_passes" edges to PoolPass entities.
+func (uuo *UserUpdateOne) RemovePoolPasses(p ...*PoolPass) *UserUpdateOne {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return uuo.RemovePoolPassIDs(ids...)
 }
 
 // ClearRoles clears all "roles" edges to the Role entity.
@@ -1116,11 +1243,11 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	if value, ok := uuo.mutation.Status(); ok {
 		_spec.SetField(user.FieldStatus, field.TypeEnum, value)
 	}
-	if value, ok := uuo.mutation.ScoutLevel(); ok {
-		_spec.SetField(user.FieldScoutLevel, field.TypeInt8, value)
+	if value, ok := uuo.mutation.Level(); ok {
+		_spec.SetField(user.FieldLevel, field.TypeInt8, value)
 	}
-	if value, ok := uuo.mutation.AddedScoutLevel(); ok {
-		_spec.AddField(user.FieldScoutLevel, field.TypeInt8, value)
+	if value, ok := uuo.mutation.AddedLevel(); ok {
+		_spec.AddField(user.FieldLevel, field.TypeInt8, value)
 	}
 	if uuo.mutation.InteractionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -1168,6 +1295,60 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: interaction.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.PoolPassesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PoolPassesTable,
+			Columns: []string{user.PoolPassesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: poolpass.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedPoolPassesIDs(); len(nodes) > 0 && !uuo.mutation.PoolPassesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PoolPassesTable,
+			Columns: []string{user.PoolPassesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: poolpass.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.PoolPassesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PoolPassesTable,
+			Columns: []string{user.PoolPassesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: poolpass.FieldID,
 				},
 			},
 		}

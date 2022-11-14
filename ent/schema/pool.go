@@ -3,6 +3,7 @@ package schema
 import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/ahashim/web-server/types"
 )
@@ -38,5 +39,10 @@ func (Pool) Fields() []ent.Field {
 
 // Edges of the Pool.
 func (Pool) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		edge.To("pool_passes", PoolPass.Type),
+    edge.From("squeak", Squeak.Type).
+      Ref("pool").
+      Unique(),
+  }
 }

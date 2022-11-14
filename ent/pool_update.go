@@ -11,7 +11,9 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/ahashim/web-server/ent/pool"
+	"github.com/ahashim/web-server/ent/poolpass"
 	"github.com/ahashim/web-server/ent/predicate"
+	"github.com/ahashim/web-server/ent/squeak"
 	"github.com/ahashim/web-server/types"
 )
 
@@ -40,15 +42,70 @@ func (pu *PoolUpdate) SetShares(t *types.Uint256) *PoolUpdate {
 	return pu
 }
 
-// SetBlockNumber sets the "block_number" field.
-func (pu *PoolUpdate) SetBlockNumber(t *types.Uint256) *PoolUpdate {
-	pu.mutation.SetBlockNumber(t)
+// AddPoolPassIDs adds the "pool_passes" edge to the PoolPass entity by IDs.
+func (pu *PoolUpdate) AddPoolPassIDs(ids ...int) *PoolUpdate {
+	pu.mutation.AddPoolPassIDs(ids...)
 	return pu
+}
+
+// AddPoolPasses adds the "pool_passes" edges to the PoolPass entity.
+func (pu *PoolUpdate) AddPoolPasses(p ...*PoolPass) *PoolUpdate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return pu.AddPoolPassIDs(ids...)
+}
+
+// SetSqueakID sets the "squeak" edge to the Squeak entity by ID.
+func (pu *PoolUpdate) SetSqueakID(id int) *PoolUpdate {
+	pu.mutation.SetSqueakID(id)
+	return pu
+}
+
+// SetNillableSqueakID sets the "squeak" edge to the Squeak entity by ID if the given value is not nil.
+func (pu *PoolUpdate) SetNillableSqueakID(id *int) *PoolUpdate {
+	if id != nil {
+		pu = pu.SetSqueakID(*id)
+	}
+	return pu
+}
+
+// SetSqueak sets the "squeak" edge to the Squeak entity.
+func (pu *PoolUpdate) SetSqueak(s *Squeak) *PoolUpdate {
+	return pu.SetSqueakID(s.ID)
 }
 
 // Mutation returns the PoolMutation object of the builder.
 func (pu *PoolUpdate) Mutation() *PoolMutation {
 	return pu.mutation
+}
+
+// ClearPoolPasses clears all "pool_passes" edges to the PoolPass entity.
+func (pu *PoolUpdate) ClearPoolPasses() *PoolUpdate {
+	pu.mutation.ClearPoolPasses()
+	return pu
+}
+
+// RemovePoolPassIDs removes the "pool_passes" edge to PoolPass entities by IDs.
+func (pu *PoolUpdate) RemovePoolPassIDs(ids ...int) *PoolUpdate {
+	pu.mutation.RemovePoolPassIDs(ids...)
+	return pu
+}
+
+// RemovePoolPasses removes "pool_passes" edges to PoolPass entities.
+func (pu *PoolUpdate) RemovePoolPasses(p ...*PoolPass) *PoolUpdate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return pu.RemovePoolPassIDs(ids...)
+}
+
+// ClearSqueak clears the "squeak" edge to the Squeak entity.
+func (pu *PoolUpdate) ClearSqueak() *PoolUpdate {
+	pu.mutation.ClearSqueak()
+	return pu
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -129,8 +186,94 @@ func (pu *PoolUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := pu.mutation.Shares(); ok {
 		_spec.SetField(pool.FieldShares, field.TypeInt, value)
 	}
-	if value, ok := pu.mutation.BlockNumber(); ok {
-		_spec.SetField(pool.FieldBlockNumber, field.TypeInt, value)
+	if pu.mutation.PoolPassesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   pool.PoolPassesTable,
+			Columns: []string{pool.PoolPassesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: poolpass.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.RemovedPoolPassesIDs(); len(nodes) > 0 && !pu.mutation.PoolPassesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   pool.PoolPassesTable,
+			Columns: []string{pool.PoolPassesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: poolpass.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.PoolPassesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   pool.PoolPassesTable,
+			Columns: []string{pool.PoolPassesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: poolpass.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if pu.mutation.SqueakCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   pool.SqueakTable,
+			Columns: []string{pool.SqueakColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: squeak.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.SqueakIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   pool.SqueakTable,
+			Columns: []string{pool.SqueakColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: squeak.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, pu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -163,15 +306,70 @@ func (puo *PoolUpdateOne) SetShares(t *types.Uint256) *PoolUpdateOne {
 	return puo
 }
 
-// SetBlockNumber sets the "block_number" field.
-func (puo *PoolUpdateOne) SetBlockNumber(t *types.Uint256) *PoolUpdateOne {
-	puo.mutation.SetBlockNumber(t)
+// AddPoolPassIDs adds the "pool_passes" edge to the PoolPass entity by IDs.
+func (puo *PoolUpdateOne) AddPoolPassIDs(ids ...int) *PoolUpdateOne {
+	puo.mutation.AddPoolPassIDs(ids...)
 	return puo
+}
+
+// AddPoolPasses adds the "pool_passes" edges to the PoolPass entity.
+func (puo *PoolUpdateOne) AddPoolPasses(p ...*PoolPass) *PoolUpdateOne {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return puo.AddPoolPassIDs(ids...)
+}
+
+// SetSqueakID sets the "squeak" edge to the Squeak entity by ID.
+func (puo *PoolUpdateOne) SetSqueakID(id int) *PoolUpdateOne {
+	puo.mutation.SetSqueakID(id)
+	return puo
+}
+
+// SetNillableSqueakID sets the "squeak" edge to the Squeak entity by ID if the given value is not nil.
+func (puo *PoolUpdateOne) SetNillableSqueakID(id *int) *PoolUpdateOne {
+	if id != nil {
+		puo = puo.SetSqueakID(*id)
+	}
+	return puo
+}
+
+// SetSqueak sets the "squeak" edge to the Squeak entity.
+func (puo *PoolUpdateOne) SetSqueak(s *Squeak) *PoolUpdateOne {
+	return puo.SetSqueakID(s.ID)
 }
 
 // Mutation returns the PoolMutation object of the builder.
 func (puo *PoolUpdateOne) Mutation() *PoolMutation {
 	return puo.mutation
+}
+
+// ClearPoolPasses clears all "pool_passes" edges to the PoolPass entity.
+func (puo *PoolUpdateOne) ClearPoolPasses() *PoolUpdateOne {
+	puo.mutation.ClearPoolPasses()
+	return puo
+}
+
+// RemovePoolPassIDs removes the "pool_passes" edge to PoolPass entities by IDs.
+func (puo *PoolUpdateOne) RemovePoolPassIDs(ids ...int) *PoolUpdateOne {
+	puo.mutation.RemovePoolPassIDs(ids...)
+	return puo
+}
+
+// RemovePoolPasses removes "pool_passes" edges to PoolPass entities.
+func (puo *PoolUpdateOne) RemovePoolPasses(p ...*PoolPass) *PoolUpdateOne {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return puo.RemovePoolPassIDs(ids...)
+}
+
+// ClearSqueak clears the "squeak" edge to the Squeak entity.
+func (puo *PoolUpdateOne) ClearSqueak() *PoolUpdateOne {
+	puo.mutation.ClearSqueak()
+	return puo
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -282,8 +480,94 @@ func (puo *PoolUpdateOne) sqlSave(ctx context.Context) (_node *Pool, err error) 
 	if value, ok := puo.mutation.Shares(); ok {
 		_spec.SetField(pool.FieldShares, field.TypeInt, value)
 	}
-	if value, ok := puo.mutation.BlockNumber(); ok {
-		_spec.SetField(pool.FieldBlockNumber, field.TypeInt, value)
+	if puo.mutation.PoolPassesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   pool.PoolPassesTable,
+			Columns: []string{pool.PoolPassesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: poolpass.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.RemovedPoolPassesIDs(); len(nodes) > 0 && !puo.mutation.PoolPassesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   pool.PoolPassesTable,
+			Columns: []string{pool.PoolPassesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: poolpass.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.PoolPassesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   pool.PoolPassesTable,
+			Columns: []string{pool.PoolPassesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: poolpass.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if puo.mutation.SqueakCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   pool.SqueakTable,
+			Columns: []string{pool.SqueakColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: squeak.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.SqueakIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   pool.SqueakTable,
+			Columns: []string{pool.SqueakColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: squeak.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Pool{config: puo.config}
 	_spec.Assign = _node.assignValues

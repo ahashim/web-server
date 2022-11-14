@@ -26,7 +26,7 @@ func (User) Fields() []ent.Field {
 			NotEmpty(),
 		field.Enum("status").
 			GoType(enums.Status(0)),
-		field.Int8("scout_level").
+		field.Int8("level").
 			Default(1),
 	}
 }
@@ -35,6 +35,7 @@ func (User) Fields() []ent.Field {
 func (User) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("interactions", Interaction.Type),
+		edge.To("pool_passes", PoolPass.Type),
 		edge.To("roles", Role.Type),
 		edge.To("created", Squeak.Type),
 		edge.To("owned", Squeak.Type),

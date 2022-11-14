@@ -4,6 +4,7 @@ package poolpass
 
 import (
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/ahashim/web-server/ent/predicate"
 	"github.com/ahashim/web-server/types"
 )
@@ -147,6 +148,62 @@ func SharesLT(v *types.Uint256) predicate.PoolPass {
 func SharesLTE(v *types.Uint256) predicate.PoolPass {
 	return predicate.PoolPass(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldShares), v))
+	})
+}
+
+// HasUser applies the HasEdge predicate on the "user" edge.
+func HasUser() predicate.PoolPass {
+	return predicate.PoolPass(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(UserTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, UserTable, UserColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasUserWith applies the HasEdge predicate on the "user" edge with a given conditions (other predicates).
+func HasUserWith(preds ...predicate.User) predicate.PoolPass {
+	return predicate.PoolPass(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(UserInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, UserTable, UserColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasPool applies the HasEdge predicate on the "pool" edge.
+func HasPool() predicate.PoolPass {
+	return predicate.PoolPass(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(PoolTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, PoolTable, PoolColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPoolWith applies the HasEdge predicate on the "pool" edge with a given conditions (other predicates).
+func HasPoolWith(preds ...predicate.Pool) predicate.PoolPass {
+	return predicate.PoolPass(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(PoolInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, PoolTable, PoolColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
 	})
 }
 

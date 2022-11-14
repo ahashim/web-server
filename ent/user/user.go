@@ -19,10 +19,12 @@ const (
 	FieldUsername = "username"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
-	// FieldScoutLevel holds the string denoting the scout_level field in the database.
-	FieldScoutLevel = "scout_level"
+	// FieldLevel holds the string denoting the level field in the database.
+	FieldLevel = "level"
 	// EdgeInteractions holds the string denoting the interactions edge name in mutations.
 	EdgeInteractions = "interactions"
+	// EdgePoolPasses holds the string denoting the pool_passes edge name in mutations.
+	EdgePoolPasses = "pool_passes"
 	// EdgeRoles holds the string denoting the roles edge name in mutations.
 	EdgeRoles = "roles"
 	// EdgeCreated holds the string denoting the created edge name in mutations.
@@ -42,6 +44,13 @@ const (
 	InteractionsInverseTable = "interactions"
 	// InteractionsColumn is the table column denoting the interactions relation/edge.
 	InteractionsColumn = "user_interactions"
+	// PoolPassesTable is the table that holds the pool_passes relation/edge.
+	PoolPassesTable = "pool_passes"
+	// PoolPassesInverseTable is the table name for the PoolPass entity.
+	// It exists in this package in order to avoid circular dependency with the "poolpass" package.
+	PoolPassesInverseTable = "pool_passes"
+	// PoolPassesColumn is the table column denoting the pool_passes relation/edge.
+	PoolPassesColumn = "user_pool_passes"
 	// RolesTable is the table that holds the roles relation/edge. The primary key declared below.
 	RolesTable = "user_roles"
 	// RolesInverseTable is the table name for the Role entity.
@@ -73,7 +82,7 @@ var Columns = []string{
 	FieldAddress,
 	FieldUsername,
 	FieldStatus,
-	FieldScoutLevel,
+	FieldLevel,
 }
 
 var (
@@ -103,8 +112,8 @@ var (
 	AddressValidator func(string) error
 	// UsernameValidator is a validator for the "username" field. It is called by the builders before save.
 	UsernameValidator func(string) error
-	// DefaultScoutLevel holds the default value on creation for the "scout_level" field.
-	DefaultScoutLevel int8
+	// DefaultLevel holds the default value on creation for the "level" field.
+	DefaultLevel int8
 )
 
 // StatusValidator is a validator for the "status" field enum values. It is called by the builders before save.

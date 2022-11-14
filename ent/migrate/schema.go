@@ -42,23 +42,48 @@ var (
 		{Name: "shares", Type: field.TypeInt, SchemaType: map[string]string{"postgres": "numeric(78, 0)"}},
 		{Name: "block_number", Type: field.TypeInt, SchemaType: map[string]string{"postgres": "numeric(78, 0)"}},
 		{Name: "score", Type: field.TypeInt},
+		{Name: "squeak_pool", Type: field.TypeInt, Unique: true, Nullable: true},
 	}
 	// PoolsTable holds the schema information for the "pools" table.
 	PoolsTable = &schema.Table{
 		Name:       "pools",
 		Columns:    PoolsColumns,
 		PrimaryKey: []*schema.Column{PoolsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "pools_squeaks_pool",
+				Columns:    []*schema.Column{PoolsColumns[5]},
+				RefColumns: []*schema.Column{SqueaksColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// PoolPassesColumns holds the columns for the "pool_passes" table.
 	PoolPassesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "shares", Type: field.TypeInt, SchemaType: map[string]string{"postgres": "numeric(78, 0)"}},
+		{Name: "pool_pool_passes", Type: field.TypeInt, Nullable: true},
+		{Name: "user_pool_passes", Type: field.TypeInt, Nullable: true},
 	}
 	// PoolPassesTable holds the schema information for the "pool_passes" table.
 	PoolPassesTable = &schema.Table{
 		Name:       "pool_passes",
 		Columns:    PoolPassesColumns,
 		PrimaryKey: []*schema.Column{PoolPassesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "pool_passes_pools_pool_passes",
+				Columns:    []*schema.Column{PoolPassesColumns[2]},
+				RefColumns: []*schema.Column{PoolsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "pool_passes_users_pool_passes",
+				Columns:    []*schema.Column{PoolPassesColumns[3]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// RolesColumns holds the columns for the "roles" table.
 	RolesColumns = []*schema.Column{
@@ -106,7 +131,7 @@ var (
 		{Name: "address", Type: field.TypeString},
 		{Name: "username", Type: field.TypeString, Size: 32},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"UNKNOWN", "ACTIVE", "SUSPENDED", "BANNED"}},
-		{Name: "scout_level", Type: field.TypeInt8, Default: 1},
+		{Name: "level", Type: field.TypeInt8, Default: 1},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{
@@ -180,6 +205,9 @@ var (
 func init() {
 	InteractionsTable.ForeignKeys[0].RefTable = SqueaksTable
 	InteractionsTable.ForeignKeys[1].RefTable = UsersTable
+	PoolsTable.ForeignKeys[0].RefTable = SqueaksTable
+	PoolPassesTable.ForeignKeys[0].RefTable = PoolsTable
+	PoolPassesTable.ForeignKeys[1].RefTable = UsersTable
 	SqueaksTable.ForeignKeys[0].RefTable = UsersTable
 	SqueaksTable.ForeignKeys[1].RefTable = UsersTable
 	UserRolesTable.ForeignKeys[0].RefTable = UsersTable

@@ -4,6 +4,7 @@ package pool
 
 import (
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/ahashim/web-server/ent/predicate"
 	"github.com/ahashim/web-server/types"
 )
@@ -360,6 +361,62 @@ func ScoreLT(v int) predicate.Pool {
 func ScoreLTE(v int) predicate.Pool {
 	return predicate.Pool(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldScore), v))
+	})
+}
+
+// HasPoolPasses applies the HasEdge predicate on the "pool_passes" edge.
+func HasPoolPasses() predicate.Pool {
+	return predicate.Pool(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(PoolPassesTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, PoolPassesTable, PoolPassesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPoolPassesWith applies the HasEdge predicate on the "pool_passes" edge with a given conditions (other predicates).
+func HasPoolPassesWith(preds ...predicate.PoolPass) predicate.Pool {
+	return predicate.Pool(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(PoolPassesInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, PoolPassesTable, PoolPassesColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasSqueak applies the HasEdge predicate on the "squeak" edge.
+func HasSqueak() predicate.Pool {
+	return predicate.Pool(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(SqueakTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, SqueakTable, SqueakColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSqueakWith applies the HasEdge predicate on the "squeak" edge with a given conditions (other predicates).
+func HasSqueakWith(preds ...predicate.Squeak) predicate.Pool {
+	return predicate.Pool(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(SqueakInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, SqueakTable, SqueakColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
 	})
 }
 

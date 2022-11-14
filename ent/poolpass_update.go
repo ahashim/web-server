@@ -10,9 +10,10 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/ahashim/web-server/ent/pool"
 	"github.com/ahashim/web-server/ent/poolpass"
 	"github.com/ahashim/web-server/ent/predicate"
-	"github.com/ahashim/web-server/types"
+	"github.com/ahashim/web-server/ent/user"
 )
 
 // PoolPassUpdate is the builder for updating PoolPass entities.
@@ -28,15 +29,59 @@ func (ppu *PoolPassUpdate) Where(ps ...predicate.PoolPass) *PoolPassUpdate {
 	return ppu
 }
 
-// SetShares sets the "shares" field.
-func (ppu *PoolPassUpdate) SetShares(t *types.Uint256) *PoolPassUpdate {
-	ppu.mutation.SetShares(t)
+// SetUserID sets the "user" edge to the User entity by ID.
+func (ppu *PoolPassUpdate) SetUserID(id int) *PoolPassUpdate {
+	ppu.mutation.SetUserID(id)
 	return ppu
+}
+
+// SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
+func (ppu *PoolPassUpdate) SetNillableUserID(id *int) *PoolPassUpdate {
+	if id != nil {
+		ppu = ppu.SetUserID(*id)
+	}
+	return ppu
+}
+
+// SetUser sets the "user" edge to the User entity.
+func (ppu *PoolPassUpdate) SetUser(u *User) *PoolPassUpdate {
+	return ppu.SetUserID(u.ID)
+}
+
+// SetPoolID sets the "pool" edge to the Pool entity by ID.
+func (ppu *PoolPassUpdate) SetPoolID(id int) *PoolPassUpdate {
+	ppu.mutation.SetPoolID(id)
+	return ppu
+}
+
+// SetNillablePoolID sets the "pool" edge to the Pool entity by ID if the given value is not nil.
+func (ppu *PoolPassUpdate) SetNillablePoolID(id *int) *PoolPassUpdate {
+	if id != nil {
+		ppu = ppu.SetPoolID(*id)
+	}
+	return ppu
+}
+
+// SetPool sets the "pool" edge to the Pool entity.
+func (ppu *PoolPassUpdate) SetPool(p *Pool) *PoolPassUpdate {
+	return ppu.SetPoolID(p.ID)
 }
 
 // Mutation returns the PoolPassMutation object of the builder.
 func (ppu *PoolPassUpdate) Mutation() *PoolPassMutation {
 	return ppu.mutation
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (ppu *PoolPassUpdate) ClearUser() *PoolPassUpdate {
+	ppu.mutation.ClearUser()
+	return ppu
+}
+
+// ClearPool clears the "pool" edge to the Pool entity.
+func (ppu *PoolPassUpdate) ClearPool() *PoolPassUpdate {
+	ppu.mutation.ClearPool()
+	return ppu
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -111,8 +156,75 @@ func (ppu *PoolPassUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := ppu.mutation.Shares(); ok {
-		_spec.SetField(poolpass.FieldShares, field.TypeInt, value)
+	if ppu.mutation.UserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   poolpass.UserTable,
+			Columns: []string{poolpass.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ppu.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   poolpass.UserTable,
+			Columns: []string{poolpass.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if ppu.mutation.PoolCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   poolpass.PoolTable,
+			Columns: []string{poolpass.PoolColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: pool.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ppu.mutation.PoolIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   poolpass.PoolTable,
+			Columns: []string{poolpass.PoolColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: pool.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, ppu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -133,15 +245,59 @@ type PoolPassUpdateOne struct {
 	mutation *PoolPassMutation
 }
 
-// SetShares sets the "shares" field.
-func (ppuo *PoolPassUpdateOne) SetShares(t *types.Uint256) *PoolPassUpdateOne {
-	ppuo.mutation.SetShares(t)
+// SetUserID sets the "user" edge to the User entity by ID.
+func (ppuo *PoolPassUpdateOne) SetUserID(id int) *PoolPassUpdateOne {
+	ppuo.mutation.SetUserID(id)
 	return ppuo
+}
+
+// SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
+func (ppuo *PoolPassUpdateOne) SetNillableUserID(id *int) *PoolPassUpdateOne {
+	if id != nil {
+		ppuo = ppuo.SetUserID(*id)
+	}
+	return ppuo
+}
+
+// SetUser sets the "user" edge to the User entity.
+func (ppuo *PoolPassUpdateOne) SetUser(u *User) *PoolPassUpdateOne {
+	return ppuo.SetUserID(u.ID)
+}
+
+// SetPoolID sets the "pool" edge to the Pool entity by ID.
+func (ppuo *PoolPassUpdateOne) SetPoolID(id int) *PoolPassUpdateOne {
+	ppuo.mutation.SetPoolID(id)
+	return ppuo
+}
+
+// SetNillablePoolID sets the "pool" edge to the Pool entity by ID if the given value is not nil.
+func (ppuo *PoolPassUpdateOne) SetNillablePoolID(id *int) *PoolPassUpdateOne {
+	if id != nil {
+		ppuo = ppuo.SetPoolID(*id)
+	}
+	return ppuo
+}
+
+// SetPool sets the "pool" edge to the Pool entity.
+func (ppuo *PoolPassUpdateOne) SetPool(p *Pool) *PoolPassUpdateOne {
+	return ppuo.SetPoolID(p.ID)
 }
 
 // Mutation returns the PoolPassMutation object of the builder.
 func (ppuo *PoolPassUpdateOne) Mutation() *PoolPassMutation {
 	return ppuo.mutation
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (ppuo *PoolPassUpdateOne) ClearUser() *PoolPassUpdateOne {
+	ppuo.mutation.ClearUser()
+	return ppuo
+}
+
+// ClearPool clears the "pool" edge to the Pool entity.
+func (ppuo *PoolPassUpdateOne) ClearPool() *PoolPassUpdateOne {
+	ppuo.mutation.ClearPool()
+	return ppuo
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -246,8 +402,75 @@ func (ppuo *PoolPassUpdateOne) sqlSave(ctx context.Context) (_node *PoolPass, er
 			}
 		}
 	}
-	if value, ok := ppuo.mutation.Shares(); ok {
-		_spec.SetField(poolpass.FieldShares, field.TypeInt, value)
+	if ppuo.mutation.UserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   poolpass.UserTable,
+			Columns: []string{poolpass.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ppuo.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   poolpass.UserTable,
+			Columns: []string{poolpass.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if ppuo.mutation.PoolCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   poolpass.PoolTable,
+			Columns: []string{poolpass.PoolColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: pool.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ppuo.mutation.PoolIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   poolpass.PoolTable,
+			Columns: []string{poolpass.PoolColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: pool.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &PoolPass{config: ppuo.config}
 	_spec.Assign = _node.assignValues

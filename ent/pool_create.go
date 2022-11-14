@@ -10,6 +10,8 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/ahashim/web-server/ent/pool"
+	"github.com/ahashim/web-server/ent/poolpass"
+	"github.com/ahashim/web-server/ent/squeak"
 	"github.com/ahashim/web-server/types"
 )
 
@@ -42,6 +44,40 @@ func (pc *PoolCreate) SetBlockNumber(t *types.Uint256) *PoolCreate {
 func (pc *PoolCreate) SetScore(i int) *PoolCreate {
 	pc.mutation.SetScore(i)
 	return pc
+}
+
+// AddPoolPassIDs adds the "pool_passes" edge to the PoolPass entity by IDs.
+func (pc *PoolCreate) AddPoolPassIDs(ids ...int) *PoolCreate {
+	pc.mutation.AddPoolPassIDs(ids...)
+	return pc
+}
+
+// AddPoolPasses adds the "pool_passes" edges to the PoolPass entity.
+func (pc *PoolCreate) AddPoolPasses(p ...*PoolPass) *PoolCreate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return pc.AddPoolPassIDs(ids...)
+}
+
+// SetSqueakID sets the "squeak" edge to the Squeak entity by ID.
+func (pc *PoolCreate) SetSqueakID(id int) *PoolCreate {
+	pc.mutation.SetSqueakID(id)
+	return pc
+}
+
+// SetNillableSqueakID sets the "squeak" edge to the Squeak entity by ID if the given value is not nil.
+func (pc *PoolCreate) SetNillableSqueakID(id *int) *PoolCreate {
+	if id != nil {
+		pc = pc.SetSqueakID(*id)
+	}
+	return pc
+}
+
+// SetSqueak sets the "squeak" edge to the Squeak entity.
+func (pc *PoolCreate) SetSqueak(s *Squeak) *PoolCreate {
+	return pc.SetSqueakID(s.ID)
 }
 
 // Mutation returns the PoolMutation object of the builder.
@@ -174,6 +210,45 @@ func (pc *PoolCreate) createSpec() (*Pool, *sqlgraph.CreateSpec) {
 	if value, ok := pc.mutation.Score(); ok {
 		_spec.SetField(pool.FieldScore, field.TypeInt, value)
 		_node.Score = value
+	}
+	if nodes := pc.mutation.PoolPassesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   pool.PoolPassesTable,
+			Columns: []string{pool.PoolPassesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: poolpass.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pc.mutation.SqueakIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   pool.SqueakTable,
+			Columns: []string{pool.SqueakColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: squeak.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.squeak_pool = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

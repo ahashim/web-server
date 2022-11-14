@@ -10,8 +10,10 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/ahashim/web-server/ent/pool"
 	"github.com/ahashim/web-server/ent/poolpass"
 	"github.com/ahashim/web-server/ent/predicate"
+	"github.com/ahashim/web-server/ent/user"
 )
 
 // PoolPassQuery is the builder for querying PoolPass entities.
@@ -23,6 +25,9 @@ type PoolPassQuery struct {
 	order      []OrderFunc
 	fields     []string
 	predicates []predicate.PoolPass
+	withUser   *UserQuery
+	withPool   *PoolQuery
+	withFKs    bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -57,6 +62,50 @@ func (ppq *PoolPassQuery) Unique(unique bool) *PoolPassQuery {
 func (ppq *PoolPassQuery) Order(o ...OrderFunc) *PoolPassQuery {
 	ppq.order = append(ppq.order, o...)
 	return ppq
+}
+
+// QueryUser chains the current query on the "user" edge.
+func (ppq *PoolPassQuery) QueryUser() *UserQuery {
+	query := &UserQuery{config: ppq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := ppq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := ppq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(poolpass.Table, poolpass.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, poolpass.UserTable, poolpass.UserColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(ppq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPool chains the current query on the "pool" edge.
+func (ppq *PoolPassQuery) QueryPool() *PoolQuery {
+	query := &PoolQuery{config: ppq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := ppq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := ppq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(poolpass.Table, poolpass.FieldID, selector),
+			sqlgraph.To(pool.Table, pool.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, poolpass.PoolTable, poolpass.PoolColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(ppq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first PoolPass entity from the query.
@@ -240,11 +289,35 @@ func (ppq *PoolPassQuery) Clone() *PoolPassQuery {
 		offset:     ppq.offset,
 		order:      append([]OrderFunc{}, ppq.order...),
 		predicates: append([]predicate.PoolPass{}, ppq.predicates...),
+		withUser:   ppq.withUser.Clone(),
+		withPool:   ppq.withPool.Clone(),
 		// clone intermediate query.
 		sql:    ppq.sql.Clone(),
 		path:   ppq.path,
 		unique: ppq.unique,
 	}
+}
+
+// WithUser tells the query-builder to eager-load the nodes that are connected to
+// the "user" edge. The optional arguments are used to configure the query builder of the edge.
+func (ppq *PoolPassQuery) WithUser(opts ...func(*UserQuery)) *PoolPassQuery {
+	query := &UserQuery{config: ppq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	ppq.withUser = query
+	return ppq
+}
+
+// WithPool tells the query-builder to eager-load the nodes that are connected to
+// the "pool" edge. The optional arguments are used to configure the query builder of the edge.
+func (ppq *PoolPassQuery) WithPool(opts ...func(*PoolQuery)) *PoolPassQuery {
+	query := &PoolQuery{config: ppq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	ppq.withPool = query
+	return ppq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -318,15 +391,27 @@ func (ppq *PoolPassQuery) prepareQuery(ctx context.Context) error {
 
 func (ppq *PoolPassQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*PoolPass, error) {
 	var (
-		nodes = []*PoolPass{}
-		_spec = ppq.querySpec()
+		nodes       = []*PoolPass{}
+		withFKs     = ppq.withFKs
+		_spec       = ppq.querySpec()
+		loadedTypes = [2]bool{
+			ppq.withUser != nil,
+			ppq.withPool != nil,
+		}
 	)
+	if ppq.withUser != nil || ppq.withPool != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, poolpass.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*PoolPass).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &PoolPass{config: ppq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -338,7 +423,78 @@ func (ppq *PoolPassQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Po
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := ppq.withUser; query != nil {
+		if err := ppq.loadUser(ctx, query, nodes, nil,
+			func(n *PoolPass, e *User) { n.Edges.User = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := ppq.withPool; query != nil {
+		if err := ppq.loadPool(ctx, query, nodes, nil,
+			func(n *PoolPass, e *Pool) { n.Edges.Pool = e }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
+}
+
+func (ppq *PoolPassQuery) loadUser(ctx context.Context, query *UserQuery, nodes []*PoolPass, init func(*PoolPass), assign func(*PoolPass, *User)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*PoolPass)
+	for i := range nodes {
+		if nodes[i].user_pool_passes == nil {
+			continue
+		}
+		fk := *nodes[i].user_pool_passes
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	query.Where(user.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "user_pool_passes" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (ppq *PoolPassQuery) loadPool(ctx context.Context, query *PoolQuery, nodes []*PoolPass, init func(*PoolPass), assign func(*PoolPass, *Pool)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*PoolPass)
+	for i := range nodes {
+		if nodes[i].pool_pool_passes == nil {
+			continue
+		}
+		fk := *nodes[i].pool_pool_passes
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	query.Where(pool.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "pool_pool_passes" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
 }
 
 func (ppq *PoolPassQuery) sqlCount(ctx context.Context) (int, error) {

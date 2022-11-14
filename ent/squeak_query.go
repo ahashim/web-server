@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/ahashim/web-server/ent/interaction"
+	"github.com/ahashim/web-server/ent/pool"
 	"github.com/ahashim/web-server/ent/predicate"
 	"github.com/ahashim/web-server/ent/squeak"
 	"github.com/ahashim/web-server/ent/user"
@@ -27,6 +28,7 @@ type SqueakQuery struct {
 	fields           []string
 	predicates       []predicate.Squeak
 	withInteractions *InteractionQuery
+	withPool         *PoolQuery
 	withCreator      *UserQuery
 	withOwner        *UserQuery
 	withFKs          bool
@@ -81,6 +83,28 @@ func (sq *SqueakQuery) QueryInteractions() *InteractionQuery {
 			sqlgraph.From(squeak.Table, squeak.FieldID, selector),
 			sqlgraph.To(interaction.Table, interaction.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, squeak.InteractionsTable, squeak.InteractionsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPool chains the current query on the "pool" edge.
+func (sq *SqueakQuery) QueryPool() *PoolQuery {
+	query := &PoolQuery{config: sq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := sq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := sq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(squeak.Table, squeak.FieldID, selector),
+			sqlgraph.To(pool.Table, pool.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, squeak.PoolTable, squeak.PoolColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
 		return fromU, nil
@@ -314,6 +338,7 @@ func (sq *SqueakQuery) Clone() *SqueakQuery {
 		order:            append([]OrderFunc{}, sq.order...),
 		predicates:       append([]predicate.Squeak{}, sq.predicates...),
 		withInteractions: sq.withInteractions.Clone(),
+		withPool:         sq.withPool.Clone(),
 		withCreator:      sq.withCreator.Clone(),
 		withOwner:        sq.withOwner.Clone(),
 		// clone intermediate query.
@@ -331,6 +356,17 @@ func (sq *SqueakQuery) WithInteractions(opts ...func(*InteractionQuery)) *Squeak
 		opt(query)
 	}
 	sq.withInteractions = query
+	return sq
+}
+
+// WithPool tells the query-builder to eager-load the nodes that are connected to
+// the "pool" edge. The optional arguments are used to configure the query builder of the edge.
+func (sq *SqueakQuery) WithPool(opts ...func(*PoolQuery)) *SqueakQuery {
+	query := &PoolQuery{config: sq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	sq.withPool = query
 	return sq
 }
 
@@ -430,8 +466,9 @@ func (sq *SqueakQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Squea
 		nodes       = []*Squeak{}
 		withFKs     = sq.withFKs
 		_spec       = sq.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [4]bool{
 			sq.withInteractions != nil,
+			sq.withPool != nil,
 			sq.withCreator != nil,
 			sq.withOwner != nil,
 		}
@@ -464,6 +501,12 @@ func (sq *SqueakQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Squea
 		if err := sq.loadInteractions(ctx, query, nodes,
 			func(n *Squeak) { n.Edges.Interactions = []*Interaction{} },
 			func(n *Squeak, e *Interaction) { n.Edges.Interactions = append(n.Edges.Interactions, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := sq.withPool; query != nil {
+		if err := sq.loadPool(ctx, query, nodes, nil,
+			func(n *Squeak, e *Pool) { n.Edges.Pool = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -508,6 +551,34 @@ func (sq *SqueakQuery) loadInteractions(ctx context.Context, query *InteractionQ
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "squeak_interactions" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (sq *SqueakQuery) loadPool(ctx context.Context, query *PoolQuery, nodes []*Squeak, init func(*Squeak), assign func(*Squeak, *Pool)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*Squeak)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+	}
+	query.withFKs = true
+	query.Where(predicate.Pool(func(s *sql.Selector) {
+		s.Where(sql.InValues(squeak.PoolColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.squeak_pool
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "squeak_pool" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "squeak_pool" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

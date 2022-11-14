@@ -13,6 +13,8 @@ const (
 	FieldContent = "content"
 	// EdgeInteractions holds the string denoting the interactions edge name in mutations.
 	EdgeInteractions = "interactions"
+	// EdgePool holds the string denoting the pool edge name in mutations.
+	EdgePool = "pool"
 	// EdgeCreator holds the string denoting the creator edge name in mutations.
 	EdgeCreator = "creator"
 	// EdgeOwner holds the string denoting the owner edge name in mutations.
@@ -26,6 +28,13 @@ const (
 	InteractionsInverseTable = "interactions"
 	// InteractionsColumn is the table column denoting the interactions relation/edge.
 	InteractionsColumn = "squeak_interactions"
+	// PoolTable is the table that holds the pool relation/edge.
+	PoolTable = "pools"
+	// PoolInverseTable is the table name for the Pool entity.
+	// It exists in this package in order to avoid circular dependency with the "pool" package.
+	PoolInverseTable = "pools"
+	// PoolColumn is the table column denoting the pool relation/edge.
+	PoolColumn = "squeak_pool"
 	// CreatorTable is the table that holds the creator relation/edge.
 	CreatorTable = "squeaks"
 	// CreatorInverseTable is the table name for the User entity.

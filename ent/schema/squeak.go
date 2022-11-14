@@ -33,6 +33,8 @@ func (Squeak) Fields() []ent.Field {
 func (Squeak) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("interactions", Interaction.Type),
+		edge.To("pool", Pool.Type).
+      Unique(),
 		edge.From("creator", User.Type).
 			Ref("created").
 			Unique(),

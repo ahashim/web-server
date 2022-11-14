@@ -95,8 +95,8 @@ func init() {
 			return nil
 		}
 	}()
-	// userDescScoutLevel is the schema descriptor for scout_level field.
-	userDescScoutLevel := userFields[3].Descriptor()
-	// user.DefaultScoutLevel holds the default value on creation for the scout_level field.
-	user.DefaultScoutLevel = userDescScoutLevel.Default.(int8)
+	// userDescLevel is the schema descriptor for level field.
+	userDescLevel := userFields[3].Descriptor()
+	// user.DefaultLevel holds the default value on creation for the level field.
+	user.DefaultLevel = userDescLevel.Default.(int8)
 }

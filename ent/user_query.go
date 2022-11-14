@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/ahashim/web-server/ent/interaction"
+	"github.com/ahashim/web-server/ent/poolpass"
 	"github.com/ahashim/web-server/ent/predicate"
 	"github.com/ahashim/web-server/ent/role"
 	"github.com/ahashim/web-server/ent/squeak"
@@ -28,6 +29,7 @@ type UserQuery struct {
 	fields           []string
 	predicates       []predicate.User
 	withInteractions *InteractionQuery
+	withPoolPasses   *PoolPassQuery
 	withRoles        *RoleQuery
 	withCreated      *SqueakQuery
 	withOwned        *SqueakQuery
@@ -84,6 +86,28 @@ func (uq *UserQuery) QueryInteractions() *InteractionQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(interaction.Table, interaction.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.InteractionsTable, user.InteractionsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPoolPasses chains the current query on the "pool_passes" edge.
+func (uq *UserQuery) QueryPoolPasses() *PoolPassQuery {
+	query := &PoolPassQuery{config: uq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(poolpass.Table, poolpass.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.PoolPassesTable, user.PoolPassesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -383,6 +407,7 @@ func (uq *UserQuery) Clone() *UserQuery {
 		order:            append([]OrderFunc{}, uq.order...),
 		predicates:       append([]predicate.User{}, uq.predicates...),
 		withInteractions: uq.withInteractions.Clone(),
+		withPoolPasses:   uq.withPoolPasses.Clone(),
 		withRoles:        uq.withRoles.Clone(),
 		withCreated:      uq.withCreated.Clone(),
 		withOwned:        uq.withOwned.Clone(),
@@ -403,6 +428,17 @@ func (uq *UserQuery) WithInteractions(opts ...func(*InteractionQuery)) *UserQuer
 		opt(query)
 	}
 	uq.withInteractions = query
+	return uq
+}
+
+// WithPoolPasses tells the query-builder to eager-load the nodes that are connected to
+// the "pool_passes" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithPoolPasses(opts ...func(*PoolPassQuery)) *UserQuery {
+	query := &PoolPassQuery{config: uq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withPoolPasses = query
 	return uq
 }
 
@@ -534,8 +570,9 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
-		loadedTypes = [6]bool{
+		loadedTypes = [7]bool{
 			uq.withInteractions != nil,
+			uq.withPoolPasses != nil,
 			uq.withRoles != nil,
 			uq.withCreated != nil,
 			uq.withOwned != nil,
@@ -565,6 +602,13 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		if err := uq.loadInteractions(ctx, query, nodes,
 			func(n *User) { n.Edges.Interactions = []*Interaction{} },
 			func(n *User, e *Interaction) { n.Edges.Interactions = append(n.Edges.Interactions, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withPoolPasses; query != nil {
+		if err := uq.loadPoolPasses(ctx, query, nodes,
+			func(n *User) { n.Edges.PoolPasses = []*PoolPass{} },
+			func(n *User, e *PoolPass) { n.Edges.PoolPasses = append(n.Edges.PoolPasses, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -632,6 +676,37 @@ func (uq *UserQuery) loadInteractions(ctx context.Context, query *InteractionQue
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "user_interactions" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadPoolPasses(ctx context.Context, query *PoolPassQuery, nodes []*User, init func(*User), assign func(*User, *PoolPass)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.PoolPass(func(s *sql.Selector) {
+		s.Where(sql.InValues(user.PoolPassesColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.user_pool_passes
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "user_pool_passes" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "user_pool_passes" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

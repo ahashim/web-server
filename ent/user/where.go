@@ -94,10 +94,10 @@ func Username(v string) predicate.User {
 	})
 }
 
-// ScoutLevel applies equality check predicate on the "scout_level" field. It's identical to ScoutLevelEQ.
-func ScoutLevel(v int8) predicate.User {
+// Level applies equality check predicate on the "level" field. It's identical to LevelEQ.
+func Level(v int8) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldScoutLevel), v))
+		s.Where(sql.EQ(s.C(FieldLevel), v))
 	})
 }
 
@@ -335,67 +335,67 @@ func StatusNotIn(vs ...enums.Status) predicate.User {
 	})
 }
 
-// ScoutLevelEQ applies the EQ predicate on the "scout_level" field.
-func ScoutLevelEQ(v int8) predicate.User {
+// LevelEQ applies the EQ predicate on the "level" field.
+func LevelEQ(v int8) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldScoutLevel), v))
+		s.Where(sql.EQ(s.C(FieldLevel), v))
 	})
 }
 
-// ScoutLevelNEQ applies the NEQ predicate on the "scout_level" field.
-func ScoutLevelNEQ(v int8) predicate.User {
+// LevelNEQ applies the NEQ predicate on the "level" field.
+func LevelNEQ(v int8) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldScoutLevel), v))
+		s.Where(sql.NEQ(s.C(FieldLevel), v))
 	})
 }
 
-// ScoutLevelIn applies the In predicate on the "scout_level" field.
-func ScoutLevelIn(vs ...int8) predicate.User {
+// LevelIn applies the In predicate on the "level" field.
+func LevelIn(vs ...int8) predicate.User {
 	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
 	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldScoutLevel), v...))
+		s.Where(sql.In(s.C(FieldLevel), v...))
 	})
 }
 
-// ScoutLevelNotIn applies the NotIn predicate on the "scout_level" field.
-func ScoutLevelNotIn(vs ...int8) predicate.User {
+// LevelNotIn applies the NotIn predicate on the "level" field.
+func LevelNotIn(vs ...int8) predicate.User {
 	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
 	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldScoutLevel), v...))
+		s.Where(sql.NotIn(s.C(FieldLevel), v...))
 	})
 }
 
-// ScoutLevelGT applies the GT predicate on the "scout_level" field.
-func ScoutLevelGT(v int8) predicate.User {
+// LevelGT applies the GT predicate on the "level" field.
+func LevelGT(v int8) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldScoutLevel), v))
+		s.Where(sql.GT(s.C(FieldLevel), v))
 	})
 }
 
-// ScoutLevelGTE applies the GTE predicate on the "scout_level" field.
-func ScoutLevelGTE(v int8) predicate.User {
+// LevelGTE applies the GTE predicate on the "level" field.
+func LevelGTE(v int8) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldScoutLevel), v))
+		s.Where(sql.GTE(s.C(FieldLevel), v))
 	})
 }
 
-// ScoutLevelLT applies the LT predicate on the "scout_level" field.
-func ScoutLevelLT(v int8) predicate.User {
+// LevelLT applies the LT predicate on the "level" field.
+func LevelLT(v int8) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldScoutLevel), v))
+		s.Where(sql.LT(s.C(FieldLevel), v))
 	})
 }
 
-// ScoutLevelLTE applies the LTE predicate on the "scout_level" field.
-func ScoutLevelLTE(v int8) predicate.User {
+// LevelLTE applies the LTE predicate on the "level" field.
+func LevelLTE(v int8) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldScoutLevel), v))
+		s.Where(sql.LTE(s.C(FieldLevel), v))
 	})
 }
 
@@ -418,6 +418,34 @@ func HasInteractionsWith(preds ...predicate.Interaction) predicate.User {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(InteractionsInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, InteractionsTable, InteractionsColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasPoolPasses applies the HasEdge predicate on the "pool_passes" edge.
+func HasPoolPasses() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(PoolPassesTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, PoolPassesTable, PoolPassesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPoolPassesWith applies the HasEdge predicate on the "pool_passes" edge with a given conditions (other predicates).
+func HasPoolPassesWith(preds ...predicate.PoolPass) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(PoolPassesInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, PoolPassesTable, PoolPassesColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

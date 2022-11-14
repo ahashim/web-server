@@ -15,8 +15,26 @@ const (
 	FieldBlockNumber = "block_number"
 	// FieldScore holds the string denoting the score field in the database.
 	FieldScore = "score"
+	// EdgePoolPasses holds the string denoting the pool_passes edge name in mutations.
+	EdgePoolPasses = "pool_passes"
+	// EdgeSqueak holds the string denoting the squeak edge name in mutations.
+	EdgeSqueak = "squeak"
 	// Table holds the table name of the pool in the database.
 	Table = "pools"
+	// PoolPassesTable is the table that holds the pool_passes relation/edge.
+	PoolPassesTable = "pool_passes"
+	// PoolPassesInverseTable is the table name for the PoolPass entity.
+	// It exists in this package in order to avoid circular dependency with the "poolpass" package.
+	PoolPassesInverseTable = "pool_passes"
+	// PoolPassesColumn is the table column denoting the pool_passes relation/edge.
+	PoolPassesColumn = "pool_pool_passes"
+	// SqueakTable is the table that holds the squeak relation/edge.
+	SqueakTable = "pools"
+	// SqueakInverseTable is the table name for the Squeak entity.
+	// It exists in this package in order to avoid circular dependency with the "squeak" package.
+	SqueakInverseTable = "squeaks"
+	// SqueakColumn is the table column denoting the squeak relation/edge.
+	SqueakColumn = "squeak_pool"
 )
 
 // Columns holds all SQL columns for pool fields.
@@ -28,10 +46,21 @@ var Columns = []string{
 	FieldScore,
 }
 
+// ForeignKeys holds the SQL foreign-keys that are owned by the "pools"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"squeak_pool",
+}
+
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
+			return true
+		}
+	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
 			return true
 		}
 	}

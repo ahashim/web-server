@@ -365,6 +365,38 @@ func (c *PoolClient) GetX(ctx context.Context, id int) *Pool {
 	return obj
 }
 
+// QueryPoolPasses queries the pool_passes edge of a Pool.
+func (c *PoolClient) QueryPoolPasses(po *Pool) *PoolPassQuery {
+	query := &PoolPassQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := po.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(pool.Table, pool.FieldID, id),
+			sqlgraph.To(poolpass.Table, poolpass.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, pool.PoolPassesTable, pool.PoolPassesColumn),
+		)
+		fromV = sqlgraph.Neighbors(po.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySqueak queries the squeak edge of a Pool.
+func (c *PoolClient) QuerySqueak(po *Pool) *SqueakQuery {
+	query := &SqueakQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := po.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(pool.Table, pool.FieldID, id),
+			sqlgraph.To(squeak.Table, squeak.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, pool.SqueakTable, pool.SqueakColumn),
+		)
+		fromV = sqlgraph.Neighbors(po.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *PoolClient) Hooks() []Hook {
 	return c.hooks.Pool
@@ -453,6 +485,38 @@ func (c *PoolPassClient) GetX(ctx context.Context, id int) *PoolPass {
 		panic(err)
 	}
 	return obj
+}
+
+// QueryUser queries the user edge of a PoolPass.
+func (c *PoolPassClient) QueryUser(pp *PoolPass) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := pp.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(poolpass.Table, poolpass.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, poolpass.UserTable, poolpass.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(pp.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryPool queries the pool edge of a PoolPass.
+func (c *PoolPassClient) QueryPool(pp *PoolPass) *PoolQuery {
+	query := &PoolQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := pp.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(poolpass.Table, poolpass.FieldID, id),
+			sqlgraph.To(pool.Table, pool.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, poolpass.PoolTable, poolpass.PoolColumn),
+		)
+		fromV = sqlgraph.Neighbors(pp.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // Hooks returns the client hooks.
@@ -667,6 +731,22 @@ func (c *SqueakClient) QueryInteractions(s *Squeak) *InteractionQuery {
 	return query
 }
 
+// QueryPool queries the pool edge of a Squeak.
+func (c *SqueakClient) QueryPool(s *Squeak) *PoolQuery {
+	query := &PoolQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := s.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(squeak.Table, squeak.FieldID, id),
+			sqlgraph.To(pool.Table, pool.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, squeak.PoolTable, squeak.PoolColumn),
+		)
+		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryCreator queries the creator edge of a Squeak.
 func (c *SqueakClient) QueryCreator(s *Squeak) *UserQuery {
 	query := &UserQuery{config: c.config}
@@ -798,6 +878,22 @@ func (c *UserClient) QueryInteractions(u *User) *InteractionQuery {
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(interaction.Table, interaction.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.InteractionsTable, user.InteractionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryPoolPasses queries the pool_passes edge of a User.
+func (c *UserClient) QueryPoolPasses(u *User) *PoolPassQuery {
+	query := &PoolPassQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(poolpass.Table, poolpass.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.PoolPassesTable, user.PoolPassesColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil

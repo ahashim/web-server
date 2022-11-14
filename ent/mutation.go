@@ -478,18 +478,23 @@ func (m *InteractionMutation) ResetEdge(name string) error {
 // PoolMutation represents an operation that mutates the Pool nodes in the graph.
 type PoolMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int
-	amount        **types.Uint256
-	shares        **types.Uint256
-	block_number  **types.Uint256
-	score         *int
-	addscore      *int
-	clearedFields map[string]struct{}
-	done          bool
-	oldValue      func(context.Context) (*Pool, error)
-	predicates    []predicate.Pool
+	op                 Op
+	typ                string
+	id                 *int
+	amount             **types.Uint256
+	shares             **types.Uint256
+	block_number       **types.Uint256
+	score              *int
+	addscore           *int
+	clearedFields      map[string]struct{}
+	pool_passes        map[int]struct{}
+	removedpool_passes map[int]struct{}
+	clearedpool_passes bool
+	squeak             *int
+	clearedsqueak      bool
+	done               bool
+	oldValue           func(context.Context) (*Pool, error)
+	predicates         []predicate.Pool
 }
 
 var _ ent.Mutation = (*PoolMutation)(nil)
@@ -754,6 +759,99 @@ func (m *PoolMutation) ResetScore() {
 	m.addscore = nil
 }
 
+// AddPoolPassIDs adds the "pool_passes" edge to the PoolPass entity by ids.
+func (m *PoolMutation) AddPoolPassIDs(ids ...int) {
+	if m.pool_passes == nil {
+		m.pool_passes = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.pool_passes[ids[i]] = struct{}{}
+	}
+}
+
+// ClearPoolPasses clears the "pool_passes" edge to the PoolPass entity.
+func (m *PoolMutation) ClearPoolPasses() {
+	m.clearedpool_passes = true
+}
+
+// PoolPassesCleared reports if the "pool_passes" edge to the PoolPass entity was cleared.
+func (m *PoolMutation) PoolPassesCleared() bool {
+	return m.clearedpool_passes
+}
+
+// RemovePoolPassIDs removes the "pool_passes" edge to the PoolPass entity by IDs.
+func (m *PoolMutation) RemovePoolPassIDs(ids ...int) {
+	if m.removedpool_passes == nil {
+		m.removedpool_passes = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.pool_passes, ids[i])
+		m.removedpool_passes[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedPoolPasses returns the removed IDs of the "pool_passes" edge to the PoolPass entity.
+func (m *PoolMutation) RemovedPoolPassesIDs() (ids []int) {
+	for id := range m.removedpool_passes {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// PoolPassesIDs returns the "pool_passes" edge IDs in the mutation.
+func (m *PoolMutation) PoolPassesIDs() (ids []int) {
+	for id := range m.pool_passes {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetPoolPasses resets all changes to the "pool_passes" edge.
+func (m *PoolMutation) ResetPoolPasses() {
+	m.pool_passes = nil
+	m.clearedpool_passes = false
+	m.removedpool_passes = nil
+}
+
+// SetSqueakID sets the "squeak" edge to the Squeak entity by id.
+func (m *PoolMutation) SetSqueakID(id int) {
+	m.squeak = &id
+}
+
+// ClearSqueak clears the "squeak" edge to the Squeak entity.
+func (m *PoolMutation) ClearSqueak() {
+	m.clearedsqueak = true
+}
+
+// SqueakCleared reports if the "squeak" edge to the Squeak entity was cleared.
+func (m *PoolMutation) SqueakCleared() bool {
+	return m.clearedsqueak
+}
+
+// SqueakID returns the "squeak" edge ID in the mutation.
+func (m *PoolMutation) SqueakID() (id int, exists bool) {
+	if m.squeak != nil {
+		return *m.squeak, true
+	}
+	return
+}
+
+// SqueakIDs returns the "squeak" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// SqueakID instead. It exists only for internal usage by the builders.
+func (m *PoolMutation) SqueakIDs() (ids []int) {
+	if id := m.squeak; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetSqueak resets all changes to the "squeak" edge.
+func (m *PoolMutation) ResetSqueak() {
+	m.squeak = nil
+	m.clearedsqueak = false
+}
+
 // Where appends a list predicates to the PoolMutation builder.
 func (m *PoolMutation) Where(ps ...predicate.Pool) {
 	m.predicates = append(m.predicates, ps...)
@@ -938,49 +1036,103 @@ func (m *PoolMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *PoolMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 2)
+	if m.pool_passes != nil {
+		edges = append(edges, pool.EdgePoolPasses)
+	}
+	if m.squeak != nil {
+		edges = append(edges, pool.EdgeSqueak)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *PoolMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case pool.EdgePoolPasses:
+		ids := make([]ent.Value, 0, len(m.pool_passes))
+		for id := range m.pool_passes {
+			ids = append(ids, id)
+		}
+		return ids
+	case pool.EdgeSqueak:
+		if id := m.squeak; id != nil {
+			return []ent.Value{*id}
+		}
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *PoolMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 2)
+	if m.removedpool_passes != nil {
+		edges = append(edges, pool.EdgePoolPasses)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *PoolMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case pool.EdgePoolPasses:
+		ids := make([]ent.Value, 0, len(m.removedpool_passes))
+		for id := range m.removedpool_passes {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *PoolMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 2)
+	if m.clearedpool_passes {
+		edges = append(edges, pool.EdgePoolPasses)
+	}
+	if m.clearedsqueak {
+		edges = append(edges, pool.EdgeSqueak)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *PoolMutation) EdgeCleared(name string) bool {
+	switch name {
+	case pool.EdgePoolPasses:
+		return m.clearedpool_passes
+	case pool.EdgeSqueak:
+		return m.clearedsqueak
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *PoolMutation) ClearEdge(name string) error {
+	switch name {
+	case pool.EdgeSqueak:
+		m.ClearSqueak()
+		return nil
+	}
 	return fmt.Errorf("unknown Pool unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *PoolMutation) ResetEdge(name string) error {
+	switch name {
+	case pool.EdgePoolPasses:
+		m.ResetPoolPasses()
+		return nil
+	case pool.EdgeSqueak:
+		m.ResetSqueak()
+		return nil
+	}
 	return fmt.Errorf("unknown Pool edge %s", name)
 }
 
@@ -992,6 +1144,10 @@ type PoolPassMutation struct {
 	id            *int
 	shares        **types.Uint256
 	clearedFields map[string]struct{}
+	user          *int
+	cleareduser   bool
+	pool          *int
+	clearedpool   bool
 	done          bool
 	oldValue      func(context.Context) (*PoolPass, error)
 	predicates    []predicate.PoolPass
@@ -1131,6 +1287,84 @@ func (m *PoolPassMutation) ResetShares() {
 	m.shares = nil
 }
 
+// SetUserID sets the "user" edge to the User entity by id.
+func (m *PoolPassMutation) SetUserID(id int) {
+	m.user = &id
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (m *PoolPassMutation) ClearUser() {
+	m.cleareduser = true
+}
+
+// UserCleared reports if the "user" edge to the User entity was cleared.
+func (m *PoolPassMutation) UserCleared() bool {
+	return m.cleareduser
+}
+
+// UserID returns the "user" edge ID in the mutation.
+func (m *PoolPassMutation) UserID() (id int, exists bool) {
+	if m.user != nil {
+		return *m.user, true
+	}
+	return
+}
+
+// UserIDs returns the "user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserID instead. It exists only for internal usage by the builders.
+func (m *PoolPassMutation) UserIDs() (ids []int) {
+	if id := m.user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUser resets all changes to the "user" edge.
+func (m *PoolPassMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
+}
+
+// SetPoolID sets the "pool" edge to the Pool entity by id.
+func (m *PoolPassMutation) SetPoolID(id int) {
+	m.pool = &id
+}
+
+// ClearPool clears the "pool" edge to the Pool entity.
+func (m *PoolPassMutation) ClearPool() {
+	m.clearedpool = true
+}
+
+// PoolCleared reports if the "pool" edge to the Pool entity was cleared.
+func (m *PoolPassMutation) PoolCleared() bool {
+	return m.clearedpool
+}
+
+// PoolID returns the "pool" edge ID in the mutation.
+func (m *PoolPassMutation) PoolID() (id int, exists bool) {
+	if m.pool != nil {
+		return *m.pool, true
+	}
+	return
+}
+
+// PoolIDs returns the "pool" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// PoolID instead. It exists only for internal usage by the builders.
+func (m *PoolPassMutation) PoolIDs() (ids []int) {
+	if id := m.pool; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetPool resets all changes to the "pool" edge.
+func (m *PoolPassMutation) ResetPool() {
+	m.pool = nil
+	m.clearedpool = false
+}
+
 // Where appends a list predicates to the PoolPassMutation builder.
 func (m *PoolPassMutation) Where(ps ...predicate.PoolPass) {
 	m.predicates = append(m.predicates, ps...)
@@ -1252,19 +1486,35 @@ func (m *PoolPassMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *PoolPassMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 2)
+	if m.user != nil {
+		edges = append(edges, poolpass.EdgeUser)
+	}
+	if m.pool != nil {
+		edges = append(edges, poolpass.EdgePool)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *PoolPassMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case poolpass.EdgeUser:
+		if id := m.user; id != nil {
+			return []ent.Value{*id}
+		}
+	case poolpass.EdgePool:
+		if id := m.pool; id != nil {
+			return []ent.Value{*id}
+		}
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *PoolPassMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 2)
 	return edges
 }
 
@@ -1276,25 +1526,53 @@ func (m *PoolPassMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *PoolPassMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 2)
+	if m.cleareduser {
+		edges = append(edges, poolpass.EdgeUser)
+	}
+	if m.clearedpool {
+		edges = append(edges, poolpass.EdgePool)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *PoolPassMutation) EdgeCleared(name string) bool {
+	switch name {
+	case poolpass.EdgeUser:
+		return m.cleareduser
+	case poolpass.EdgePool:
+		return m.clearedpool
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *PoolPassMutation) ClearEdge(name string) error {
+	switch name {
+	case poolpass.EdgeUser:
+		m.ClearUser()
+		return nil
+	case poolpass.EdgePool:
+		m.ClearPool()
+		return nil
+	}
 	return fmt.Errorf("unknown PoolPass unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *PoolPassMutation) ResetEdge(name string) error {
+	switch name {
+	case poolpass.EdgeUser:
+		m.ResetUser()
+		return nil
+	case poolpass.EdgePool:
+		m.ResetPool()
+		return nil
+	}
 	return fmt.Errorf("unknown PoolPass edge %s", name)
 }
 
@@ -1768,6 +2046,8 @@ type SqueakMutation struct {
 	interactions        map[int]struct{}
 	removedinteractions map[int]struct{}
 	clearedinteractions bool
+	pool                *int
+	clearedpool         bool
 	creator             *int
 	clearedcreator      bool
 	owner               *int
@@ -2001,6 +2281,45 @@ func (m *SqueakMutation) ResetInteractions() {
 	m.removedinteractions = nil
 }
 
+// SetPoolID sets the "pool" edge to the Pool entity by id.
+func (m *SqueakMutation) SetPoolID(id int) {
+	m.pool = &id
+}
+
+// ClearPool clears the "pool" edge to the Pool entity.
+func (m *SqueakMutation) ClearPool() {
+	m.clearedpool = true
+}
+
+// PoolCleared reports if the "pool" edge to the Pool entity was cleared.
+func (m *SqueakMutation) PoolCleared() bool {
+	return m.clearedpool
+}
+
+// PoolID returns the "pool" edge ID in the mutation.
+func (m *SqueakMutation) PoolID() (id int, exists bool) {
+	if m.pool != nil {
+		return *m.pool, true
+	}
+	return
+}
+
+// PoolIDs returns the "pool" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// PoolID instead. It exists only for internal usage by the builders.
+func (m *SqueakMutation) PoolIDs() (ids []int) {
+	if id := m.pool; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetPool resets all changes to the "pool" edge.
+func (m *SqueakMutation) ResetPool() {
+	m.pool = nil
+	m.clearedpool = false
+}
+
 // SetCreatorID sets the "creator" edge to the User entity by id.
 func (m *SqueakMutation) SetCreatorID(id int) {
 	m.creator = &id
@@ -2217,9 +2536,12 @@ func (m *SqueakMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *SqueakMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.interactions != nil {
 		edges = append(edges, squeak.EdgeInteractions)
+	}
+	if m.pool != nil {
+		edges = append(edges, squeak.EdgePool)
 	}
 	if m.creator != nil {
 		edges = append(edges, squeak.EdgeCreator)
@@ -2240,6 +2562,10 @@ func (m *SqueakMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case squeak.EdgePool:
+		if id := m.pool; id != nil {
+			return []ent.Value{*id}
+		}
 	case squeak.EdgeCreator:
 		if id := m.creator; id != nil {
 			return []ent.Value{*id}
@@ -2254,7 +2580,7 @@ func (m *SqueakMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *SqueakMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.removedinteractions != nil {
 		edges = append(edges, squeak.EdgeInteractions)
 	}
@@ -2277,9 +2603,12 @@ func (m *SqueakMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *SqueakMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.clearedinteractions {
 		edges = append(edges, squeak.EdgeInteractions)
+	}
+	if m.clearedpool {
+		edges = append(edges, squeak.EdgePool)
 	}
 	if m.clearedcreator {
 		edges = append(edges, squeak.EdgeCreator)
@@ -2296,6 +2625,8 @@ func (m *SqueakMutation) EdgeCleared(name string) bool {
 	switch name {
 	case squeak.EdgeInteractions:
 		return m.clearedinteractions
+	case squeak.EdgePool:
+		return m.clearedpool
 	case squeak.EdgeCreator:
 		return m.clearedcreator
 	case squeak.EdgeOwner:
@@ -2308,6 +2639,9 @@ func (m *SqueakMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *SqueakMutation) ClearEdge(name string) error {
 	switch name {
+	case squeak.EdgePool:
+		m.ClearPool()
+		return nil
 	case squeak.EdgeCreator:
 		m.ClearCreator()
 		return nil
@@ -2324,6 +2658,9 @@ func (m *SqueakMutation) ResetEdge(name string) error {
 	switch name {
 	case squeak.EdgeInteractions:
 		m.ResetInteractions()
+		return nil
+	case squeak.EdgePool:
+		m.ResetPool()
 		return nil
 	case squeak.EdgeCreator:
 		m.ResetCreator()
@@ -2344,12 +2681,15 @@ type UserMutation struct {
 	address             *string
 	username            *string
 	status              *enums.Status
-	scout_level         *int8
-	addscout_level      *int8
+	level               *int8
+	addlevel            *int8
 	clearedFields       map[string]struct{}
 	interactions        map[int]struct{}
 	removedinteractions map[int]struct{}
 	clearedinteractions bool
+	pool_passes         map[int]struct{}
+	removedpool_passes  map[int]struct{}
+	clearedpool_passes  bool
 	roles               map[int]struct{}
 	removedroles        map[int]struct{}
 	clearedroles        bool
@@ -2576,60 +2916,60 @@ func (m *UserMutation) ResetStatus() {
 	m.status = nil
 }
 
-// SetScoutLevel sets the "scout_level" field.
-func (m *UserMutation) SetScoutLevel(i int8) {
-	m.scout_level = &i
-	m.addscout_level = nil
+// SetLevel sets the "level" field.
+func (m *UserMutation) SetLevel(i int8) {
+	m.level = &i
+	m.addlevel = nil
 }
 
-// ScoutLevel returns the value of the "scout_level" field in the mutation.
-func (m *UserMutation) ScoutLevel() (r int8, exists bool) {
-	v := m.scout_level
+// Level returns the value of the "level" field in the mutation.
+func (m *UserMutation) Level() (r int8, exists bool) {
+	v := m.level
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldScoutLevel returns the old "scout_level" field's value of the User entity.
+// OldLevel returns the old "level" field's value of the User entity.
 // If the User object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldScoutLevel(ctx context.Context) (v int8, err error) {
+func (m *UserMutation) OldLevel(ctx context.Context) (v int8, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldScoutLevel is only allowed on UpdateOne operations")
+		return v, errors.New("OldLevel is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldScoutLevel requires an ID field in the mutation")
+		return v, errors.New("OldLevel requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldScoutLevel: %w", err)
+		return v, fmt.Errorf("querying old value for OldLevel: %w", err)
 	}
-	return oldValue.ScoutLevel, nil
+	return oldValue.Level, nil
 }
 
-// AddScoutLevel adds i to the "scout_level" field.
-func (m *UserMutation) AddScoutLevel(i int8) {
-	if m.addscout_level != nil {
-		*m.addscout_level += i
+// AddLevel adds i to the "level" field.
+func (m *UserMutation) AddLevel(i int8) {
+	if m.addlevel != nil {
+		*m.addlevel += i
 	} else {
-		m.addscout_level = &i
+		m.addlevel = &i
 	}
 }
 
-// AddedScoutLevel returns the value that was added to the "scout_level" field in this mutation.
-func (m *UserMutation) AddedScoutLevel() (r int8, exists bool) {
-	v := m.addscout_level
+// AddedLevel returns the value that was added to the "level" field in this mutation.
+func (m *UserMutation) AddedLevel() (r int8, exists bool) {
+	v := m.addlevel
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// ResetScoutLevel resets all changes to the "scout_level" field.
-func (m *UserMutation) ResetScoutLevel() {
-	m.scout_level = nil
-	m.addscout_level = nil
+// ResetLevel resets all changes to the "level" field.
+func (m *UserMutation) ResetLevel() {
+	m.level = nil
+	m.addlevel = nil
 }
 
 // AddInteractionIDs adds the "interactions" edge to the Interaction entity by ids.
@@ -2684,6 +3024,60 @@ func (m *UserMutation) ResetInteractions() {
 	m.interactions = nil
 	m.clearedinteractions = false
 	m.removedinteractions = nil
+}
+
+// AddPoolPassIDs adds the "pool_passes" edge to the PoolPass entity by ids.
+func (m *UserMutation) AddPoolPassIDs(ids ...int) {
+	if m.pool_passes == nil {
+		m.pool_passes = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.pool_passes[ids[i]] = struct{}{}
+	}
+}
+
+// ClearPoolPasses clears the "pool_passes" edge to the PoolPass entity.
+func (m *UserMutation) ClearPoolPasses() {
+	m.clearedpool_passes = true
+}
+
+// PoolPassesCleared reports if the "pool_passes" edge to the PoolPass entity was cleared.
+func (m *UserMutation) PoolPassesCleared() bool {
+	return m.clearedpool_passes
+}
+
+// RemovePoolPassIDs removes the "pool_passes" edge to the PoolPass entity by IDs.
+func (m *UserMutation) RemovePoolPassIDs(ids ...int) {
+	if m.removedpool_passes == nil {
+		m.removedpool_passes = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.pool_passes, ids[i])
+		m.removedpool_passes[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedPoolPasses returns the removed IDs of the "pool_passes" edge to the PoolPass entity.
+func (m *UserMutation) RemovedPoolPassesIDs() (ids []int) {
+	for id := range m.removedpool_passes {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// PoolPassesIDs returns the "pool_passes" edge IDs in the mutation.
+func (m *UserMutation) PoolPassesIDs() (ids []int) {
+	for id := range m.pool_passes {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetPoolPasses resets all changes to the "pool_passes" edge.
+func (m *UserMutation) ResetPoolPasses() {
+	m.pool_passes = nil
+	m.clearedpool_passes = false
+	m.removedpool_passes = nil
 }
 
 // AddRoleIDs adds the "roles" edge to the Role entity by ids.
@@ -2985,8 +3379,8 @@ func (m *UserMutation) Fields() []string {
 	if m.status != nil {
 		fields = append(fields, user.FieldStatus)
 	}
-	if m.scout_level != nil {
-		fields = append(fields, user.FieldScoutLevel)
+	if m.level != nil {
+		fields = append(fields, user.FieldLevel)
 	}
 	return fields
 }
@@ -3002,8 +3396,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.Username()
 	case user.FieldStatus:
 		return m.Status()
-	case user.FieldScoutLevel:
-		return m.ScoutLevel()
+	case user.FieldLevel:
+		return m.Level()
 	}
 	return nil, false
 }
@@ -3019,8 +3413,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldUsername(ctx)
 	case user.FieldStatus:
 		return m.OldStatus(ctx)
-	case user.FieldScoutLevel:
-		return m.OldScoutLevel(ctx)
+	case user.FieldLevel:
+		return m.OldLevel(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -3051,12 +3445,12 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetStatus(v)
 		return nil
-	case user.FieldScoutLevel:
+	case user.FieldLevel:
 		v, ok := value.(int8)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetScoutLevel(v)
+		m.SetLevel(v)
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
@@ -3066,8 +3460,8 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 // this mutation.
 func (m *UserMutation) AddedFields() []string {
 	var fields []string
-	if m.addscout_level != nil {
-		fields = append(fields, user.FieldScoutLevel)
+	if m.addlevel != nil {
+		fields = append(fields, user.FieldLevel)
 	}
 	return fields
 }
@@ -3077,8 +3471,8 @@ func (m *UserMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *UserMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
-	case user.FieldScoutLevel:
-		return m.AddedScoutLevel()
+	case user.FieldLevel:
+		return m.AddedLevel()
 	}
 	return nil, false
 }
@@ -3088,12 +3482,12 @@ func (m *UserMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *UserMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case user.FieldScoutLevel:
+	case user.FieldLevel:
 		v, ok := value.(int8)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.AddScoutLevel(v)
+		m.AddLevel(v)
 		return nil
 	}
 	return fmt.Errorf("unknown User numeric field %s", name)
@@ -3131,8 +3525,8 @@ func (m *UserMutation) ResetField(name string) error {
 	case user.FieldStatus:
 		m.ResetStatus()
 		return nil
-	case user.FieldScoutLevel:
-		m.ResetScoutLevel()
+	case user.FieldLevel:
+		m.ResetLevel()
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
@@ -3140,9 +3534,12 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.interactions != nil {
 		edges = append(edges, user.EdgeInteractions)
+	}
+	if m.pool_passes != nil {
+		edges = append(edges, user.EdgePoolPasses)
 	}
 	if m.roles != nil {
 		edges = append(edges, user.EdgeRoles)
@@ -3169,6 +3566,12 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 	case user.EdgeInteractions:
 		ids := make([]ent.Value, 0, len(m.interactions))
 		for id := range m.interactions {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgePoolPasses:
+		ids := make([]ent.Value, 0, len(m.pool_passes))
+		for id := range m.pool_passes {
 			ids = append(ids, id)
 		}
 		return ids
@@ -3208,9 +3611,12 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.removedinteractions != nil {
 		edges = append(edges, user.EdgeInteractions)
+	}
+	if m.removedpool_passes != nil {
+		edges = append(edges, user.EdgePoolPasses)
 	}
 	if m.removedroles != nil {
 		edges = append(edges, user.EdgeRoles)
@@ -3237,6 +3643,12 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 	case user.EdgeInteractions:
 		ids := make([]ent.Value, 0, len(m.removedinteractions))
 		for id := range m.removedinteractions {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgePoolPasses:
+		ids := make([]ent.Value, 0, len(m.removedpool_passes))
+		for id := range m.removedpool_passes {
 			ids = append(ids, id)
 		}
 		return ids
@@ -3276,9 +3688,12 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.clearedinteractions {
 		edges = append(edges, user.EdgeInteractions)
+	}
+	if m.clearedpool_passes {
+		edges = append(edges, user.EdgePoolPasses)
 	}
 	if m.clearedroles {
 		edges = append(edges, user.EdgeRoles)
@@ -3304,6 +3719,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 	switch name {
 	case user.EdgeInteractions:
 		return m.clearedinteractions
+	case user.EdgePoolPasses:
+		return m.clearedpool_passes
 	case user.EdgeRoles:
 		return m.clearedroles
 	case user.EdgeCreated:
@@ -3332,6 +3749,9 @@ func (m *UserMutation) ResetEdge(name string) error {
 	switch name {
 	case user.EdgeInteractions:
 		m.ResetInteractions()
+		return nil
+	case user.EdgePoolPasses:
+		m.ResetPoolPasses()
 		return nil
 	case user.EdgeRoles:
 		m.ResetRoles()

@@ -8,6 +8,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/ahashim/web-server/ent/pool"
+	"github.com/ahashim/web-server/ent/squeak"
 	"github.com/ahashim/web-server/types"
 )
 
@@ -24,6 +25,43 @@ type Pool struct {
 	BlockNumber *types.Uint256 `json:"block_number,omitempty"`
 	// Score holds the value of the "score" field.
 	Score int `json:"score,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the PoolQuery when eager-loading is set.
+	Edges       PoolEdges `json:"edges"`
+	squeak_pool *int
+}
+
+// PoolEdges holds the relations/edges for other nodes in the graph.
+type PoolEdges struct {
+	// PoolPasses holds the value of the pool_passes edge.
+	PoolPasses []*PoolPass `json:"pool_passes,omitempty"`
+	// Squeak holds the value of the squeak edge.
+	Squeak *Squeak `json:"squeak,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [2]bool
+}
+
+// PoolPassesOrErr returns the PoolPasses value or an error if the edge
+// was not loaded in eager-loading.
+func (e PoolEdges) PoolPassesOrErr() ([]*PoolPass, error) {
+	if e.loadedTypes[0] {
+		return e.PoolPasses, nil
+	}
+	return nil, &NotLoadedError{edge: "pool_passes"}
+}
+
+// SqueakOrErr returns the Squeak value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e PoolEdges) SqueakOrErr() (*Squeak, error) {
+	if e.loadedTypes[1] {
+		if e.Squeak == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: squeak.Label}
+		}
+		return e.Squeak, nil
+	}
+	return nil, &NotLoadedError{edge: "squeak"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -35,6 +73,8 @@ func (*Pool) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case pool.FieldAmount, pool.FieldShares, pool.FieldBlockNumber:
 			values[i] = new(types.Uint256)
+		case pool.ForeignKeys[0]: // squeak_pool
+			values[i] = new(sql.NullInt64)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Pool", columns[i])
 		}
@@ -80,9 +120,26 @@ func (po *Pool) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				po.Score = int(value.Int64)
 			}
+		case pool.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field squeak_pool", value)
+			} else if value.Valid {
+				po.squeak_pool = new(int)
+				*po.squeak_pool = int(value.Int64)
+			}
 		}
 	}
 	return nil
+}
+
+// QueryPoolPasses queries the "pool_passes" edge of the Pool entity.
+func (po *Pool) QueryPoolPasses() *PoolPassQuery {
+	return (&PoolClient{config: po.config}).QueryPoolPasses(po)
+}
+
+// QuerySqueak queries the "squeak" edge of the Pool entity.
+func (po *Pool) QuerySqueak() *SqueakQuery {
+	return (&PoolClient{config: po.config}).QuerySqueak(po)
 }
 
 // Update returns a builder for updating this Pool.

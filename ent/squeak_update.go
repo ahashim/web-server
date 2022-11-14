@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/ahashim/web-server/ent/interaction"
+	"github.com/ahashim/web-server/ent/pool"
 	"github.com/ahashim/web-server/ent/predicate"
 	"github.com/ahashim/web-server/ent/squeak"
 	"github.com/ahashim/web-server/ent/user"
@@ -49,6 +50,25 @@ func (su *SqueakUpdate) AddInteractions(i ...*Interaction) *SqueakUpdate {
 		ids[j] = i[j].ID
 	}
 	return su.AddInteractionIDs(ids...)
+}
+
+// SetPoolID sets the "pool" edge to the Pool entity by ID.
+func (su *SqueakUpdate) SetPoolID(id int) *SqueakUpdate {
+	su.mutation.SetPoolID(id)
+	return su
+}
+
+// SetNillablePoolID sets the "pool" edge to the Pool entity by ID if the given value is not nil.
+func (su *SqueakUpdate) SetNillablePoolID(id *int) *SqueakUpdate {
+	if id != nil {
+		su = su.SetPoolID(*id)
+	}
+	return su
+}
+
+// SetPool sets the "pool" edge to the Pool entity.
+func (su *SqueakUpdate) SetPool(p *Pool) *SqueakUpdate {
+	return su.SetPoolID(p.ID)
 }
 
 // SetCreatorID sets the "creator" edge to the User entity by ID.
@@ -113,6 +133,12 @@ func (su *SqueakUpdate) RemoveInteractions(i ...*Interaction) *SqueakUpdate {
 		ids[j] = i[j].ID
 	}
 	return su.RemoveInteractionIDs(ids...)
+}
+
+// ClearPool clears the "pool" edge to the Pool entity.
+func (su *SqueakUpdate) ClearPool() *SqueakUpdate {
+	su.mutation.ClearPool()
+	return su
 }
 
 // ClearCreator clears the "creator" edge to the User entity.
@@ -256,6 +282,41 @@ func (su *SqueakUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if su.mutation.PoolCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   squeak.PoolTable,
+			Columns: []string{squeak.PoolColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: pool.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := su.mutation.PoolIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   squeak.PoolTable,
+			Columns: []string{squeak.PoolColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: pool.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if su.mutation.CreatorCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -366,6 +427,25 @@ func (suo *SqueakUpdateOne) AddInteractions(i ...*Interaction) *SqueakUpdateOne 
 	return suo.AddInteractionIDs(ids...)
 }
 
+// SetPoolID sets the "pool" edge to the Pool entity by ID.
+func (suo *SqueakUpdateOne) SetPoolID(id int) *SqueakUpdateOne {
+	suo.mutation.SetPoolID(id)
+	return suo
+}
+
+// SetNillablePoolID sets the "pool" edge to the Pool entity by ID if the given value is not nil.
+func (suo *SqueakUpdateOne) SetNillablePoolID(id *int) *SqueakUpdateOne {
+	if id != nil {
+		suo = suo.SetPoolID(*id)
+	}
+	return suo
+}
+
+// SetPool sets the "pool" edge to the Pool entity.
+func (suo *SqueakUpdateOne) SetPool(p *Pool) *SqueakUpdateOne {
+	return suo.SetPoolID(p.ID)
+}
+
 // SetCreatorID sets the "creator" edge to the User entity by ID.
 func (suo *SqueakUpdateOne) SetCreatorID(id int) *SqueakUpdateOne {
 	suo.mutation.SetCreatorID(id)
@@ -428,6 +508,12 @@ func (suo *SqueakUpdateOne) RemoveInteractions(i ...*Interaction) *SqueakUpdateO
 		ids[j] = i[j].ID
 	}
 	return suo.RemoveInteractionIDs(ids...)
+}
+
+// ClearPool clears the "pool" edge to the Pool entity.
+func (suo *SqueakUpdateOne) ClearPool() *SqueakUpdateOne {
+	suo.mutation.ClearPool()
+	return suo
 }
 
 // ClearCreator clears the "creator" edge to the User entity.
@@ -593,6 +679,41 @@ func (suo *SqueakUpdateOne) sqlSave(ctx context.Context) (_node *Squeak, err err
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: interaction.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if suo.mutation.PoolCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   squeak.PoolTable,
+			Columns: []string{squeak.PoolColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: pool.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := suo.mutation.PoolIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   squeak.PoolTable,
+			Columns: []string{squeak.PoolColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: pool.FieldID,
 				},
 			},
 		}

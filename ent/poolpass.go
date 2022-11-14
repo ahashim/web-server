@@ -7,7 +7,9 @@ import (
 	"strings"
 
 	"entgo.io/ent/dialect/sql"
+	"github.com/ahashim/web-server/ent/pool"
 	"github.com/ahashim/web-server/ent/poolpass"
+	"github.com/ahashim/web-server/ent/user"
 	"github.com/ahashim/web-server/types"
 )
 
@@ -18,6 +20,48 @@ type PoolPass struct {
 	ID int `json:"id,omitempty"`
 	// Shares holds the value of the "shares" field.
 	Shares *types.Uint256 `json:"shares,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the PoolPassQuery when eager-loading is set.
+	Edges            PoolPassEdges `json:"edges"`
+	pool_pool_passes *int
+	user_pool_passes *int
+}
+
+// PoolPassEdges holds the relations/edges for other nodes in the graph.
+type PoolPassEdges struct {
+	// User holds the value of the user edge.
+	User *User `json:"user,omitempty"`
+	// Pool holds the value of the pool edge.
+	Pool *Pool `json:"pool,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [2]bool
+}
+
+// UserOrErr returns the User value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e PoolPassEdges) UserOrErr() (*User, error) {
+	if e.loadedTypes[0] {
+		if e.User == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: user.Label}
+		}
+		return e.User, nil
+	}
+	return nil, &NotLoadedError{edge: "user"}
+}
+
+// PoolOrErr returns the Pool value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e PoolPassEdges) PoolOrErr() (*Pool, error) {
+	if e.loadedTypes[1] {
+		if e.Pool == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: pool.Label}
+		}
+		return e.Pool, nil
+	}
+	return nil, &NotLoadedError{edge: "pool"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -29,6 +73,10 @@ func (*PoolPass) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case poolpass.FieldShares:
 			values[i] = new(types.Uint256)
+		case poolpass.ForeignKeys[0]: // pool_pool_passes
+			values[i] = new(sql.NullInt64)
+		case poolpass.ForeignKeys[1]: // user_pool_passes
+			values[i] = new(sql.NullInt64)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type PoolPass", columns[i])
 		}
@@ -56,9 +104,33 @@ func (pp *PoolPass) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				pp.Shares = value
 			}
+		case poolpass.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field pool_pool_passes", value)
+			} else if value.Valid {
+				pp.pool_pool_passes = new(int)
+				*pp.pool_pool_passes = int(value.Int64)
+			}
+		case poolpass.ForeignKeys[1]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field user_pool_passes", value)
+			} else if value.Valid {
+				pp.user_pool_passes = new(int)
+				*pp.user_pool_passes = int(value.Int64)
+			}
 		}
 	}
 	return nil
+}
+
+// QueryUser queries the "user" edge of the PoolPass entity.
+func (pp *PoolPass) QueryUser() *UserQuery {
+	return (&PoolPassClient{config: pp.config}).QueryUser(pp)
+}
+
+// QueryPool queries the "pool" edge of the PoolPass entity.
+func (pp *PoolPass) QueryPool() *PoolQuery {
+	return (&PoolPassClient{config: pp.config}).QueryPool(pp)
 }
 
 // Update returns a builder for updating this PoolPass.

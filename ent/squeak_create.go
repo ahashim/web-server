@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/ahashim/web-server/ent/interaction"
+	"github.com/ahashim/web-server/ent/pool"
 	"github.com/ahashim/web-server/ent/squeak"
 	"github.com/ahashim/web-server/ent/user"
 	"github.com/ahashim/web-server/types"
@@ -47,6 +48,25 @@ func (sc *SqueakCreate) AddInteractions(i ...*Interaction) *SqueakCreate {
 		ids[j] = i[j].ID
 	}
 	return sc.AddInteractionIDs(ids...)
+}
+
+// SetPoolID sets the "pool" edge to the Pool entity by ID.
+func (sc *SqueakCreate) SetPoolID(id int) *SqueakCreate {
+	sc.mutation.SetPoolID(id)
+	return sc
+}
+
+// SetNillablePoolID sets the "pool" edge to the Pool entity by ID if the given value is not nil.
+func (sc *SqueakCreate) SetNillablePoolID(id *int) *SqueakCreate {
+	if id != nil {
+		sc = sc.SetPoolID(*id)
+	}
+	return sc
+}
+
+// SetPool sets the "pool" edge to the Pool entity.
+func (sc *SqueakCreate) SetPool(p *Pool) *SqueakCreate {
+	return sc.SetPoolID(p.ID)
 }
 
 // SetCreatorID sets the "creator" edge to the User entity by ID.
@@ -220,6 +240,25 @@ func (sc *SqueakCreate) createSpec() (*Squeak, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: interaction.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := sc.mutation.PoolIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   squeak.PoolTable,
+			Columns: []string{squeak.PoolColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: pool.FieldID,
 				},
 			},
 		}

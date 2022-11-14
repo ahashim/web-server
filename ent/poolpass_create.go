@@ -9,7 +9,9 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/ahashim/web-server/ent/pool"
 	"github.com/ahashim/web-server/ent/poolpass"
+	"github.com/ahashim/web-server/ent/user"
 	"github.com/ahashim/web-server/types"
 )
 
@@ -24,6 +26,44 @@ type PoolPassCreate struct {
 func (ppc *PoolPassCreate) SetShares(t *types.Uint256) *PoolPassCreate {
 	ppc.mutation.SetShares(t)
 	return ppc
+}
+
+// SetUserID sets the "user" edge to the User entity by ID.
+func (ppc *PoolPassCreate) SetUserID(id int) *PoolPassCreate {
+	ppc.mutation.SetUserID(id)
+	return ppc
+}
+
+// SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
+func (ppc *PoolPassCreate) SetNillableUserID(id *int) *PoolPassCreate {
+	if id != nil {
+		ppc = ppc.SetUserID(*id)
+	}
+	return ppc
+}
+
+// SetUser sets the "user" edge to the User entity.
+func (ppc *PoolPassCreate) SetUser(u *User) *PoolPassCreate {
+	return ppc.SetUserID(u.ID)
+}
+
+// SetPoolID sets the "pool" edge to the Pool entity by ID.
+func (ppc *PoolPassCreate) SetPoolID(id int) *PoolPassCreate {
+	ppc.mutation.SetPoolID(id)
+	return ppc
+}
+
+// SetNillablePoolID sets the "pool" edge to the Pool entity by ID if the given value is not nil.
+func (ppc *PoolPassCreate) SetNillablePoolID(id *int) *PoolPassCreate {
+	if id != nil {
+		ppc = ppc.SetPoolID(*id)
+	}
+	return ppc
+}
+
+// SetPool sets the "pool" edge to the Pool entity.
+func (ppc *PoolPassCreate) SetPool(p *Pool) *PoolPassCreate {
+	return ppc.SetPoolID(p.ID)
 }
 
 // Mutation returns the PoolPassMutation object of the builder.
@@ -135,6 +175,46 @@ func (ppc *PoolPassCreate) createSpec() (*PoolPass, *sqlgraph.CreateSpec) {
 	if value, ok := ppc.mutation.Shares(); ok {
 		_spec.SetField(poolpass.FieldShares, field.TypeInt, value)
 		_node.Shares = value
+	}
+	if nodes := ppc.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   poolpass.UserTable,
+			Columns: []string{poolpass.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.user_pool_passes = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ppc.mutation.PoolIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   poolpass.PoolTable,
+			Columns: []string{poolpass.PoolColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: pool.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.pool_pool_passes = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

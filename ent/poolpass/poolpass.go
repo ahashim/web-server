@@ -9,8 +9,26 @@ const (
 	FieldID = "id"
 	// FieldShares holds the string denoting the shares field in the database.
 	FieldShares = "shares"
+	// EdgeUser holds the string denoting the user edge name in mutations.
+	EdgeUser = "user"
+	// EdgePool holds the string denoting the pool edge name in mutations.
+	EdgePool = "pool"
 	// Table holds the table name of the poolpass in the database.
 	Table = "pool_passes"
+	// UserTable is the table that holds the user relation/edge.
+	UserTable = "pool_passes"
+	// UserInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	UserInverseTable = "users"
+	// UserColumn is the table column denoting the user relation/edge.
+	UserColumn = "user_pool_passes"
+	// PoolTable is the table that holds the pool relation/edge.
+	PoolTable = "pool_passes"
+	// PoolInverseTable is the table name for the Pool entity.
+	// It exists in this package in order to avoid circular dependency with the "pool" package.
+	PoolInverseTable = "pools"
+	// PoolColumn is the table column denoting the pool relation/edge.
+	PoolColumn = "pool_pool_passes"
 )
 
 // Columns holds all SQL columns for poolpass fields.
@@ -19,10 +37,22 @@ var Columns = []string{
 	FieldShares,
 }
 
+// ForeignKeys holds the SQL foreign-keys that are owned by the "pool_passes"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"pool_pool_passes",
+	"user_pool_passes",
+}
+
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
+			return true
+		}
+	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
 			return true
 		}
 	}

@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/ahashim/web-server/ent/interaction"
+	"github.com/ahashim/web-server/ent/poolpass"
 	"github.com/ahashim/web-server/ent/role"
 	"github.com/ahashim/web-server/ent/squeak"
 	"github.com/ahashim/web-server/ent/user"
@@ -41,16 +42,16 @@ func (uc *UserCreate) SetStatus(e enums.Status) *UserCreate {
 	return uc
 }
 
-// SetScoutLevel sets the "scout_level" field.
-func (uc *UserCreate) SetScoutLevel(i int8) *UserCreate {
-	uc.mutation.SetScoutLevel(i)
+// SetLevel sets the "level" field.
+func (uc *UserCreate) SetLevel(i int8) *UserCreate {
+	uc.mutation.SetLevel(i)
 	return uc
 }
 
-// SetNillableScoutLevel sets the "scout_level" field if the given value is not nil.
-func (uc *UserCreate) SetNillableScoutLevel(i *int8) *UserCreate {
+// SetNillableLevel sets the "level" field if the given value is not nil.
+func (uc *UserCreate) SetNillableLevel(i *int8) *UserCreate {
 	if i != nil {
-		uc.SetScoutLevel(*i)
+		uc.SetLevel(*i)
 	}
 	return uc
 }
@@ -68,6 +69,21 @@ func (uc *UserCreate) AddInteractions(i ...*Interaction) *UserCreate {
 		ids[j] = i[j].ID
 	}
 	return uc.AddInteractionIDs(ids...)
+}
+
+// AddPoolPassIDs adds the "pool_passes" edge to the PoolPass entity by IDs.
+func (uc *UserCreate) AddPoolPassIDs(ids ...int) *UserCreate {
+	uc.mutation.AddPoolPassIDs(ids...)
+	return uc
+}
+
+// AddPoolPasses adds the "pool_passes" edges to the PoolPass entity.
+func (uc *UserCreate) AddPoolPasses(p ...*PoolPass) *UserCreate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return uc.AddPoolPassIDs(ids...)
 }
 
 // AddRoleIDs adds the "roles" edge to the Role entity by IDs.
@@ -222,9 +238,9 @@ func (uc *UserCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (uc *UserCreate) defaults() {
-	if _, ok := uc.mutation.ScoutLevel(); !ok {
-		v := user.DefaultScoutLevel
-		uc.mutation.SetScoutLevel(v)
+	if _, ok := uc.mutation.Level(); !ok {
+		v := user.DefaultLevel
+		uc.mutation.SetLevel(v)
 	}
 }
 
@@ -254,8 +270,8 @@ func (uc *UserCreate) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "User.status": %w`, err)}
 		}
 	}
-	if _, ok := uc.mutation.ScoutLevel(); !ok {
-		return &ValidationError{Name: "scout_level", err: errors.New(`ent: missing required field "User.scout_level"`)}
+	if _, ok := uc.mutation.Level(); !ok {
+		return &ValidationError{Name: "level", err: errors.New(`ent: missing required field "User.level"`)}
 	}
 	return nil
 }
@@ -296,9 +312,9 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_spec.SetField(user.FieldStatus, field.TypeEnum, value)
 		_node.Status = value
 	}
-	if value, ok := uc.mutation.ScoutLevel(); ok {
-		_spec.SetField(user.FieldScoutLevel, field.TypeInt8, value)
-		_node.ScoutLevel = value
+	if value, ok := uc.mutation.Level(); ok {
+		_spec.SetField(user.FieldLevel, field.TypeInt8, value)
+		_node.Level = value
 	}
 	if nodes := uc.mutation.InteractionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -311,6 +327,25 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: interaction.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.PoolPassesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PoolPassesTable,
+			Columns: []string{user.PoolPassesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: poolpass.FieldID,
 				},
 			},
 		}

@@ -285,6 +285,34 @@ func HasInteractionsWith(preds ...predicate.Interaction) predicate.Squeak {
 	})
 }
 
+// HasPool applies the HasEdge predicate on the "pool" edge.
+func HasPool() predicate.Squeak {
+	return predicate.Squeak(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(PoolTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, PoolTable, PoolColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPoolWith applies the HasEdge predicate on the "pool" edge with a given conditions (other predicates).
+func HasPoolWith(preds ...predicate.Pool) predicate.Squeak {
+	return predicate.Squeak(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(PoolInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, PoolTable, PoolColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasCreator applies the HasEdge predicate on the "creator" edge.
 func HasCreator() predicate.Squeak {
 	return predicate.Squeak(func(s *sql.Selector) {

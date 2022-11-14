@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -11,18 +12,23 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/ahashim/web-server/ent/pool"
+	"github.com/ahashim/web-server/ent/poolpass"
 	"github.com/ahashim/web-server/ent/predicate"
+	"github.com/ahashim/web-server/ent/squeak"
 )
 
 // PoolQuery is the builder for querying Pool entities.
 type PoolQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
-	order      []OrderFunc
-	fields     []string
-	predicates []predicate.Pool
+	limit          *int
+	offset         *int
+	unique         *bool
+	order          []OrderFunc
+	fields         []string
+	predicates     []predicate.Pool
+	withPoolPasses *PoolPassQuery
+	withSqueak     *SqueakQuery
+	withFKs        bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -57,6 +63,50 @@ func (pq *PoolQuery) Unique(unique bool) *PoolQuery {
 func (pq *PoolQuery) Order(o ...OrderFunc) *PoolQuery {
 	pq.order = append(pq.order, o...)
 	return pq
+}
+
+// QueryPoolPasses chains the current query on the "pool_passes" edge.
+func (pq *PoolQuery) QueryPoolPasses() *PoolPassQuery {
+	query := &PoolPassQuery{config: pq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := pq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(pool.Table, pool.FieldID, selector),
+			sqlgraph.To(poolpass.Table, poolpass.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, pool.PoolPassesTable, pool.PoolPassesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySqueak chains the current query on the "squeak" edge.
+func (pq *PoolQuery) QuerySqueak() *SqueakQuery {
+	query := &SqueakQuery{config: pq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := pq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(pool.Table, pool.FieldID, selector),
+			sqlgraph.To(squeak.Table, squeak.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, pool.SqueakTable, pool.SqueakColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first Pool entity from the query.
@@ -235,16 +285,40 @@ func (pq *PoolQuery) Clone() *PoolQuery {
 		return nil
 	}
 	return &PoolQuery{
-		config:     pq.config,
-		limit:      pq.limit,
-		offset:     pq.offset,
-		order:      append([]OrderFunc{}, pq.order...),
-		predicates: append([]predicate.Pool{}, pq.predicates...),
+		config:         pq.config,
+		limit:          pq.limit,
+		offset:         pq.offset,
+		order:          append([]OrderFunc{}, pq.order...),
+		predicates:     append([]predicate.Pool{}, pq.predicates...),
+		withPoolPasses: pq.withPoolPasses.Clone(),
+		withSqueak:     pq.withSqueak.Clone(),
 		// clone intermediate query.
 		sql:    pq.sql.Clone(),
 		path:   pq.path,
 		unique: pq.unique,
 	}
+}
+
+// WithPoolPasses tells the query-builder to eager-load the nodes that are connected to
+// the "pool_passes" edge. The optional arguments are used to configure the query builder of the edge.
+func (pq *PoolQuery) WithPoolPasses(opts ...func(*PoolPassQuery)) *PoolQuery {
+	query := &PoolPassQuery{config: pq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withPoolPasses = query
+	return pq
+}
+
+// WithSqueak tells the query-builder to eager-load the nodes that are connected to
+// the "squeak" edge. The optional arguments are used to configure the query builder of the edge.
+func (pq *PoolQuery) WithSqueak(opts ...func(*SqueakQuery)) *PoolQuery {
+	query := &SqueakQuery{config: pq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withSqueak = query
+	return pq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -318,15 +392,27 @@ func (pq *PoolQuery) prepareQuery(ctx context.Context) error {
 
 func (pq *PoolQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Pool, error) {
 	var (
-		nodes = []*Pool{}
-		_spec = pq.querySpec()
+		nodes       = []*Pool{}
+		withFKs     = pq.withFKs
+		_spec       = pq.querySpec()
+		loadedTypes = [2]bool{
+			pq.withPoolPasses != nil,
+			pq.withSqueak != nil,
+		}
 	)
+	if pq.withSqueak != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, pool.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Pool).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &Pool{config: pq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -338,7 +424,81 @@ func (pq *PoolQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Pool, e
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := pq.withPoolPasses; query != nil {
+		if err := pq.loadPoolPasses(ctx, query, nodes,
+			func(n *Pool) { n.Edges.PoolPasses = []*PoolPass{} },
+			func(n *Pool, e *PoolPass) { n.Edges.PoolPasses = append(n.Edges.PoolPasses, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := pq.withSqueak; query != nil {
+		if err := pq.loadSqueak(ctx, query, nodes, nil,
+			func(n *Pool, e *Squeak) { n.Edges.Squeak = e }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
+}
+
+func (pq *PoolQuery) loadPoolPasses(ctx context.Context, query *PoolPassQuery, nodes []*Pool, init func(*Pool), assign func(*Pool, *PoolPass)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*Pool)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.PoolPass(func(s *sql.Selector) {
+		s.Where(sql.InValues(pool.PoolPassesColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.pool_pool_passes
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "pool_pool_passes" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "pool_pool_passes" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (pq *PoolQuery) loadSqueak(ctx context.Context, query *SqueakQuery, nodes []*Pool, init func(*Pool), assign func(*Pool, *Squeak)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*Pool)
+	for i := range nodes {
+		if nodes[i].squeak_pool == nil {
+			continue
+		}
+		fk := *nodes[i].squeak_pool
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	query.Where(squeak.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "squeak_pool" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
 }
 
 func (pq *PoolQuery) sqlCount(ctx context.Context) (int, error) {

@@ -22,8 +22,8 @@ type User struct {
 	Username string `json:"username,omitempty"`
 	// Status holds the value of the "status" field.
 	Status enums.Status `json:"status,omitempty"`
-	// ScoutLevel holds the value of the "scout_level" field.
-	ScoutLevel int8 `json:"scout_level,omitempty"`
+	// Level holds the value of the "level" field.
+	Level int8 `json:"level,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges UserEdges `json:"edges"`
@@ -33,6 +33,8 @@ type User struct {
 type UserEdges struct {
 	// Interactions holds the value of the interactions edge.
 	Interactions []*Interaction `json:"interactions,omitempty"`
+	// PoolPasses holds the value of the pool_passes edge.
+	PoolPasses []*PoolPass `json:"pool_passes,omitempty"`
 	// Roles holds the value of the roles edge.
 	Roles []*Role `json:"roles,omitempty"`
 	// Created holds the value of the created edge.
@@ -45,7 +47,7 @@ type UserEdges struct {
 	Following []*User `json:"following,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [6]bool
+	loadedTypes [7]bool
 }
 
 // InteractionsOrErr returns the Interactions value or an error if the edge
@@ -57,10 +59,19 @@ func (e UserEdges) InteractionsOrErr() ([]*Interaction, error) {
 	return nil, &NotLoadedError{edge: "interactions"}
 }
 
+// PoolPassesOrErr returns the PoolPasses value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) PoolPassesOrErr() ([]*PoolPass, error) {
+	if e.loadedTypes[1] {
+		return e.PoolPasses, nil
+	}
+	return nil, &NotLoadedError{edge: "pool_passes"}
+}
+
 // RolesOrErr returns the Roles value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) RolesOrErr() ([]*Role, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[2] {
 		return e.Roles, nil
 	}
 	return nil, &NotLoadedError{edge: "roles"}
@@ -69,7 +80,7 @@ func (e UserEdges) RolesOrErr() ([]*Role, error) {
 // CreatedOrErr returns the Created value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) CreatedOrErr() ([]*Squeak, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[3] {
 		return e.Created, nil
 	}
 	return nil, &NotLoadedError{edge: "created"}
@@ -78,7 +89,7 @@ func (e UserEdges) CreatedOrErr() ([]*Squeak, error) {
 // OwnedOrErr returns the Owned value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) OwnedOrErr() ([]*Squeak, error) {
-	if e.loadedTypes[3] {
+	if e.loadedTypes[4] {
 		return e.Owned, nil
 	}
 	return nil, &NotLoadedError{edge: "owned"}
@@ -87,7 +98,7 @@ func (e UserEdges) OwnedOrErr() ([]*Squeak, error) {
 // FollowersOrErr returns the Followers value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) FollowersOrErr() ([]*User, error) {
-	if e.loadedTypes[4] {
+	if e.loadedTypes[5] {
 		return e.Followers, nil
 	}
 	return nil, &NotLoadedError{edge: "followers"}
@@ -96,7 +107,7 @@ func (e UserEdges) FollowersOrErr() ([]*User, error) {
 // FollowingOrErr returns the Following value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) FollowingOrErr() ([]*User, error) {
-	if e.loadedTypes[5] {
+	if e.loadedTypes[6] {
 		return e.Following, nil
 	}
 	return nil, &NotLoadedError{edge: "following"}
@@ -109,7 +120,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case user.FieldStatus:
 			values[i] = new(enums.Status)
-		case user.FieldID, user.FieldScoutLevel:
+		case user.FieldID, user.FieldLevel:
 			values[i] = new(sql.NullInt64)
 		case user.FieldAddress, user.FieldUsername:
 			values[i] = new(sql.NullString)
@@ -152,11 +163,11 @@ func (u *User) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				u.Status = *value
 			}
-		case user.FieldScoutLevel:
+		case user.FieldLevel:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field scout_level", values[i])
+				return fmt.Errorf("unexpected type %T for field level", values[i])
 			} else if value.Valid {
-				u.ScoutLevel = int8(value.Int64)
+				u.Level = int8(value.Int64)
 			}
 		}
 	}
@@ -166,6 +177,11 @@ func (u *User) assignValues(columns []string, values []any) error {
 // QueryInteractions queries the "interactions" edge of the User entity.
 func (u *User) QueryInteractions() *InteractionQuery {
 	return (&UserClient{config: u.config}).QueryInteractions(u)
+}
+
+// QueryPoolPasses queries the "pool_passes" edge of the User entity.
+func (u *User) QueryPoolPasses() *PoolPassQuery {
+	return (&UserClient{config: u.config}).QueryPoolPasses(u)
 }
 
 // QueryRoles queries the "roles" edge of the User entity.
@@ -225,8 +241,8 @@ func (u *User) String() string {
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", u.Status))
 	builder.WriteString(", ")
-	builder.WriteString("scout_level=")
-	builder.WriteString(fmt.Sprintf("%v", u.ScoutLevel))
+	builder.WriteString("level=")
+	builder.WriteString(fmt.Sprintf("%v", u.Level))
 	builder.WriteByte(')')
 	return builder.String()
 }
