@@ -20,6 +20,19 @@ func (Pool) Fields() []ent.Field {
 			SchemaType(map[string]string{
 				dialect.Postgres: "numeric(78, 0)",
 			}),
+		field.Int("shares").
+			GoType(new(types.Uint256)).
+			SchemaType(map[string]string{
+				dialect.Postgres: "numeric(78, 0)",
+			}),
+		field.Int("block_number").
+			GoType(new(types.Uint256)).
+			SchemaType(map[string]string{
+				dialect.Postgres: "numeric(78, 0)",
+			}).
+      Immutable(),
+		field.Int("score").
+      Immutable(),
 	}
 }
 

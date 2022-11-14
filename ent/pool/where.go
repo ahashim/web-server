@@ -86,6 +86,27 @@ func Amount(v *types.Uint256) predicate.Pool {
 	})
 }
 
+// Shares applies equality check predicate on the "shares" field. It's identical to SharesEQ.
+func Shares(v *types.Uint256) predicate.Pool {
+	return predicate.Pool(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldShares), v))
+	})
+}
+
+// BlockNumber applies equality check predicate on the "block_number" field. It's identical to BlockNumberEQ.
+func BlockNumber(v *types.Uint256) predicate.Pool {
+	return predicate.Pool(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldBlockNumber), v))
+	})
+}
+
+// Score applies equality check predicate on the "score" field. It's identical to ScoreEQ.
+func Score(v int) predicate.Pool {
+	return predicate.Pool(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldScore), v))
+	})
+}
+
 // AmountEQ applies the EQ predicate on the "amount" field.
 func AmountEQ(v *types.Uint256) predicate.Pool {
 	return predicate.Pool(func(s *sql.Selector) {
@@ -147,6 +168,198 @@ func AmountLT(v *types.Uint256) predicate.Pool {
 func AmountLTE(v *types.Uint256) predicate.Pool {
 	return predicate.Pool(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldAmount), v))
+	})
+}
+
+// SharesEQ applies the EQ predicate on the "shares" field.
+func SharesEQ(v *types.Uint256) predicate.Pool {
+	return predicate.Pool(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldShares), v))
+	})
+}
+
+// SharesNEQ applies the NEQ predicate on the "shares" field.
+func SharesNEQ(v *types.Uint256) predicate.Pool {
+	return predicate.Pool(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldShares), v))
+	})
+}
+
+// SharesIn applies the In predicate on the "shares" field.
+func SharesIn(vs ...*types.Uint256) predicate.Pool {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Pool(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldShares), v...))
+	})
+}
+
+// SharesNotIn applies the NotIn predicate on the "shares" field.
+func SharesNotIn(vs ...*types.Uint256) predicate.Pool {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Pool(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldShares), v...))
+	})
+}
+
+// SharesGT applies the GT predicate on the "shares" field.
+func SharesGT(v *types.Uint256) predicate.Pool {
+	return predicate.Pool(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldShares), v))
+	})
+}
+
+// SharesGTE applies the GTE predicate on the "shares" field.
+func SharesGTE(v *types.Uint256) predicate.Pool {
+	return predicate.Pool(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldShares), v))
+	})
+}
+
+// SharesLT applies the LT predicate on the "shares" field.
+func SharesLT(v *types.Uint256) predicate.Pool {
+	return predicate.Pool(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldShares), v))
+	})
+}
+
+// SharesLTE applies the LTE predicate on the "shares" field.
+func SharesLTE(v *types.Uint256) predicate.Pool {
+	return predicate.Pool(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldShares), v))
+	})
+}
+
+// BlockNumberEQ applies the EQ predicate on the "block_number" field.
+func BlockNumberEQ(v *types.Uint256) predicate.Pool {
+	return predicate.Pool(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldBlockNumber), v))
+	})
+}
+
+// BlockNumberNEQ applies the NEQ predicate on the "block_number" field.
+func BlockNumberNEQ(v *types.Uint256) predicate.Pool {
+	return predicate.Pool(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldBlockNumber), v))
+	})
+}
+
+// BlockNumberIn applies the In predicate on the "block_number" field.
+func BlockNumberIn(vs ...*types.Uint256) predicate.Pool {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Pool(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldBlockNumber), v...))
+	})
+}
+
+// BlockNumberNotIn applies the NotIn predicate on the "block_number" field.
+func BlockNumberNotIn(vs ...*types.Uint256) predicate.Pool {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Pool(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldBlockNumber), v...))
+	})
+}
+
+// BlockNumberGT applies the GT predicate on the "block_number" field.
+func BlockNumberGT(v *types.Uint256) predicate.Pool {
+	return predicate.Pool(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldBlockNumber), v))
+	})
+}
+
+// BlockNumberGTE applies the GTE predicate on the "block_number" field.
+func BlockNumberGTE(v *types.Uint256) predicate.Pool {
+	return predicate.Pool(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldBlockNumber), v))
+	})
+}
+
+// BlockNumberLT applies the LT predicate on the "block_number" field.
+func BlockNumberLT(v *types.Uint256) predicate.Pool {
+	return predicate.Pool(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldBlockNumber), v))
+	})
+}
+
+// BlockNumberLTE applies the LTE predicate on the "block_number" field.
+func BlockNumberLTE(v *types.Uint256) predicate.Pool {
+	return predicate.Pool(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldBlockNumber), v))
+	})
+}
+
+// ScoreEQ applies the EQ predicate on the "score" field.
+func ScoreEQ(v int) predicate.Pool {
+	return predicate.Pool(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldScore), v))
+	})
+}
+
+// ScoreNEQ applies the NEQ predicate on the "score" field.
+func ScoreNEQ(v int) predicate.Pool {
+	return predicate.Pool(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldScore), v))
+	})
+}
+
+// ScoreIn applies the In predicate on the "score" field.
+func ScoreIn(vs ...int) predicate.Pool {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Pool(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldScore), v...))
+	})
+}
+
+// ScoreNotIn applies the NotIn predicate on the "score" field.
+func ScoreNotIn(vs ...int) predicate.Pool {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Pool(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldScore), v...))
+	})
+}
+
+// ScoreGT applies the GT predicate on the "score" field.
+func ScoreGT(v int) predicate.Pool {
+	return predicate.Pool(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldScore), v))
+	})
+}
+
+// ScoreGTE applies the GTE predicate on the "score" field.
+func ScoreGTE(v int) predicate.Pool {
+	return predicate.Pool(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldScore), v))
+	})
+}
+
+// ScoreLT applies the LT predicate on the "score" field.
+func ScoreLT(v int) predicate.Pool {
+	return predicate.Pool(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldScore), v))
+	})
+}
+
+// ScoreLTE applies the LTE predicate on the "score" field.
+func ScoreLTE(v int) predicate.Pool {
+	return predicate.Pool(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldScore), v))
 	})
 }
 

@@ -9,6 +9,12 @@ const (
 	FieldID = "id"
 	// FieldAmount holds the string denoting the amount field in the database.
 	FieldAmount = "amount"
+	// FieldShares holds the string denoting the shares field in the database.
+	FieldShares = "shares"
+	// FieldBlockNumber holds the string denoting the block_number field in the database.
+	FieldBlockNumber = "block_number"
+	// FieldScore holds the string denoting the score field in the database.
+	FieldScore = "score"
 	// Table holds the table name of the pool in the database.
 	Table = "pools"
 )
@@ -17,6 +23,9 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldAmount,
+	FieldShares,
+	FieldBlockNumber,
+	FieldScore,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

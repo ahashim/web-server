@@ -34,6 +34,18 @@ func (pu *PoolUpdate) SetAmount(t *types.Uint256) *PoolUpdate {
 	return pu
 }
 
+// SetShares sets the "shares" field.
+func (pu *PoolUpdate) SetShares(t *types.Uint256) *PoolUpdate {
+	pu.mutation.SetShares(t)
+	return pu
+}
+
+// SetBlockNumber sets the "block_number" field.
+func (pu *PoolUpdate) SetBlockNumber(t *types.Uint256) *PoolUpdate {
+	pu.mutation.SetBlockNumber(t)
+	return pu
+}
+
 // Mutation returns the PoolMutation object of the builder.
 func (pu *PoolUpdate) Mutation() *PoolMutation {
 	return pu.mutation
@@ -114,6 +126,12 @@ func (pu *PoolUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := pu.mutation.Amount(); ok {
 		_spec.SetField(pool.FieldAmount, field.TypeInt, value)
 	}
+	if value, ok := pu.mutation.Shares(); ok {
+		_spec.SetField(pool.FieldShares, field.TypeInt, value)
+	}
+	if value, ok := pu.mutation.BlockNumber(); ok {
+		_spec.SetField(pool.FieldBlockNumber, field.TypeInt, value)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, pu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{pool.Label}
@@ -136,6 +154,18 @@ type PoolUpdateOne struct {
 // SetAmount sets the "amount" field.
 func (puo *PoolUpdateOne) SetAmount(t *types.Uint256) *PoolUpdateOne {
 	puo.mutation.SetAmount(t)
+	return puo
+}
+
+// SetShares sets the "shares" field.
+func (puo *PoolUpdateOne) SetShares(t *types.Uint256) *PoolUpdateOne {
+	puo.mutation.SetShares(t)
+	return puo
+}
+
+// SetBlockNumber sets the "block_number" field.
+func (puo *PoolUpdateOne) SetBlockNumber(t *types.Uint256) *PoolUpdateOne {
+	puo.mutation.SetBlockNumber(t)
 	return puo
 }
 
@@ -248,6 +278,12 @@ func (puo *PoolUpdateOne) sqlSave(ctx context.Context) (_node *Pool, err error) 
 	}
 	if value, ok := puo.mutation.Amount(); ok {
 		_spec.SetField(pool.FieldAmount, field.TypeInt, value)
+	}
+	if value, ok := puo.mutation.Shares(); ok {
+		_spec.SetField(pool.FieldShares, field.TypeInt, value)
+	}
+	if value, ok := puo.mutation.BlockNumber(); ok {
+		_spec.SetField(pool.FieldBlockNumber, field.TypeInt, value)
 	}
 	_node = &Pool{config: puo.config}
 	_spec.Assign = _node.assignValues

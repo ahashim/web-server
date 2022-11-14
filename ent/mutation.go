@@ -482,6 +482,10 @@ type PoolMutation struct {
 	typ           string
 	id            *int
 	amount        **types.Uint256
+	shares        **types.Uint256
+	block_number  **types.Uint256
+	score         *int
+	addscore      *int
 	clearedFields map[string]struct{}
 	done          bool
 	oldValue      func(context.Context) (*Pool, error)
@@ -622,6 +626,134 @@ func (m *PoolMutation) ResetAmount() {
 	m.amount = nil
 }
 
+// SetShares sets the "shares" field.
+func (m *PoolMutation) SetShares(t *types.Uint256) {
+	m.shares = &t
+}
+
+// Shares returns the value of the "shares" field in the mutation.
+func (m *PoolMutation) Shares() (r *types.Uint256, exists bool) {
+	v := m.shares
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldShares returns the old "shares" field's value of the Pool entity.
+// If the Pool object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PoolMutation) OldShares(ctx context.Context) (v *types.Uint256, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldShares is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldShares requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldShares: %w", err)
+	}
+	return oldValue.Shares, nil
+}
+
+// ResetShares resets all changes to the "shares" field.
+func (m *PoolMutation) ResetShares() {
+	m.shares = nil
+}
+
+// SetBlockNumber sets the "block_number" field.
+func (m *PoolMutation) SetBlockNumber(t *types.Uint256) {
+	m.block_number = &t
+}
+
+// BlockNumber returns the value of the "block_number" field in the mutation.
+func (m *PoolMutation) BlockNumber() (r *types.Uint256, exists bool) {
+	v := m.block_number
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBlockNumber returns the old "block_number" field's value of the Pool entity.
+// If the Pool object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PoolMutation) OldBlockNumber(ctx context.Context) (v *types.Uint256, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBlockNumber is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBlockNumber requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBlockNumber: %w", err)
+	}
+	return oldValue.BlockNumber, nil
+}
+
+// ResetBlockNumber resets all changes to the "block_number" field.
+func (m *PoolMutation) ResetBlockNumber() {
+	m.block_number = nil
+}
+
+// SetScore sets the "score" field.
+func (m *PoolMutation) SetScore(i int) {
+	m.score = &i
+	m.addscore = nil
+}
+
+// Score returns the value of the "score" field in the mutation.
+func (m *PoolMutation) Score() (r int, exists bool) {
+	v := m.score
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldScore returns the old "score" field's value of the Pool entity.
+// If the Pool object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PoolMutation) OldScore(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldScore is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldScore requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldScore: %w", err)
+	}
+	return oldValue.Score, nil
+}
+
+// AddScore adds i to the "score" field.
+func (m *PoolMutation) AddScore(i int) {
+	if m.addscore != nil {
+		*m.addscore += i
+	} else {
+		m.addscore = &i
+	}
+}
+
+// AddedScore returns the value that was added to the "score" field in this mutation.
+func (m *PoolMutation) AddedScore() (r int, exists bool) {
+	v := m.addscore
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetScore resets all changes to the "score" field.
+func (m *PoolMutation) ResetScore() {
+	m.score = nil
+	m.addscore = nil
+}
+
 // Where appends a list predicates to the PoolMutation builder.
 func (m *PoolMutation) Where(ps ...predicate.Pool) {
 	m.predicates = append(m.predicates, ps...)
@@ -641,9 +773,18 @@ func (m *PoolMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PoolMutation) Fields() []string {
-	fields := make([]string, 0, 1)
+	fields := make([]string, 0, 4)
 	if m.amount != nil {
 		fields = append(fields, pool.FieldAmount)
+	}
+	if m.shares != nil {
+		fields = append(fields, pool.FieldShares)
+	}
+	if m.block_number != nil {
+		fields = append(fields, pool.FieldBlockNumber)
+	}
+	if m.score != nil {
+		fields = append(fields, pool.FieldScore)
 	}
 	return fields
 }
@@ -655,6 +796,12 @@ func (m *PoolMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case pool.FieldAmount:
 		return m.Amount()
+	case pool.FieldShares:
+		return m.Shares()
+	case pool.FieldBlockNumber:
+		return m.BlockNumber()
+	case pool.FieldScore:
+		return m.Score()
 	}
 	return nil, false
 }
@@ -666,6 +813,12 @@ func (m *PoolMutation) OldField(ctx context.Context, name string) (ent.Value, er
 	switch name {
 	case pool.FieldAmount:
 		return m.OldAmount(ctx)
+	case pool.FieldShares:
+		return m.OldShares(ctx)
+	case pool.FieldBlockNumber:
+		return m.OldBlockNumber(ctx)
+	case pool.FieldScore:
+		return m.OldScore(ctx)
 	}
 	return nil, fmt.Errorf("unknown Pool field %s", name)
 }
@@ -682,6 +835,27 @@ func (m *PoolMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetAmount(v)
 		return nil
+	case pool.FieldShares:
+		v, ok := value.(*types.Uint256)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetShares(v)
+		return nil
+	case pool.FieldBlockNumber:
+		v, ok := value.(*types.Uint256)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBlockNumber(v)
+		return nil
+	case pool.FieldScore:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetScore(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Pool field %s", name)
 }
@@ -690,6 +864,9 @@ func (m *PoolMutation) SetField(name string, value ent.Value) error {
 // this mutation.
 func (m *PoolMutation) AddedFields() []string {
 	var fields []string
+	if m.addscore != nil {
+		fields = append(fields, pool.FieldScore)
+	}
 	return fields
 }
 
@@ -698,6 +875,8 @@ func (m *PoolMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *PoolMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
+	case pool.FieldScore:
+		return m.AddedScore()
 	}
 	return nil, false
 }
@@ -707,6 +886,13 @@ func (m *PoolMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *PoolMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case pool.FieldScore:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddScore(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Pool numeric field %s", name)
 }
@@ -736,6 +922,15 @@ func (m *PoolMutation) ResetField(name string) error {
 	switch name {
 	case pool.FieldAmount:
 		m.ResetAmount()
+		return nil
+	case pool.FieldShares:
+		m.ResetShares()
+		return nil
+	case pool.FieldBlockNumber:
+		m.ResetBlockNumber()
+		return nil
+	case pool.FieldScore:
+		m.ResetScore()
 		return nil
 	}
 	return fmt.Errorf("unknown Pool field %s", name)

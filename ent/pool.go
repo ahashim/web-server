@@ -18,6 +18,12 @@ type Pool struct {
 	ID int `json:"id,omitempty"`
 	// Amount holds the value of the "amount" field.
 	Amount *types.Uint256 `json:"amount,omitempty"`
+	// Shares holds the value of the "shares" field.
+	Shares *types.Uint256 `json:"shares,omitempty"`
+	// BlockNumber holds the value of the "block_number" field.
+	BlockNumber *types.Uint256 `json:"block_number,omitempty"`
+	// Score holds the value of the "score" field.
+	Score int `json:"score,omitempty"`
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -25,9 +31,9 @@ func (*Pool) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case pool.FieldID:
+		case pool.FieldID, pool.FieldScore:
 			values[i] = new(sql.NullInt64)
-		case pool.FieldAmount:
+		case pool.FieldAmount, pool.FieldShares, pool.FieldBlockNumber:
 			values[i] = new(types.Uint256)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Pool", columns[i])
@@ -55,6 +61,24 @@ func (po *Pool) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field amount", values[i])
 			} else if value != nil {
 				po.Amount = value
+			}
+		case pool.FieldShares:
+			if value, ok := values[i].(*types.Uint256); !ok {
+				return fmt.Errorf("unexpected type %T for field shares", values[i])
+			} else if value != nil {
+				po.Shares = value
+			}
+		case pool.FieldBlockNumber:
+			if value, ok := values[i].(*types.Uint256); !ok {
+				return fmt.Errorf("unexpected type %T for field block_number", values[i])
+			} else if value != nil {
+				po.BlockNumber = value
+			}
+		case pool.FieldScore:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field score", values[i])
+			} else if value.Valid {
+				po.Score = int(value.Int64)
 			}
 		}
 	}
@@ -86,6 +110,15 @@ func (po *Pool) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", po.ID))
 	builder.WriteString("amount=")
 	builder.WriteString(fmt.Sprintf("%v", po.Amount))
+	builder.WriteString(", ")
+	builder.WriteString("shares=")
+	builder.WriteString(fmt.Sprintf("%v", po.Shares))
+	builder.WriteString(", ")
+	builder.WriteString("block_number=")
+	builder.WriteString(fmt.Sprintf("%v", po.BlockNumber))
+	builder.WriteString(", ")
+	builder.WriteString("score=")
+	builder.WriteString(fmt.Sprintf("%v", po.Score))
 	builder.WriteByte(')')
 	return builder.String()
 }

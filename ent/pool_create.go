@@ -26,6 +26,24 @@ func (pc *PoolCreate) SetAmount(t *types.Uint256) *PoolCreate {
 	return pc
 }
 
+// SetShares sets the "shares" field.
+func (pc *PoolCreate) SetShares(t *types.Uint256) *PoolCreate {
+	pc.mutation.SetShares(t)
+	return pc
+}
+
+// SetBlockNumber sets the "block_number" field.
+func (pc *PoolCreate) SetBlockNumber(t *types.Uint256) *PoolCreate {
+	pc.mutation.SetBlockNumber(t)
+	return pc
+}
+
+// SetScore sets the "score" field.
+func (pc *PoolCreate) SetScore(i int) *PoolCreate {
+	pc.mutation.SetScore(i)
+	return pc
+}
+
 // Mutation returns the PoolMutation object of the builder.
 func (pc *PoolCreate) Mutation() *PoolMutation {
 	return pc.mutation
@@ -105,6 +123,15 @@ func (pc *PoolCreate) check() error {
 	if _, ok := pc.mutation.Amount(); !ok {
 		return &ValidationError{Name: "amount", err: errors.New(`ent: missing required field "Pool.amount"`)}
 	}
+	if _, ok := pc.mutation.Shares(); !ok {
+		return &ValidationError{Name: "shares", err: errors.New(`ent: missing required field "Pool.shares"`)}
+	}
+	if _, ok := pc.mutation.BlockNumber(); !ok {
+		return &ValidationError{Name: "block_number", err: errors.New(`ent: missing required field "Pool.block_number"`)}
+	}
+	if _, ok := pc.mutation.Score(); !ok {
+		return &ValidationError{Name: "score", err: errors.New(`ent: missing required field "Pool.score"`)}
+	}
 	return nil
 }
 
@@ -135,6 +162,18 @@ func (pc *PoolCreate) createSpec() (*Pool, *sqlgraph.CreateSpec) {
 	if value, ok := pc.mutation.Amount(); ok {
 		_spec.SetField(pool.FieldAmount, field.TypeInt, value)
 		_node.Amount = value
+	}
+	if value, ok := pc.mutation.Shares(); ok {
+		_spec.SetField(pool.FieldShares, field.TypeInt, value)
+		_node.Shares = value
+	}
+	if value, ok := pc.mutation.BlockNumber(); ok {
+		_spec.SetField(pool.FieldBlockNumber, field.TypeInt, value)
+		_node.BlockNumber = value
+	}
+	if value, ok := pc.mutation.Score(); ok {
+		_spec.SetField(pool.FieldScore, field.TypeInt, value)
+		_node.Score = value
 	}
 	return _node, _spec
 }

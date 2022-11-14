@@ -39,6 +39,9 @@ var (
 	PoolsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "amount", Type: field.TypeInt, SchemaType: map[string]string{"postgres": "numeric(78, 0)"}},
+		{Name: "shares", Type: field.TypeInt, SchemaType: map[string]string{"postgres": "numeric(78, 0)"}},
+		{Name: "block_number", Type: field.TypeInt, SchemaType: map[string]string{"postgres": "numeric(78, 0)"}},
+		{Name: "score", Type: field.TypeInt},
 	}
 	// PoolsTable holds the schema information for the "pools" table.
 	PoolsTable = &schema.Table{
