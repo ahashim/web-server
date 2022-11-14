@@ -202,19 +202,11 @@ func (sc *SqueakCreate) createSpec() (*Squeak, *sqlgraph.CreateSpec) {
 		}
 	)
 	if value, ok := sc.mutation.BlockNumber(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
-			Value:  value,
-			Column: squeak.FieldBlockNumber,
-		})
+		_spec.SetField(squeak.FieldBlockNumber, field.TypeInt, value)
 		_node.BlockNumber = value
 	}
 	if value, ok := sc.mutation.Content(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: squeak.FieldContent,
-		})
+		_spec.SetField(squeak.FieldContent, field.TypeString, value)
 		_node.Content = value
 	}
 	if nodes := sc.mutation.InteractionsIDs(); len(nodes) > 0 {

@@ -25,9 +25,9 @@ type config struct {
 // hooks per client, for fast access.
 type hooks struct {
 	Interaction []ent.Hook
+	Pool        []ent.Hook
+	PoolPass    []ent.Hook
 	Role        []ent.Hook
-	Scout       []ent.Hook
-	ScoutPool   []ent.Hook
 	Squeak      []ent.Hook
 	User        []ent.Hook
 }

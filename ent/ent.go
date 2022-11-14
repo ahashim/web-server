@@ -11,9 +11,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/ahashim/web-server/ent/interaction"
+	"github.com/ahashim/web-server/ent/pool"
+	"github.com/ahashim/web-server/ent/poolpass"
 	"github.com/ahashim/web-server/ent/role"
-	"github.com/ahashim/web-server/ent/scout"
-	"github.com/ahashim/web-server/ent/scoutpool"
 	"github.com/ahashim/web-server/ent/squeak"
 	"github.com/ahashim/web-server/ent/user"
 )
@@ -37,9 +37,9 @@ type OrderFunc func(*sql.Selector)
 func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
 		interaction.Table: interaction.ValidColumn,
+		pool.Table:        pool.ValidColumn,
+		poolpass.Table:    poolpass.ValidColumn,
 		role.Table:        role.ValidColumn,
-		scout.Table:       scout.ValidColumn,
-		scoutpool.Table:   scoutpool.ValidColumn,
 		squeak.Table:      squeak.ValidColumn,
 		user.Table:        user.ValidColumn,
 	}
@@ -273,6 +273,7 @@ func IsConstraintError(err error) bool {
 type selector struct {
 	label string
 	flds  *[]string
+	fns   []AggregateFunc
 	scan  func(context.Context, any) error
 }
 

@@ -379,32 +379,16 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 	}
 	if value, ok := uu.mutation.Username(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: user.FieldUsername,
-		})
+		_spec.SetField(user.FieldUsername, field.TypeString, value)
 	}
 	if value, ok := uu.mutation.Status(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Value:  value,
-			Column: user.FieldStatus,
-		})
+		_spec.SetField(user.FieldStatus, field.TypeEnum, value)
 	}
 	if value, ok := uu.mutation.ScoutLevel(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Value:  value,
-			Column: user.FieldScoutLevel,
-		})
+		_spec.SetField(user.FieldScoutLevel, field.TypeInt8, value)
 	}
 	if value, ok := uu.mutation.AddedScoutLevel(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Value:  value,
-			Column: user.FieldScoutLevel,
-		})
+		_spec.AddField(user.FieldScoutLevel, field.TypeInt8, value)
 	}
 	if uu.mutation.InteractionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -1127,32 +1111,16 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		}
 	}
 	if value, ok := uuo.mutation.Username(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: user.FieldUsername,
-		})
+		_spec.SetField(user.FieldUsername, field.TypeString, value)
 	}
 	if value, ok := uuo.mutation.Status(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Value:  value,
-			Column: user.FieldStatus,
-		})
+		_spec.SetField(user.FieldStatus, field.TypeEnum, value)
 	}
 	if value, ok := uuo.mutation.ScoutLevel(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Value:  value,
-			Column: user.FieldScoutLevel,
-		})
+		_spec.SetField(user.FieldScoutLevel, field.TypeInt8, value)
 	}
 	if value, ok := uuo.mutation.AddedScoutLevel(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Value:  value,
-			Column: user.FieldScoutLevel,
-		})
+		_spec.AddField(user.FieldScoutLevel, field.TypeInt8, value)
 	}
 	if uuo.mutation.InteractionsCleared() {
 		edge := &sqlgraph.EdgeSpec{

@@ -35,6 +35,28 @@ var (
 			},
 		},
 	}
+	// PoolsColumns holds the columns for the "pools" table.
+	PoolsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "amount", Type: field.TypeInt, SchemaType: map[string]string{"postgres": "numeric(78, 0)"}},
+	}
+	// PoolsTable holds the schema information for the "pools" table.
+	PoolsTable = &schema.Table{
+		Name:       "pools",
+		Columns:    PoolsColumns,
+		PrimaryKey: []*schema.Column{PoolsColumns[0]},
+	}
+	// PoolPassesColumns holds the columns for the "pool_passes" table.
+	PoolPassesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "shares", Type: field.TypeInt, SchemaType: map[string]string{"postgres": "numeric(78, 0)"}},
+	}
+	// PoolPassesTable holds the schema information for the "pool_passes" table.
+	PoolPassesTable = &schema.Table{
+		Name:       "pool_passes",
+		Columns:    PoolPassesColumns,
+		PrimaryKey: []*schema.Column{PoolPassesColumns[0]},
+	}
 	// RolesColumns holds the columns for the "roles" table.
 	RolesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -46,28 +68,6 @@ var (
 		Name:       "roles",
 		Columns:    RolesColumns,
 		PrimaryKey: []*schema.Column{RolesColumns[0]},
-	}
-	// ScoutsColumns holds the columns for the "scouts" table.
-	ScoutsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "shares", Type: field.TypeInt, SchemaType: map[string]string{"postgres": "numeric(78, 0)"}},
-	}
-	// ScoutsTable holds the schema information for the "scouts" table.
-	ScoutsTable = &schema.Table{
-		Name:       "scouts",
-		Columns:    ScoutsColumns,
-		PrimaryKey: []*schema.Column{ScoutsColumns[0]},
-	}
-	// ScoutPoolsColumns holds the columns for the "scout_pools" table.
-	ScoutPoolsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "amount", Type: field.TypeInt, SchemaType: map[string]string{"postgres": "numeric(78, 0)"}},
-	}
-	// ScoutPoolsTable holds the schema information for the "scout_pools" table.
-	ScoutPoolsTable = &schema.Table{
-		Name:       "scout_pools",
-		Columns:    ScoutPoolsColumns,
-		PrimaryKey: []*schema.Column{ScoutPoolsColumns[0]},
 	}
 	// SqueaksColumns holds the columns for the "squeaks" table.
 	SqueaksColumns = []*schema.Column{
@@ -164,9 +164,9 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		InteractionsTable,
+		PoolsTable,
+		PoolPassesTable,
 		RolesTable,
-		ScoutsTable,
-		ScoutPoolsTable,
 		SqueaksTable,
 		UsersTable,
 		UserRolesTable,

@@ -200,11 +200,7 @@ func (su *SqueakUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 	}
 	if value, ok := su.mutation.BlockNumber(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
-			Value:  value,
-			Column: squeak.FieldBlockNumber,
-		})
+		_spec.SetField(squeak.FieldBlockNumber, field.TypeInt, value)
 	}
 	if su.mutation.InteractionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -549,11 +545,7 @@ func (suo *SqueakUpdateOne) sqlSave(ctx context.Context) (_node *Squeak, err err
 		}
 	}
 	if value, ok := suo.mutation.BlockNumber(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
-			Value:  value,
-			Column: squeak.FieldBlockNumber,
-		})
+		_spec.SetField(squeak.FieldBlockNumber, field.TypeInt, value)
 	}
 	if suo.mutation.InteractionsCleared() {
 		edge := &sqlgraph.EdgeSpec{

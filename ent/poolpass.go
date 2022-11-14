@@ -7,12 +7,12 @@ import (
 	"strings"
 
 	"entgo.io/ent/dialect/sql"
-	"github.com/ahashim/web-server/ent/scout"
+	"github.com/ahashim/web-server/ent/poolpass"
 	"github.com/ahashim/web-server/types"
 )
 
-// Scout is the model entity for the Scout schema.
-type Scout struct {
+// PoolPass is the model entity for the PoolPass schema.
+type PoolPass struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
@@ -21,80 +21,80 @@ type Scout struct {
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
-func (*Scout) scanValues(columns []string) ([]any, error) {
+func (*PoolPass) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case scout.FieldID:
+		case poolpass.FieldID:
 			values[i] = new(sql.NullInt64)
-		case scout.FieldShares:
+		case poolpass.FieldShares:
 			values[i] = new(types.Uint256)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Scout", columns[i])
+			return nil, fmt.Errorf("unexpected column %q for type PoolPass", columns[i])
 		}
 	}
 	return values, nil
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
-// to the Scout fields.
-func (s *Scout) assignValues(columns []string, values []any) error {
+// to the PoolPass fields.
+func (pp *PoolPass) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	for i := range columns {
 		switch columns[i] {
-		case scout.FieldID:
+		case poolpass.FieldID:
 			value, ok := values[i].(*sql.NullInt64)
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			s.ID = int(value.Int64)
-		case scout.FieldShares:
+			pp.ID = int(value.Int64)
+		case poolpass.FieldShares:
 			if value, ok := values[i].(*types.Uint256); !ok {
 				return fmt.Errorf("unexpected type %T for field shares", values[i])
 			} else if value != nil {
-				s.Shares = value
+				pp.Shares = value
 			}
 		}
 	}
 	return nil
 }
 
-// Update returns a builder for updating this Scout.
-// Note that you need to call Scout.Unwrap() before calling this method if this Scout
+// Update returns a builder for updating this PoolPass.
+// Note that you need to call PoolPass.Unwrap() before calling this method if this PoolPass
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (s *Scout) Update() *ScoutUpdateOne {
-	return (&ScoutClient{config: s.config}).UpdateOne(s)
+func (pp *PoolPass) Update() *PoolPassUpdateOne {
+	return (&PoolPassClient{config: pp.config}).UpdateOne(pp)
 }
 
-// Unwrap unwraps the Scout entity that was returned from a transaction after it was closed,
+// Unwrap unwraps the PoolPass entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (s *Scout) Unwrap() *Scout {
-	_tx, ok := s.config.driver.(*txDriver)
+func (pp *PoolPass) Unwrap() *PoolPass {
+	_tx, ok := pp.config.driver.(*txDriver)
 	if !ok {
-		panic("ent: Scout is not a transactional entity")
+		panic("ent: PoolPass is not a transactional entity")
 	}
-	s.config.driver = _tx.drv
-	return s
+	pp.config.driver = _tx.drv
+	return pp
 }
 
 // String implements the fmt.Stringer.
-func (s *Scout) String() string {
+func (pp *PoolPass) String() string {
 	var builder strings.Builder
-	builder.WriteString("Scout(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", s.ID))
+	builder.WriteString("PoolPass(")
+	builder.WriteString(fmt.Sprintf("id=%v, ", pp.ID))
 	builder.WriteString("shares=")
-	builder.WriteString(fmt.Sprintf("%v", s.Shares))
+	builder.WriteString(fmt.Sprintf("%v", pp.Shares))
 	builder.WriteByte(')')
 	return builder.String()
 }
 
-// Scouts is a parsable slice of Scout.
-type Scouts []*Scout
+// PoolPasses is a parsable slice of PoolPass.
+type PoolPasses []*PoolPass
 
-func (s Scouts) config(cfg config) {
-	for _i := range s {
-		s[_i].config = cfg
+func (pp PoolPasses) config(cfg config) {
+	for _i := range pp {
+		pp[_i].config = cfg
 	}
 }

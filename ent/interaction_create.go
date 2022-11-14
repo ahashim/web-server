@@ -178,11 +178,7 @@ func (ic *InteractionCreate) createSpec() (*Interaction, *sqlgraph.CreateSpec) {
 		}
 	)
 	if value, ok := ic.mutation.GetType(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Value:  value,
-			Column: interaction.FieldType,
-		})
+		_spec.SetField(interaction.FieldType, field.TypeEnum, value)
 		_node.Type = value
 	}
 	if nodes := ic.mutation.UserIDs(); len(nodes) > 0 {

@@ -332,6 +332,11 @@ func (rq *RoleQuery) Select(fields ...string) *RoleSelect {
 	return selbuild
 }
 
+// Aggregate returns a RoleSelect configured with the given aggregations.
+func (rq *RoleQuery) Aggregate(fns ...AggregateFunc) *RoleSelect {
+	return rq.Select().Aggregate(fns...)
+}
+
 func (rq *RoleQuery) prepareQuery(ctx context.Context) error {
 	for _, f := range rq.fields {
 		if !role.ValidColumn(f) {
@@ -421,7 +426,7 @@ func (rq *RoleQuery) loadUsers(ctx context.Context, query *UserQuery, nodes []*R
 			outValue := int(values[0].(*sql.NullInt64).Int64)
 			inValue := int(values[1].(*sql.NullInt64).Int64)
 			if nids[inValue] == nil {
-				nids[inValue] = map[*Role]struct{}{byID[outValue]: struct{}{}}
+				nids[inValue] = map[*Role]struct{}{byID[outValue]: {}}
 				return assign(columns[1:], values[1:])
 			}
 			nids[inValue][byID[outValue]] = struct{}{}
@@ -595,8 +600,6 @@ func (rgb *RoleGroupBy) sqlQuery() *sql.Selector {
 	for _, fn := range rgb.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
 	if len(selector.SelectedColumns()) == 0 {
 		columns := make([]string, 0, len(rgb.fields)+len(rgb.fns))
 		for _, f := range rgb.fields {
@@ -616,6 +619,12 @@ type RoleSelect struct {
 	sql *sql.Selector
 }
 
+// Aggregate adds the given aggregation functions to the selector query.
+func (rs *RoleSelect) Aggregate(fns ...AggregateFunc) *RoleSelect {
+	rs.fns = append(rs.fns, fns...)
+	return rs
+}
+
 // Scan applies the selector query and scans the result into the given value.
 func (rs *RoleSelect) Scan(ctx context.Context, v any) error {
 	if err := rs.prepareQuery(ctx); err != nil {
@@ -626,6 +635,16 @@ func (rs *RoleSelect) Scan(ctx context.Context, v any) error {
 }
 
 func (rs *RoleSelect) sqlScan(ctx context.Context, v any) error {
+	aggregation := make([]string, 0, len(rs.fns))
+	for _, fn := range rs.fns {
+		aggregation = append(aggregation, fn(rs.sql))
+	}
+	switch n := len(*rs.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		rs.sql.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		rs.sql.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
 	query, args := rs.sql.Query()
 	if err := rs.driver.Query(ctx, query, args, rows); err != nil {

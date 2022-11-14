@@ -180,11 +180,7 @@ func (iu *InteractionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 	}
 	if value, ok := iu.mutation.GetType(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Value:  value,
-			Column: interaction.FieldType,
-		})
+		_spec.SetField(interaction.FieldType, field.TypeEnum, value)
 	}
 	if iu.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -455,11 +451,7 @@ func (iuo *InteractionUpdateOne) sqlSave(ctx context.Context) (_node *Interactio
 		}
 	}
 	if value, ok := iuo.mutation.GetType(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Value:  value,
-			Column: interaction.FieldType,
-		})
+		_spec.SetField(interaction.FieldType, field.TypeEnum, value)
 	}
 	if iuo.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{

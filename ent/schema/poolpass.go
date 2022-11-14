@@ -7,13 +7,13 @@ import (
 	"github.com/ahashim/web-server/types"
 )
 
-// Scout holds the schema definition for the Scout entity.
-type Scout struct {
+// PoolPass holds the schema definition for the PoolPass entity.
+type PoolPass struct {
 	ent.Schema
 }
 
-// Fields of the Scout.
-func (Scout) Fields() []ent.Field {
+// Fields of the PoolPass.
+func (PoolPass) Fields() []ent.Field {
 	return []ent.Field{
 		field.Int("shares").
 			GoType(new(types.Uint256)).
@@ -23,7 +23,7 @@ func (Scout) Fields() []ent.Field {
 	}
 }
 
-// Edges of the Scout.
-func (Scout) Edges() []ent.Edge {
+// Edges of the PoolPass.
+func (PoolPass) Edges() []ent.Edge {
 	return nil
 }

@@ -368,6 +368,11 @@ func (iq *InteractionQuery) Select(fields ...string) *InteractionSelect {
 	return selbuild
 }
 
+// Aggregate returns a InteractionSelect configured with the given aggregations.
+func (iq *InteractionQuery) Aggregate(fns ...AggregateFunc) *InteractionSelect {
+	return iq.Select().Aggregate(fns...)
+}
+
 func (iq *InteractionQuery) prepareQuery(ctx context.Context) error {
 	for _, f := range iq.fields {
 		if !interaction.ValidColumn(f) {
@@ -644,8 +649,6 @@ func (igb *InteractionGroupBy) sqlQuery() *sql.Selector {
 	for _, fn := range igb.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
 	if len(selector.SelectedColumns()) == 0 {
 		columns := make([]string, 0, len(igb.fields)+len(igb.fns))
 		for _, f := range igb.fields {
@@ -665,6 +668,12 @@ type InteractionSelect struct {
 	sql *sql.Selector
 }
 
+// Aggregate adds the given aggregation functions to the selector query.
+func (is *InteractionSelect) Aggregate(fns ...AggregateFunc) *InteractionSelect {
+	is.fns = append(is.fns, fns...)
+	return is
+}
+
 // Scan applies the selector query and scans the result into the given value.
 func (is *InteractionSelect) Scan(ctx context.Context, v any) error {
 	if err := is.prepareQuery(ctx); err != nil {
@@ -675,6 +684,16 @@ func (is *InteractionSelect) Scan(ctx context.Context, v any) error {
 }
 
 func (is *InteractionSelect) sqlScan(ctx context.Context, v any) error {
+	aggregation := make([]string, 0, len(is.fns))
+	for _, fn := range is.fns {
+		aggregation = append(aggregation, fn(is.sql))
+	}
+	switch n := len(*is.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		is.sql.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		is.sql.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
 	query, args := is.sql.Query()
 	if err := is.driver.Query(ctx, query, args, rows); err != nil {

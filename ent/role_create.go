@@ -167,19 +167,11 @@ func (rc *RoleCreate) createSpec() (*Role, *sqlgraph.CreateSpec) {
 		}
 	)
 	if value, ok := rc.mutation.Title(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: role.FieldTitle,
-		})
+		_spec.SetField(role.FieldTitle, field.TypeString, value)
 		_node.Title = value
 	}
 	if value, ok := rc.mutation.Hash(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: role.FieldHash,
-		})
+		_spec.SetField(role.FieldHash, field.TypeString, value)
 		_node.Hash = value
 	}
 	if nodes := rc.mutation.UsersIDs(); len(nodes) > 0 {

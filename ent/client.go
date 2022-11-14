@@ -11,9 +11,9 @@ import (
 	"github.com/ahashim/web-server/ent/migrate"
 
 	"github.com/ahashim/web-server/ent/interaction"
+	"github.com/ahashim/web-server/ent/pool"
+	"github.com/ahashim/web-server/ent/poolpass"
 	"github.com/ahashim/web-server/ent/role"
-	"github.com/ahashim/web-server/ent/scout"
-	"github.com/ahashim/web-server/ent/scoutpool"
 	"github.com/ahashim/web-server/ent/squeak"
 	"github.com/ahashim/web-server/ent/user"
 
@@ -29,12 +29,12 @@ type Client struct {
 	Schema *migrate.Schema
 	// Interaction is the client for interacting with the Interaction builders.
 	Interaction *InteractionClient
+	// Pool is the client for interacting with the Pool builders.
+	Pool *PoolClient
+	// PoolPass is the client for interacting with the PoolPass builders.
+	PoolPass *PoolPassClient
 	// Role is the client for interacting with the Role builders.
 	Role *RoleClient
-	// Scout is the client for interacting with the Scout builders.
-	Scout *ScoutClient
-	// ScoutPool is the client for interacting with the ScoutPool builders.
-	ScoutPool *ScoutPoolClient
 	// Squeak is the client for interacting with the Squeak builders.
 	Squeak *SqueakClient
 	// User is the client for interacting with the User builders.
@@ -53,9 +53,9 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Interaction = NewInteractionClient(c.config)
+	c.Pool = NewPoolClient(c.config)
+	c.PoolPass = NewPoolPassClient(c.config)
 	c.Role = NewRoleClient(c.config)
-	c.Scout = NewScoutClient(c.config)
-	c.ScoutPool = NewScoutPoolClient(c.config)
 	c.Squeak = NewSqueakClient(c.config)
 	c.User = NewUserClient(c.config)
 }
@@ -92,9 +92,9 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ctx:         ctx,
 		config:      cfg,
 		Interaction: NewInteractionClient(cfg),
+		Pool:        NewPoolClient(cfg),
+		PoolPass:    NewPoolPassClient(cfg),
 		Role:        NewRoleClient(cfg),
-		Scout:       NewScoutClient(cfg),
-		ScoutPool:   NewScoutPoolClient(cfg),
 		Squeak:      NewSqueakClient(cfg),
 		User:        NewUserClient(cfg),
 	}, nil
@@ -117,9 +117,9 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ctx:         ctx,
 		config:      cfg,
 		Interaction: NewInteractionClient(cfg),
+		Pool:        NewPoolClient(cfg),
+		PoolPass:    NewPoolPassClient(cfg),
 		Role:        NewRoleClient(cfg),
-		Scout:       NewScoutClient(cfg),
-		ScoutPool:   NewScoutPoolClient(cfg),
 		Squeak:      NewSqueakClient(cfg),
 		User:        NewUserClient(cfg),
 	}, nil
@@ -151,9 +151,9 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	c.Interaction.Use(hooks...)
+	c.Pool.Use(hooks...)
+	c.PoolPass.Use(hooks...)
 	c.Role.Use(hooks...)
-	c.Scout.Use(hooks...)
-	c.ScoutPool.Use(hooks...)
 	c.Squeak.Use(hooks...)
 	c.User.Use(hooks...)
 }
@@ -214,7 +214,7 @@ func (c *InteractionClient) DeleteOne(i *Interaction) *InteractionDeleteOne {
 	return c.DeleteOneID(i.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *InteractionClient) DeleteOneID(id int) *InteractionDeleteOne {
 	builder := c.Delete().Where(interaction.ID(id))
 	builder.mutation.id = &id
@@ -246,7 +246,7 @@ func (c *InteractionClient) GetX(ctx context.Context, id int) *Interaction {
 // QueryUser queries the user edge of a Interaction.
 func (c *InteractionClient) QueryUser(i *Interaction) *UserQuery {
 	query := &UserQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := i.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(interaction.Table, interaction.FieldID, id),
@@ -262,7 +262,7 @@ func (c *InteractionClient) QueryUser(i *Interaction) *UserQuery {
 // QuerySqueak queries the squeak edge of a Interaction.
 func (c *InteractionClient) QuerySqueak(i *Interaction) *SqueakQuery {
 	query := &SqueakQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := i.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(interaction.Table, interaction.FieldID, id),
@@ -278,6 +278,186 @@ func (c *InteractionClient) QuerySqueak(i *Interaction) *SqueakQuery {
 // Hooks returns the client hooks.
 func (c *InteractionClient) Hooks() []Hook {
 	return c.hooks.Interaction
+}
+
+// PoolClient is a client for the Pool schema.
+type PoolClient struct {
+	config
+}
+
+// NewPoolClient returns a client for the Pool from the given config.
+func NewPoolClient(c config) *PoolClient {
+	return &PoolClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `pool.Hooks(f(g(h())))`.
+func (c *PoolClient) Use(hooks ...Hook) {
+	c.hooks.Pool = append(c.hooks.Pool, hooks...)
+}
+
+// Create returns a builder for creating a Pool entity.
+func (c *PoolClient) Create() *PoolCreate {
+	mutation := newPoolMutation(c.config, OpCreate)
+	return &PoolCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Pool entities.
+func (c *PoolClient) CreateBulk(builders ...*PoolCreate) *PoolCreateBulk {
+	return &PoolCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Pool.
+func (c *PoolClient) Update() *PoolUpdate {
+	mutation := newPoolMutation(c.config, OpUpdate)
+	return &PoolUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PoolClient) UpdateOne(po *Pool) *PoolUpdateOne {
+	mutation := newPoolMutation(c.config, OpUpdateOne, withPool(po))
+	return &PoolUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PoolClient) UpdateOneID(id int) *PoolUpdateOne {
+	mutation := newPoolMutation(c.config, OpUpdateOne, withPoolID(id))
+	return &PoolUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Pool.
+func (c *PoolClient) Delete() *PoolDelete {
+	mutation := newPoolMutation(c.config, OpDelete)
+	return &PoolDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PoolClient) DeleteOne(po *Pool) *PoolDeleteOne {
+	return c.DeleteOneID(po.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PoolClient) DeleteOneID(id int) *PoolDeleteOne {
+	builder := c.Delete().Where(pool.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PoolDeleteOne{builder}
+}
+
+// Query returns a query builder for Pool.
+func (c *PoolClient) Query() *PoolQuery {
+	return &PoolQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a Pool entity by its id.
+func (c *PoolClient) Get(ctx context.Context, id int) (*Pool, error) {
+	return c.Query().Where(pool.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PoolClient) GetX(ctx context.Context, id int) *Pool {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *PoolClient) Hooks() []Hook {
+	return c.hooks.Pool
+}
+
+// PoolPassClient is a client for the PoolPass schema.
+type PoolPassClient struct {
+	config
+}
+
+// NewPoolPassClient returns a client for the PoolPass from the given config.
+func NewPoolPassClient(c config) *PoolPassClient {
+	return &PoolPassClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `poolpass.Hooks(f(g(h())))`.
+func (c *PoolPassClient) Use(hooks ...Hook) {
+	c.hooks.PoolPass = append(c.hooks.PoolPass, hooks...)
+}
+
+// Create returns a builder for creating a PoolPass entity.
+func (c *PoolPassClient) Create() *PoolPassCreate {
+	mutation := newPoolPassMutation(c.config, OpCreate)
+	return &PoolPassCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of PoolPass entities.
+func (c *PoolPassClient) CreateBulk(builders ...*PoolPassCreate) *PoolPassCreateBulk {
+	return &PoolPassCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for PoolPass.
+func (c *PoolPassClient) Update() *PoolPassUpdate {
+	mutation := newPoolPassMutation(c.config, OpUpdate)
+	return &PoolPassUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PoolPassClient) UpdateOne(pp *PoolPass) *PoolPassUpdateOne {
+	mutation := newPoolPassMutation(c.config, OpUpdateOne, withPoolPass(pp))
+	return &PoolPassUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PoolPassClient) UpdateOneID(id int) *PoolPassUpdateOne {
+	mutation := newPoolPassMutation(c.config, OpUpdateOne, withPoolPassID(id))
+	return &PoolPassUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PoolPass.
+func (c *PoolPassClient) Delete() *PoolPassDelete {
+	mutation := newPoolPassMutation(c.config, OpDelete)
+	return &PoolPassDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PoolPassClient) DeleteOne(pp *PoolPass) *PoolPassDeleteOne {
+	return c.DeleteOneID(pp.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PoolPassClient) DeleteOneID(id int) *PoolPassDeleteOne {
+	builder := c.Delete().Where(poolpass.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PoolPassDeleteOne{builder}
+}
+
+// Query returns a query builder for PoolPass.
+func (c *PoolPassClient) Query() *PoolPassQuery {
+	return &PoolPassQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a PoolPass entity by its id.
+func (c *PoolPassClient) Get(ctx context.Context, id int) (*PoolPass, error) {
+	return c.Query().Where(poolpass.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PoolPassClient) GetX(ctx context.Context, id int) *PoolPass {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *PoolPassClient) Hooks() []Hook {
+	return c.hooks.PoolPass
 }
 
 // RoleClient is a client for the Role schema.
@@ -336,7 +516,7 @@ func (c *RoleClient) DeleteOne(r *Role) *RoleDeleteOne {
 	return c.DeleteOneID(r.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *RoleClient) DeleteOneID(id int) *RoleDeleteOne {
 	builder := c.Delete().Where(role.ID(id))
 	builder.mutation.id = &id
@@ -368,7 +548,7 @@ func (c *RoleClient) GetX(ctx context.Context, id int) *Role {
 // QueryUsers queries the users edge of a Role.
 func (c *RoleClient) QueryUsers(r *Role) *UserQuery {
 	query := &UserQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := r.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(role.Table, role.FieldID, id),
@@ -384,186 +564,6 @@ func (c *RoleClient) QueryUsers(r *Role) *UserQuery {
 // Hooks returns the client hooks.
 func (c *RoleClient) Hooks() []Hook {
 	return c.hooks.Role
-}
-
-// ScoutClient is a client for the Scout schema.
-type ScoutClient struct {
-	config
-}
-
-// NewScoutClient returns a client for the Scout from the given config.
-func NewScoutClient(c config) *ScoutClient {
-	return &ScoutClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `scout.Hooks(f(g(h())))`.
-func (c *ScoutClient) Use(hooks ...Hook) {
-	c.hooks.Scout = append(c.hooks.Scout, hooks...)
-}
-
-// Create returns a builder for creating a Scout entity.
-func (c *ScoutClient) Create() *ScoutCreate {
-	mutation := newScoutMutation(c.config, OpCreate)
-	return &ScoutCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of Scout entities.
-func (c *ScoutClient) CreateBulk(builders ...*ScoutCreate) *ScoutCreateBulk {
-	return &ScoutCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for Scout.
-func (c *ScoutClient) Update() *ScoutUpdate {
-	mutation := newScoutMutation(c.config, OpUpdate)
-	return &ScoutUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *ScoutClient) UpdateOne(s *Scout) *ScoutUpdateOne {
-	mutation := newScoutMutation(c.config, OpUpdateOne, withScout(s))
-	return &ScoutUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *ScoutClient) UpdateOneID(id int) *ScoutUpdateOne {
-	mutation := newScoutMutation(c.config, OpUpdateOne, withScoutID(id))
-	return &ScoutUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for Scout.
-func (c *ScoutClient) Delete() *ScoutDelete {
-	mutation := newScoutMutation(c.config, OpDelete)
-	return &ScoutDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *ScoutClient) DeleteOne(s *Scout) *ScoutDeleteOne {
-	return c.DeleteOneID(s.ID)
-}
-
-// DeleteOne returns a builder for deleting the given entity by its id.
-func (c *ScoutClient) DeleteOneID(id int) *ScoutDeleteOne {
-	builder := c.Delete().Where(scout.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &ScoutDeleteOne{builder}
-}
-
-// Query returns a query builder for Scout.
-func (c *ScoutClient) Query() *ScoutQuery {
-	return &ScoutQuery{
-		config: c.config,
-	}
-}
-
-// Get returns a Scout entity by its id.
-func (c *ScoutClient) Get(ctx context.Context, id int) (*Scout, error) {
-	return c.Query().Where(scout.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *ScoutClient) GetX(ctx context.Context, id int) *Scout {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// Hooks returns the client hooks.
-func (c *ScoutClient) Hooks() []Hook {
-	return c.hooks.Scout
-}
-
-// ScoutPoolClient is a client for the ScoutPool schema.
-type ScoutPoolClient struct {
-	config
-}
-
-// NewScoutPoolClient returns a client for the ScoutPool from the given config.
-func NewScoutPoolClient(c config) *ScoutPoolClient {
-	return &ScoutPoolClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `scoutpool.Hooks(f(g(h())))`.
-func (c *ScoutPoolClient) Use(hooks ...Hook) {
-	c.hooks.ScoutPool = append(c.hooks.ScoutPool, hooks...)
-}
-
-// Create returns a builder for creating a ScoutPool entity.
-func (c *ScoutPoolClient) Create() *ScoutPoolCreate {
-	mutation := newScoutPoolMutation(c.config, OpCreate)
-	return &ScoutPoolCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of ScoutPool entities.
-func (c *ScoutPoolClient) CreateBulk(builders ...*ScoutPoolCreate) *ScoutPoolCreateBulk {
-	return &ScoutPoolCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for ScoutPool.
-func (c *ScoutPoolClient) Update() *ScoutPoolUpdate {
-	mutation := newScoutPoolMutation(c.config, OpUpdate)
-	return &ScoutPoolUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *ScoutPoolClient) UpdateOne(sp *ScoutPool) *ScoutPoolUpdateOne {
-	mutation := newScoutPoolMutation(c.config, OpUpdateOne, withScoutPool(sp))
-	return &ScoutPoolUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *ScoutPoolClient) UpdateOneID(id int) *ScoutPoolUpdateOne {
-	mutation := newScoutPoolMutation(c.config, OpUpdateOne, withScoutPoolID(id))
-	return &ScoutPoolUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for ScoutPool.
-func (c *ScoutPoolClient) Delete() *ScoutPoolDelete {
-	mutation := newScoutPoolMutation(c.config, OpDelete)
-	return &ScoutPoolDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *ScoutPoolClient) DeleteOne(sp *ScoutPool) *ScoutPoolDeleteOne {
-	return c.DeleteOneID(sp.ID)
-}
-
-// DeleteOne returns a builder for deleting the given entity by its id.
-func (c *ScoutPoolClient) DeleteOneID(id int) *ScoutPoolDeleteOne {
-	builder := c.Delete().Where(scoutpool.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &ScoutPoolDeleteOne{builder}
-}
-
-// Query returns a query builder for ScoutPool.
-func (c *ScoutPoolClient) Query() *ScoutPoolQuery {
-	return &ScoutPoolQuery{
-		config: c.config,
-	}
-}
-
-// Get returns a ScoutPool entity by its id.
-func (c *ScoutPoolClient) Get(ctx context.Context, id int) (*ScoutPool, error) {
-	return c.Query().Where(scoutpool.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *ScoutPoolClient) GetX(ctx context.Context, id int) *ScoutPool {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// Hooks returns the client hooks.
-func (c *ScoutPoolClient) Hooks() []Hook {
-	return c.hooks.ScoutPool
 }
 
 // SqueakClient is a client for the Squeak schema.
@@ -622,7 +622,7 @@ func (c *SqueakClient) DeleteOne(s *Squeak) *SqueakDeleteOne {
 	return c.DeleteOneID(s.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *SqueakClient) DeleteOneID(id int) *SqueakDeleteOne {
 	builder := c.Delete().Where(squeak.ID(id))
 	builder.mutation.id = &id
@@ -654,7 +654,7 @@ func (c *SqueakClient) GetX(ctx context.Context, id int) *Squeak {
 // QueryInteractions queries the interactions edge of a Squeak.
 func (c *SqueakClient) QueryInteractions(s *Squeak) *InteractionQuery {
 	query := &InteractionQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := s.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(squeak.Table, squeak.FieldID, id),
@@ -670,7 +670,7 @@ func (c *SqueakClient) QueryInteractions(s *Squeak) *InteractionQuery {
 // QueryCreator queries the creator edge of a Squeak.
 func (c *SqueakClient) QueryCreator(s *Squeak) *UserQuery {
 	query := &UserQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := s.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(squeak.Table, squeak.FieldID, id),
@@ -686,7 +686,7 @@ func (c *SqueakClient) QueryCreator(s *Squeak) *UserQuery {
 // QueryOwner queries the owner edge of a Squeak.
 func (c *SqueakClient) QueryOwner(s *Squeak) *UserQuery {
 	query := &UserQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := s.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(squeak.Table, squeak.FieldID, id),
@@ -760,7 +760,7 @@ func (c *UserClient) DeleteOne(u *User) *UserDeleteOne {
 	return c.DeleteOneID(u.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *UserClient) DeleteOneID(id int) *UserDeleteOne {
 	builder := c.Delete().Where(user.ID(id))
 	builder.mutation.id = &id
@@ -792,7 +792,7 @@ func (c *UserClient) GetX(ctx context.Context, id int) *User {
 // QueryInteractions queries the interactions edge of a User.
 func (c *UserClient) QueryInteractions(u *User) *InteractionQuery {
 	query := &InteractionQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
@@ -808,7 +808,7 @@ func (c *UserClient) QueryInteractions(u *User) *InteractionQuery {
 // QueryRoles queries the roles edge of a User.
 func (c *UserClient) QueryRoles(u *User) *RoleQuery {
 	query := &RoleQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
@@ -824,7 +824,7 @@ func (c *UserClient) QueryRoles(u *User) *RoleQuery {
 // QueryCreated queries the created edge of a User.
 func (c *UserClient) QueryCreated(u *User) *SqueakQuery {
 	query := &SqueakQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
@@ -840,7 +840,7 @@ func (c *UserClient) QueryCreated(u *User) *SqueakQuery {
 // QueryOwned queries the owned edge of a User.
 func (c *UserClient) QueryOwned(u *User) *SqueakQuery {
 	query := &SqueakQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
@@ -856,7 +856,7 @@ func (c *UserClient) QueryOwned(u *User) *SqueakQuery {
 // QueryFollowers queries the followers edge of a User.
 func (c *UserClient) QueryFollowers(u *User) *UserQuery {
 	query := &UserQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
@@ -872,7 +872,7 @@ func (c *UserClient) QueryFollowers(u *User) *UserQuery {
 // QueryFollowing queries the following edge of a User.
 func (c *UserClient) QueryFollowing(u *User) *UserQuery {
 	query := &UserQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),

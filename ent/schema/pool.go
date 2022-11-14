@@ -4,17 +4,16 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/schema/field"
-
 	"github.com/ahashim/web-server/types"
 )
 
-// ScoutPool holds the schema definition for the ScoutPool entity.
-type ScoutPool struct {
+// Pool holds the schema definition for the Pool entity.
+type Pool struct {
 	ent.Schema
 }
 
-// Fields of the ScoutPool.
-func (ScoutPool) Fields() []ent.Field {
+// Fields of the Pool.
+func (Pool) Fields() []ent.Field {
 	return []ent.Field{
 		field.Int("amount").
 			GoType(new(types.Uint256)).
@@ -24,7 +23,7 @@ func (ScoutPool) Fields() []ent.Field {
 	}
 }
 
-// Edges of the ScoutPool.
-func (ScoutPool) Edges() []ent.Edge {
+// Edges of the Pool.
+func (Pool) Edges() []ent.Edge {
 	return nil
 }

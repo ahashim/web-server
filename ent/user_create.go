@@ -285,35 +285,19 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		}
 	)
 	if value, ok := uc.mutation.Address(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: user.FieldAddress,
-		})
+		_spec.SetField(user.FieldAddress, field.TypeString, value)
 		_node.Address = value
 	}
 	if value, ok := uc.mutation.Username(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: user.FieldUsername,
-		})
+		_spec.SetField(user.FieldUsername, field.TypeString, value)
 		_node.Username = value
 	}
 	if value, ok := uc.mutation.Status(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Value:  value,
-			Column: user.FieldStatus,
-		})
+		_spec.SetField(user.FieldStatus, field.TypeEnum, value)
 		_node.Status = value
 	}
 	if value, ok := uc.mutation.ScoutLevel(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Value:  value,
-			Column: user.FieldScoutLevel,
-		})
+		_spec.SetField(user.FieldScoutLevel, field.TypeInt8, value)
 		_node.ScoutLevel = value
 	}
 	if nodes := uc.mutation.InteractionsIDs(); len(nodes) > 0 {

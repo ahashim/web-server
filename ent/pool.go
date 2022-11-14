@@ -7,12 +7,12 @@ import (
 	"strings"
 
 	"entgo.io/ent/dialect/sql"
-	"github.com/ahashim/web-server/ent/scoutpool"
+	"github.com/ahashim/web-server/ent/pool"
 	"github.com/ahashim/web-server/types"
 )
 
-// ScoutPool is the model entity for the ScoutPool schema.
-type ScoutPool struct {
+// Pool is the model entity for the Pool schema.
+type Pool struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
@@ -21,80 +21,80 @@ type ScoutPool struct {
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
-func (*ScoutPool) scanValues(columns []string) ([]any, error) {
+func (*Pool) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case scoutpool.FieldID:
+		case pool.FieldID:
 			values[i] = new(sql.NullInt64)
-		case scoutpool.FieldAmount:
+		case pool.FieldAmount:
 			values[i] = new(types.Uint256)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type ScoutPool", columns[i])
+			return nil, fmt.Errorf("unexpected column %q for type Pool", columns[i])
 		}
 	}
 	return values, nil
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
-// to the ScoutPool fields.
-func (sp *ScoutPool) assignValues(columns []string, values []any) error {
+// to the Pool fields.
+func (po *Pool) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	for i := range columns {
 		switch columns[i] {
-		case scoutpool.FieldID:
+		case pool.FieldID:
 			value, ok := values[i].(*sql.NullInt64)
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			sp.ID = int(value.Int64)
-		case scoutpool.FieldAmount:
+			po.ID = int(value.Int64)
+		case pool.FieldAmount:
 			if value, ok := values[i].(*types.Uint256); !ok {
 				return fmt.Errorf("unexpected type %T for field amount", values[i])
 			} else if value != nil {
-				sp.Amount = value
+				po.Amount = value
 			}
 		}
 	}
 	return nil
 }
 
-// Update returns a builder for updating this ScoutPool.
-// Note that you need to call ScoutPool.Unwrap() before calling this method if this ScoutPool
+// Update returns a builder for updating this Pool.
+// Note that you need to call Pool.Unwrap() before calling this method if this Pool
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (sp *ScoutPool) Update() *ScoutPoolUpdateOne {
-	return (&ScoutPoolClient{config: sp.config}).UpdateOne(sp)
+func (po *Pool) Update() *PoolUpdateOne {
+	return (&PoolClient{config: po.config}).UpdateOne(po)
 }
 
-// Unwrap unwraps the ScoutPool entity that was returned from a transaction after it was closed,
+// Unwrap unwraps the Pool entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (sp *ScoutPool) Unwrap() *ScoutPool {
-	_tx, ok := sp.config.driver.(*txDriver)
+func (po *Pool) Unwrap() *Pool {
+	_tx, ok := po.config.driver.(*txDriver)
 	if !ok {
-		panic("ent: ScoutPool is not a transactional entity")
+		panic("ent: Pool is not a transactional entity")
 	}
-	sp.config.driver = _tx.drv
-	return sp
+	po.config.driver = _tx.drv
+	return po
 }
 
 // String implements the fmt.Stringer.
-func (sp *ScoutPool) String() string {
+func (po *Pool) String() string {
 	var builder strings.Builder
-	builder.WriteString("ScoutPool(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", sp.ID))
+	builder.WriteString("Pool(")
+	builder.WriteString(fmt.Sprintf("id=%v, ", po.ID))
 	builder.WriteString("amount=")
-	builder.WriteString(fmt.Sprintf("%v", sp.Amount))
+	builder.WriteString(fmt.Sprintf("%v", po.Amount))
 	builder.WriteByte(')')
 	return builder.String()
 }
 
-// ScoutPools is a parsable slice of ScoutPool.
-type ScoutPools []*ScoutPool
+// Pools is a parsable slice of Pool.
+type Pools []*Pool
 
-func (sp ScoutPools) config(cfg config) {
-	for _i := range sp {
-		sp[_i].config = cfg
+func (po Pools) config(cfg config) {
+	for _i := range po {
+		po[_i].config = cfg
 	}
 }
