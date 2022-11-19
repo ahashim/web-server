@@ -7,6 +7,7 @@ import (
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/mixin"
 )
 
 // Role holds the schema definition for the Role entity.
@@ -35,5 +36,12 @@ func (Role) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("users", User.Type).
 			Ref("roles"),
+	}
+}
+
+// Mixins of the Role.
+func (Role) Mixin() []ent.Mixin {
+	return []ent.Mixin{
+		mixin.Time{},
 	}
 }

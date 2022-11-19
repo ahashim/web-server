@@ -5,6 +5,7 @@ package ent
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/ahashim/web-server/ent/interaction"
@@ -18,6 +19,8 @@ type Interaction struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
+	// CreateTime holds the value of the "create_time" field.
+	CreateTime time.Time `json:"create_time,omitempty"`
 	// Type holds the value of the "type" field.
 	Type enums.Interaction `json:"type,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -73,6 +76,8 @@ func (*Interaction) scanValues(columns []string) ([]any, error) {
 			values[i] = new(enums.Interaction)
 		case interaction.FieldID:
 			values[i] = new(sql.NullInt64)
+		case interaction.FieldCreateTime:
+			values[i] = new(sql.NullTime)
 		case interaction.ForeignKeys[0]: // squeak_interactions
 			values[i] = new(sql.NullInt64)
 		case interaction.ForeignKeys[1]: // user_interactions
@@ -98,6 +103,12 @@ func (i *Interaction) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			i.ID = int(value.Int64)
+		case interaction.FieldCreateTime:
+			if value, ok := values[j].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field create_time", values[j])
+			} else if value.Valid {
+				i.CreateTime = value.Time
+			}
 		case interaction.FieldType:
 			if value, ok := values[j].(*enums.Interaction); !ok {
 				return fmt.Errorf("unexpected type %T for field type", values[j])
@@ -156,6 +167,9 @@ func (i *Interaction) String() string {
 	var builder strings.Builder
 	builder.WriteString("Interaction(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", i.ID))
+	builder.WriteString("create_time=")
+	builder.WriteString(i.CreateTime.Format(time.ANSIC))
+	builder.WriteString(", ")
 	builder.WriteString("type=")
 	builder.WriteString(fmt.Sprintf("%v", i.Type))
 	builder.WriteByte(')')

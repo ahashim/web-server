@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -20,6 +21,20 @@ type PoolPassCreate struct {
 	config
 	mutation *PoolPassMutation
 	hooks    []Hook
+}
+
+// SetCreateTime sets the "create_time" field.
+func (ppc *PoolPassCreate) SetCreateTime(t time.Time) *PoolPassCreate {
+	ppc.mutation.SetCreateTime(t)
+	return ppc
+}
+
+// SetNillableCreateTime sets the "create_time" field if the given value is not nil.
+func (ppc *PoolPassCreate) SetNillableCreateTime(t *time.Time) *PoolPassCreate {
+	if t != nil {
+		ppc.SetCreateTime(*t)
+	}
+	return ppc
 }
 
 // SetShares sets the "shares" field.
@@ -77,6 +92,7 @@ func (ppc *PoolPassCreate) Save(ctx context.Context) (*PoolPass, error) {
 		err  error
 		node *PoolPass
 	)
+	ppc.defaults()
 	if len(ppc.hooks) == 0 {
 		if err = ppc.check(); err != nil {
 			return nil, err
@@ -140,8 +156,19 @@ func (ppc *PoolPassCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (ppc *PoolPassCreate) defaults() {
+	if _, ok := ppc.mutation.CreateTime(); !ok {
+		v := poolpass.DefaultCreateTime()
+		ppc.mutation.SetCreateTime(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (ppc *PoolPassCreate) check() error {
+	if _, ok := ppc.mutation.CreateTime(); !ok {
+		return &ValidationError{Name: "create_time", err: errors.New(`ent: missing required field "PoolPass.create_time"`)}
+	}
 	if _, ok := ppc.mutation.Shares(); !ok {
 		return &ValidationError{Name: "shares", err: errors.New(`ent: missing required field "PoolPass.shares"`)}
 	}
@@ -172,6 +199,10 @@ func (ppc *PoolPassCreate) createSpec() (*PoolPass, *sqlgraph.CreateSpec) {
 			},
 		}
 	)
+	if value, ok := ppc.mutation.CreateTime(); ok {
+		_spec.SetField(poolpass.FieldCreateTime, field.TypeTime, value)
+		_node.CreateTime = value
+	}
 	if value, ok := ppc.mutation.Shares(); ok {
 		_spec.SetField(poolpass.FieldShares, field.TypeInt, value)
 		_node.Shares = value
@@ -233,6 +264,7 @@ func (ppcb *PoolPassCreateBulk) Save(ctx context.Context) ([]*PoolPass, error) {
 	for i := range ppcb.builders {
 		func(i int, root context.Context) {
 			builder := ppcb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*PoolPassMutation)
 				if !ok {

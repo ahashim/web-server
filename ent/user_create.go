@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -22,6 +23,34 @@ type UserCreate struct {
 	config
 	mutation *UserMutation
 	hooks    []Hook
+}
+
+// SetCreateTime sets the "create_time" field.
+func (uc *UserCreate) SetCreateTime(t time.Time) *UserCreate {
+	uc.mutation.SetCreateTime(t)
+	return uc
+}
+
+// SetNillableCreateTime sets the "create_time" field if the given value is not nil.
+func (uc *UserCreate) SetNillableCreateTime(t *time.Time) *UserCreate {
+	if t != nil {
+		uc.SetCreateTime(*t)
+	}
+	return uc
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (uc *UserCreate) SetUpdateTime(t time.Time) *UserCreate {
+	uc.mutation.SetUpdateTime(t)
+	return uc
+}
+
+// SetNillableUpdateTime sets the "update_time" field if the given value is not nil.
+func (uc *UserCreate) SetNillableUpdateTime(t *time.Time) *UserCreate {
+	if t != nil {
+		uc.SetUpdateTime(*t)
+	}
+	return uc
 }
 
 // SetAddress sets the "address" field.
@@ -238,6 +267,14 @@ func (uc *UserCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (uc *UserCreate) defaults() {
+	if _, ok := uc.mutation.CreateTime(); !ok {
+		v := user.DefaultCreateTime()
+		uc.mutation.SetCreateTime(v)
+	}
+	if _, ok := uc.mutation.UpdateTime(); !ok {
+		v := user.DefaultUpdateTime()
+		uc.mutation.SetUpdateTime(v)
+	}
 	if _, ok := uc.mutation.Level(); !ok {
 		v := user.DefaultLevel
 		uc.mutation.SetLevel(v)
@@ -246,6 +283,12 @@ func (uc *UserCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (uc *UserCreate) check() error {
+	if _, ok := uc.mutation.CreateTime(); !ok {
+		return &ValidationError{Name: "create_time", err: errors.New(`ent: missing required field "User.create_time"`)}
+	}
+	if _, ok := uc.mutation.UpdateTime(); !ok {
+		return &ValidationError{Name: "update_time", err: errors.New(`ent: missing required field "User.update_time"`)}
+	}
 	if _, ok := uc.mutation.Address(); !ok {
 		return &ValidationError{Name: "address", err: errors.New(`ent: missing required field "User.address"`)}
 	}
@@ -300,6 +343,14 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			},
 		}
 	)
+	if value, ok := uc.mutation.CreateTime(); ok {
+		_spec.SetField(user.FieldCreateTime, field.TypeTime, value)
+		_node.CreateTime = value
+	}
+	if value, ok := uc.mutation.UpdateTime(); ok {
+		_spec.SetField(user.FieldUpdateTime, field.TypeTime, value)
+		_node.UpdateTime = value
+	}
 	if value, ok := uc.mutation.Address(); ok {
 		_spec.SetField(user.FieldAddress, field.TypeString, value)
 		_node.Address = value

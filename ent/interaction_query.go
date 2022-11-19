@@ -326,12 +326,12 @@ func (iq *InteractionQuery) WithSqueak(opts ...func(*SqueakQuery)) *InteractionQ
 // Example:
 //
 //	var v []struct {
-//		Type enums.Interaction `json:"type,omitempty"`
+//		CreateTime time.Time `json:"create_time,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Interaction.Query().
-//		GroupBy(interaction.FieldType).
+//		GroupBy(interaction.FieldCreateTime).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (iq *InteractionQuery) GroupBy(field string, fields ...string) *InteractionGroupBy {
@@ -354,11 +354,11 @@ func (iq *InteractionQuery) GroupBy(field string, fields ...string) *Interaction
 // Example:
 //
 //	var v []struct {
-//		Type enums.Interaction `json:"type,omitempty"`
+//		CreateTime time.Time `json:"create_time,omitempty"`
 //	}
 //
 //	client.Interaction.Query().
-//		Select(interaction.FieldType).
+//		Select(interaction.FieldCreateTime).
 //		Scan(ctx, &v)
 func (iq *InteractionQuery) Select(fields ...string) *InteractionSelect {
 	iq.fields = append(iq.fields, fields...)

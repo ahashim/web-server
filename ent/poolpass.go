@@ -5,6 +5,7 @@ package ent
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/ahashim/web-server/ent/pool"
@@ -18,6 +19,8 @@ type PoolPass struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
+	// CreateTime holds the value of the "create_time" field.
+	CreateTime time.Time `json:"create_time,omitempty"`
 	// Shares holds the value of the "shares" field.
 	Shares *types.Uint256 `json:"shares,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -71,6 +74,8 @@ func (*PoolPass) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case poolpass.FieldID:
 			values[i] = new(sql.NullInt64)
+		case poolpass.FieldCreateTime:
+			values[i] = new(sql.NullTime)
 		case poolpass.FieldShares:
 			values[i] = new(types.Uint256)
 		case poolpass.ForeignKeys[0]: // pool_pool_passes
@@ -98,6 +103,12 @@ func (pp *PoolPass) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			pp.ID = int(value.Int64)
+		case poolpass.FieldCreateTime:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field create_time", values[i])
+			} else if value.Valid {
+				pp.CreateTime = value.Time
+			}
 		case poolpass.FieldShares:
 			if value, ok := values[i].(*types.Uint256); !ok {
 				return fmt.Errorf("unexpected type %T for field shares", values[i])
@@ -156,6 +167,9 @@ func (pp *PoolPass) String() string {
 	var builder strings.Builder
 	builder.WriteString("PoolPass(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", pp.ID))
+	builder.WriteString("create_time=")
+	builder.WriteString(pp.CreateTime.Format(time.ANSIC))
+	builder.WriteString(", ")
 	builder.WriteString("shares=")
 	builder.WriteString(fmt.Sprintf("%v", pp.Shares))
 	builder.WriteByte(')')

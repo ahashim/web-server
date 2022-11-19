@@ -3,6 +3,11 @@
 package ent
 
 import (
+	"time"
+
+	"github.com/ahashim/web-server/ent/interaction"
+	"github.com/ahashim/web-server/ent/pool"
+	"github.com/ahashim/web-server/ent/poolpass"
 	"github.com/ahashim/web-server/ent/role"
 	"github.com/ahashim/web-server/ent/schema"
 	"github.com/ahashim/web-server/ent/squeak"
@@ -13,8 +18,54 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	interactionMixin := schema.Interaction{}.Mixin()
+	interactionMixinFields0 := interactionMixin[0].Fields()
+	_ = interactionMixinFields0
+	interactionFields := schema.Interaction{}.Fields()
+	_ = interactionFields
+	// interactionDescCreateTime is the schema descriptor for create_time field.
+	interactionDescCreateTime := interactionMixinFields0[0].Descriptor()
+	// interaction.DefaultCreateTime holds the default value on creation for the create_time field.
+	interaction.DefaultCreateTime = interactionDescCreateTime.Default.(func() time.Time)
+	poolMixin := schema.Pool{}.Mixin()
+	poolMixinFields0 := poolMixin[0].Fields()
+	_ = poolMixinFields0
+	poolFields := schema.Pool{}.Fields()
+	_ = poolFields
+	// poolDescCreateTime is the schema descriptor for create_time field.
+	poolDescCreateTime := poolMixinFields0[0].Descriptor()
+	// pool.DefaultCreateTime holds the default value on creation for the create_time field.
+	pool.DefaultCreateTime = poolDescCreateTime.Default.(func() time.Time)
+	// poolDescUpdateTime is the schema descriptor for update_time field.
+	poolDescUpdateTime := poolMixinFields0[1].Descriptor()
+	// pool.DefaultUpdateTime holds the default value on creation for the update_time field.
+	pool.DefaultUpdateTime = poolDescUpdateTime.Default.(func() time.Time)
+	// pool.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	pool.UpdateDefaultUpdateTime = poolDescUpdateTime.UpdateDefault.(func() time.Time)
+	poolpassMixin := schema.PoolPass{}.Mixin()
+	poolpassMixinFields0 := poolpassMixin[0].Fields()
+	_ = poolpassMixinFields0
+	poolpassFields := schema.PoolPass{}.Fields()
+	_ = poolpassFields
+	// poolpassDescCreateTime is the schema descriptor for create_time field.
+	poolpassDescCreateTime := poolpassMixinFields0[0].Descriptor()
+	// poolpass.DefaultCreateTime holds the default value on creation for the create_time field.
+	poolpass.DefaultCreateTime = poolpassDescCreateTime.Default.(func() time.Time)
+	roleMixin := schema.Role{}.Mixin()
+	roleMixinFields0 := roleMixin[0].Fields()
+	_ = roleMixinFields0
 	roleFields := schema.Role{}.Fields()
 	_ = roleFields
+	// roleDescCreateTime is the schema descriptor for create_time field.
+	roleDescCreateTime := roleMixinFields0[0].Descriptor()
+	// role.DefaultCreateTime holds the default value on creation for the create_time field.
+	role.DefaultCreateTime = roleDescCreateTime.Default.(func() time.Time)
+	// roleDescUpdateTime is the schema descriptor for update_time field.
+	roleDescUpdateTime := roleMixinFields0[1].Descriptor()
+	// role.DefaultUpdateTime holds the default value on creation for the update_time field.
+	role.DefaultUpdateTime = roleDescUpdateTime.Default.(func() time.Time)
+	// role.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	role.UpdateDefaultUpdateTime = roleDescUpdateTime.UpdateDefault.(func() time.Time)
 	// roleDescTitle is the schema descriptor for title field.
 	roleDescTitle := roleFields[0].Descriptor()
 	// role.TitleValidator is a validator for the "title" field. It is called by the builders before save.
@@ -37,8 +88,15 @@ func init() {
 			return nil
 		}
 	}()
+	squeakMixin := schema.Squeak{}.Mixin()
+	squeakMixinFields0 := squeakMixin[0].Fields()
+	_ = squeakMixinFields0
 	squeakFields := schema.Squeak{}.Fields()
 	_ = squeakFields
+	// squeakDescCreateTime is the schema descriptor for create_time field.
+	squeakDescCreateTime := squeakMixinFields0[0].Descriptor()
+	// squeak.DefaultCreateTime holds the default value on creation for the create_time field.
+	squeak.DefaultCreateTime = squeakDescCreateTime.Default.(func() time.Time)
 	// squeakDescContent is the schema descriptor for content field.
 	squeakDescContent := squeakFields[1].Descriptor()
 	// squeak.ContentValidator is a validator for the "content" field. It is called by the builders before save.
@@ -57,8 +115,21 @@ func init() {
 			return nil
 		}
 	}()
+	userMixin := schema.User{}.Mixin()
+	userMixinFields0 := userMixin[0].Fields()
+	_ = userMixinFields0
 	userFields := schema.User{}.Fields()
 	_ = userFields
+	// userDescCreateTime is the schema descriptor for create_time field.
+	userDescCreateTime := userMixinFields0[0].Descriptor()
+	// user.DefaultCreateTime holds the default value on creation for the create_time field.
+	user.DefaultCreateTime = userDescCreateTime.Default.(func() time.Time)
+	// userDescUpdateTime is the schema descriptor for update_time field.
+	userDescUpdateTime := userMixinFields0[1].Descriptor()
+	// user.DefaultUpdateTime holds the default value on creation for the update_time field.
+	user.DefaultUpdateTime = userDescUpdateTime.Default.(func() time.Time)
+	// user.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	user.UpdateDefaultUpdateTime = userDescUpdateTime.UpdateDefault.(func() time.Time)
 	// userDescAddress is the schema descriptor for address field.
 	userDescAddress := userFields[0].Descriptor()
 	// user.AddressValidator is a validator for the "address" field. It is called by the builders before save.

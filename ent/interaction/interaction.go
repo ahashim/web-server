@@ -4,6 +4,7 @@ package interaction
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/ahashim/web-server/enums"
 )
@@ -13,6 +14,8 @@ const (
 	Label = "interaction"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldCreateTime holds the string denoting the create_time field in the database.
+	FieldCreateTime = "create_time"
 	// FieldType holds the string denoting the type field in the database.
 	FieldType = "type"
 	// EdgeUser holds the string denoting the user edge name in mutations.
@@ -40,6 +43,7 @@ const (
 // Columns holds all SQL columns for interaction fields.
 var Columns = []string{
 	FieldID,
+	FieldCreateTime,
 	FieldType,
 }
 
@@ -64,6 +68,11 @@ func ValidColumn(column string) bool {
 	}
 	return false
 }
+
+var (
+	// DefaultCreateTime holds the default value on creation for the "create_time" field.
+	DefaultCreateTime func() time.Time
+)
 
 // TypeValidator is a validator for the "type" field enum values. It is called by the builders before save.
 func TypeValidator(_type enums.Interaction) error {

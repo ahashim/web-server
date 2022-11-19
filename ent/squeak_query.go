@@ -398,12 +398,12 @@ func (sq *SqueakQuery) WithOwner(opts ...func(*UserQuery)) *SqueakQuery {
 // Example:
 //
 //	var v []struct {
-//		BlockNumber *types.Uint256 `json:"block_number,omitempty"`
+//		CreateTime time.Time `json:"create_time,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Squeak.Query().
-//		GroupBy(squeak.FieldBlockNumber).
+//		GroupBy(squeak.FieldCreateTime).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (sq *SqueakQuery) GroupBy(field string, fields ...string) *SqueakGroupBy {
@@ -426,11 +426,11 @@ func (sq *SqueakQuery) GroupBy(field string, fields ...string) *SqueakGroupBy {
 // Example:
 //
 //	var v []struct {
-//		BlockNumber *types.Uint256 `json:"block_number,omitempty"`
+//		CreateTime time.Time `json:"create_time,omitempty"`
 //	}
 //
 //	client.Squeak.Query().
-//		Select(squeak.FieldBlockNumber).
+//		Select(squeak.FieldCreateTime).
 //		Scan(ctx, &v)
 func (sq *SqueakQuery) Select(fields ...string) *SqueakSelect {
 	sq.fields = append(sq.fields, fields...)

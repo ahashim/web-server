@@ -6,6 +6,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/mixin"
 	"github.com/ahashim/web-server/enums"
 )
 
@@ -41,5 +42,12 @@ func (User) Edges() []ent.Edge {
 		edge.To("owned", Squeak.Type),
 		edge.To("following", User.Type).
 			From("followers"),
+	}
+}
+
+// Mixins of the User.
+func (User) Mixin() []ent.Mixin {
+	return []ent.Mixin{
+		mixin.Time{},
 	}
 }

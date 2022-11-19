@@ -326,12 +326,12 @@ func (ppq *PoolPassQuery) WithPool(opts ...func(*PoolQuery)) *PoolPassQuery {
 // Example:
 //
 //	var v []struct {
-//		Shares *types.Uint256 `json:"shares,omitempty"`
+//		CreateTime time.Time `json:"create_time,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.PoolPass.Query().
-//		GroupBy(poolpass.FieldShares).
+//		GroupBy(poolpass.FieldCreateTime).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (ppq *PoolPassQuery) GroupBy(field string, fields ...string) *PoolPassGroupBy {
@@ -354,11 +354,11 @@ func (ppq *PoolPassQuery) GroupBy(field string, fields ...string) *PoolPassGroup
 // Example:
 //
 //	var v []struct {
-//		Shares *types.Uint256 `json:"shares,omitempty"`
+//		CreateTime time.Time `json:"create_time,omitempty"`
 //	}
 //
 //	client.PoolPass.Query().
-//		Select(poolpass.FieldShares).
+//		Select(poolpass.FieldCreateTime).
 //		Scan(ctx, &v)
 func (ppq *PoolPassQuery) Select(fields ...string) *PoolPassSelect {
 	ppq.fields = append(ppq.fields, fields...)

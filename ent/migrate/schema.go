@@ -11,6 +11,7 @@ var (
 	// InteractionsColumns holds the columns for the "interactions" table.
 	InteractionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "create_time", Type: field.TypeTime},
 		{Name: "type", Type: field.TypeEnum, Enums: []string{"DISLIKE", "LIKE", "RESQUEAK", "UNDO_DISLIKE", "UNDO_LIKE", "UNDO_RESQUEAK"}},
 		{Name: "squeak_interactions", Type: field.TypeInt, Nullable: true},
 		{Name: "user_interactions", Type: field.TypeInt, Nullable: true},
@@ -23,13 +24,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "interactions_squeaks_interactions",
-				Columns:    []*schema.Column{InteractionsColumns[2]},
+				Columns:    []*schema.Column{InteractionsColumns[3]},
 				RefColumns: []*schema.Column{SqueaksColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "interactions_users_interactions",
-				Columns:    []*schema.Column{InteractionsColumns[3]},
+				Columns:    []*schema.Column{InteractionsColumns[4]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -38,6 +39,8 @@ var (
 	// PoolsColumns holds the columns for the "pools" table.
 	PoolsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
 		{Name: "amount", Type: field.TypeInt, SchemaType: map[string]string{"postgres": "numeric(78, 0)"}},
 		{Name: "shares", Type: field.TypeInt, SchemaType: map[string]string{"postgres": "numeric(78, 0)"}},
 		{Name: "block_number", Type: field.TypeInt, SchemaType: map[string]string{"postgres": "numeric(78, 0)"}},
@@ -52,7 +55,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "pools_squeaks_pool",
-				Columns:    []*schema.Column{PoolsColumns[5]},
+				Columns:    []*schema.Column{PoolsColumns[7]},
 				RefColumns: []*schema.Column{SqueaksColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -61,6 +64,7 @@ var (
 	// PoolPassesColumns holds the columns for the "pool_passes" table.
 	PoolPassesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "create_time", Type: field.TypeTime},
 		{Name: "shares", Type: field.TypeInt, SchemaType: map[string]string{"postgres": "numeric(78, 0)"}},
 		{Name: "pool_pool_passes", Type: field.TypeInt, Nullable: true},
 		{Name: "user_pool_passes", Type: field.TypeInt, Nullable: true},
@@ -73,13 +77,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "pool_passes_pools_pool_passes",
-				Columns:    []*schema.Column{PoolPassesColumns[2]},
+				Columns:    []*schema.Column{PoolPassesColumns[3]},
 				RefColumns: []*schema.Column{PoolsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "pool_passes_users_pool_passes",
-				Columns:    []*schema.Column{PoolPassesColumns[3]},
+				Columns:    []*schema.Column{PoolPassesColumns[4]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -88,6 +92,8 @@ var (
 	// RolesColumns holds the columns for the "roles" table.
 	RolesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
 		{Name: "title", Type: field.TypeString, Size: 32},
 		{Name: "hash", Type: field.TypeString},
 	}
@@ -100,6 +106,7 @@ var (
 	// SqueaksColumns holds the columns for the "squeaks" table.
 	SqueaksColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "create_time", Type: field.TypeTime},
 		{Name: "block_number", Type: field.TypeInt, SchemaType: map[string]string{"postgres": "numeric(78, 0)"}},
 		{Name: "content", Type: field.TypeString, Size: 256},
 		{Name: "user_created", Type: field.TypeInt, Nullable: true},
@@ -113,13 +120,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "squeaks_users_created",
-				Columns:    []*schema.Column{SqueaksColumns[3]},
+				Columns:    []*schema.Column{SqueaksColumns[4]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "squeaks_users_owned",
-				Columns:    []*schema.Column{SqueaksColumns[4]},
+				Columns:    []*schema.Column{SqueaksColumns[5]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -128,6 +135,8 @@ var (
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
 		{Name: "address", Type: field.TypeString},
 		{Name: "username", Type: field.TypeString, Size: 32},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"UNKNOWN", "ACTIVE", "SUSPENDED", "BANNED"}},

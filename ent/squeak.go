@@ -5,6 +5,7 @@ package ent
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/ahashim/web-server/ent/pool"
@@ -18,6 +19,8 @@ type Squeak struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
+	// CreateTime holds the value of the "create_time" field.
+	CreateTime time.Time `json:"create_time,omitempty"`
 	// BlockNumber holds the value of the "block_number" field.
 	BlockNumber *types.Uint256 `json:"block_number,omitempty"`
 	// Content holds the value of the "content" field.
@@ -101,6 +104,8 @@ func (*Squeak) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case squeak.FieldContent:
 			values[i] = new(sql.NullString)
+		case squeak.FieldCreateTime:
+			values[i] = new(sql.NullTime)
 		case squeak.FieldBlockNumber:
 			values[i] = new(types.Uint256)
 		case squeak.ForeignKeys[0]: // user_created
@@ -128,6 +133,12 @@ func (s *Squeak) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			s.ID = int(value.Int64)
+		case squeak.FieldCreateTime:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field create_time", values[i])
+			} else if value.Valid {
+				s.CreateTime = value.Time
+			}
 		case squeak.FieldBlockNumber:
 			if value, ok := values[i].(*types.Uint256); !ok {
 				return fmt.Errorf("unexpected type %T for field block_number", values[i])
@@ -202,6 +213,9 @@ func (s *Squeak) String() string {
 	var builder strings.Builder
 	builder.WriteString("Squeak(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", s.ID))
+	builder.WriteString("create_time=")
+	builder.WriteString(s.CreateTime.Format(time.ANSIC))
+	builder.WriteString(", ")
 	builder.WriteString("block_number=")
 	builder.WriteString(fmt.Sprintf("%v", s.BlockNumber))
 	builder.WriteString(", ")

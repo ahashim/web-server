@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -21,6 +22,20 @@ type SqueakCreate struct {
 	config
 	mutation *SqueakMutation
 	hooks    []Hook
+}
+
+// SetCreateTime sets the "create_time" field.
+func (sc *SqueakCreate) SetCreateTime(t time.Time) *SqueakCreate {
+	sc.mutation.SetCreateTime(t)
+	return sc
+}
+
+// SetNillableCreateTime sets the "create_time" field if the given value is not nil.
+func (sc *SqueakCreate) SetNillableCreateTime(t *time.Time) *SqueakCreate {
+	if t != nil {
+		sc.SetCreateTime(*t)
+	}
+	return sc
 }
 
 // SetBlockNumber sets the "block_number" field.
@@ -118,6 +133,7 @@ func (sc *SqueakCreate) Save(ctx context.Context) (*Squeak, error) {
 		err  error
 		node *Squeak
 	)
+	sc.defaults()
 	if len(sc.hooks) == 0 {
 		if err = sc.check(); err != nil {
 			return nil, err
@@ -181,8 +197,19 @@ func (sc *SqueakCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (sc *SqueakCreate) defaults() {
+	if _, ok := sc.mutation.CreateTime(); !ok {
+		v := squeak.DefaultCreateTime()
+		sc.mutation.SetCreateTime(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (sc *SqueakCreate) check() error {
+	if _, ok := sc.mutation.CreateTime(); !ok {
+		return &ValidationError{Name: "create_time", err: errors.New(`ent: missing required field "Squeak.create_time"`)}
+	}
 	if _, ok := sc.mutation.BlockNumber(); !ok {
 		return &ValidationError{Name: "block_number", err: errors.New(`ent: missing required field "Squeak.block_number"`)}
 	}
@@ -221,6 +248,10 @@ func (sc *SqueakCreate) createSpec() (*Squeak, *sqlgraph.CreateSpec) {
 			},
 		}
 	)
+	if value, ok := sc.mutation.CreateTime(); ok {
+		_spec.SetField(squeak.FieldCreateTime, field.TypeTime, value)
+		_node.CreateTime = value
+	}
 	if value, ok := sc.mutation.BlockNumber(); ok {
 		_spec.SetField(squeak.FieldBlockNumber, field.TypeInt, value)
 		_node.BlockNumber = value
@@ -324,6 +355,7 @@ func (scb *SqueakCreateBulk) Save(ctx context.Context) ([]*Squeak, error) {
 	for i := range scb.builders {
 		func(i int, root context.Context) {
 			builder := scb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*SqueakMutation)
 				if !ok {

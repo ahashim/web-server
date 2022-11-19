@@ -3,6 +3,8 @@
 package poolpass
 
 import (
+	"time"
+
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/ahashim/web-server/ent/predicate"
@@ -80,10 +82,81 @@ func IDLTE(id int) predicate.PoolPass {
 	})
 }
 
+// CreateTime applies equality check predicate on the "create_time" field. It's identical to CreateTimeEQ.
+func CreateTime(v time.Time) predicate.PoolPass {
+	return predicate.PoolPass(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldCreateTime), v))
+	})
+}
+
 // Shares applies equality check predicate on the "shares" field. It's identical to SharesEQ.
 func Shares(v *types.Uint256) predicate.PoolPass {
 	return predicate.PoolPass(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldShares), v))
+	})
+}
+
+// CreateTimeEQ applies the EQ predicate on the "create_time" field.
+func CreateTimeEQ(v time.Time) predicate.PoolPass {
+	return predicate.PoolPass(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldCreateTime), v))
+	})
+}
+
+// CreateTimeNEQ applies the NEQ predicate on the "create_time" field.
+func CreateTimeNEQ(v time.Time) predicate.PoolPass {
+	return predicate.PoolPass(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldCreateTime), v))
+	})
+}
+
+// CreateTimeIn applies the In predicate on the "create_time" field.
+func CreateTimeIn(vs ...time.Time) predicate.PoolPass {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.PoolPass(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldCreateTime), v...))
+	})
+}
+
+// CreateTimeNotIn applies the NotIn predicate on the "create_time" field.
+func CreateTimeNotIn(vs ...time.Time) predicate.PoolPass {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.PoolPass(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldCreateTime), v...))
+	})
+}
+
+// CreateTimeGT applies the GT predicate on the "create_time" field.
+func CreateTimeGT(v time.Time) predicate.PoolPass {
+	return predicate.PoolPass(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldCreateTime), v))
+	})
+}
+
+// CreateTimeGTE applies the GTE predicate on the "create_time" field.
+func CreateTimeGTE(v time.Time) predicate.PoolPass {
+	return predicate.PoolPass(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldCreateTime), v))
+	})
+}
+
+// CreateTimeLT applies the LT predicate on the "create_time" field.
+func CreateTimeLT(v time.Time) predicate.PoolPass {
+	return predicate.PoolPass(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldCreateTime), v))
+	})
+}
+
+// CreateTimeLTE applies the LTE predicate on the "create_time" field.
+func CreateTimeLTE(v time.Time) predicate.PoolPass {
+	return predicate.PoolPass(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldCreateTime), v))
 	})
 }
 

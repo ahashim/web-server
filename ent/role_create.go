@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -18,6 +19,34 @@ type RoleCreate struct {
 	config
 	mutation *RoleMutation
 	hooks    []Hook
+}
+
+// SetCreateTime sets the "create_time" field.
+func (rc *RoleCreate) SetCreateTime(t time.Time) *RoleCreate {
+	rc.mutation.SetCreateTime(t)
+	return rc
+}
+
+// SetNillableCreateTime sets the "create_time" field if the given value is not nil.
+func (rc *RoleCreate) SetNillableCreateTime(t *time.Time) *RoleCreate {
+	if t != nil {
+		rc.SetCreateTime(*t)
+	}
+	return rc
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (rc *RoleCreate) SetUpdateTime(t time.Time) *RoleCreate {
+	rc.mutation.SetUpdateTime(t)
+	return rc
+}
+
+// SetNillableUpdateTime sets the "update_time" field if the given value is not nil.
+func (rc *RoleCreate) SetNillableUpdateTime(t *time.Time) *RoleCreate {
+	if t != nil {
+		rc.SetUpdateTime(*t)
+	}
+	return rc
 }
 
 // SetTitle sets the "title" field.
@@ -58,6 +87,7 @@ func (rc *RoleCreate) Save(ctx context.Context) (*Role, error) {
 		err  error
 		node *Role
 	)
+	rc.defaults()
 	if len(rc.hooks) == 0 {
 		if err = rc.check(); err != nil {
 			return nil, err
@@ -121,8 +151,26 @@ func (rc *RoleCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (rc *RoleCreate) defaults() {
+	if _, ok := rc.mutation.CreateTime(); !ok {
+		v := role.DefaultCreateTime()
+		rc.mutation.SetCreateTime(v)
+	}
+	if _, ok := rc.mutation.UpdateTime(); !ok {
+		v := role.DefaultUpdateTime()
+		rc.mutation.SetUpdateTime(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (rc *RoleCreate) check() error {
+	if _, ok := rc.mutation.CreateTime(); !ok {
+		return &ValidationError{Name: "create_time", err: errors.New(`ent: missing required field "Role.create_time"`)}
+	}
+	if _, ok := rc.mutation.UpdateTime(); !ok {
+		return &ValidationError{Name: "update_time", err: errors.New(`ent: missing required field "Role.update_time"`)}
+	}
 	if _, ok := rc.mutation.Title(); !ok {
 		return &ValidationError{Name: "title", err: errors.New(`ent: missing required field "Role.title"`)}
 	}
@@ -166,6 +214,14 @@ func (rc *RoleCreate) createSpec() (*Role, *sqlgraph.CreateSpec) {
 			},
 		}
 	)
+	if value, ok := rc.mutation.CreateTime(); ok {
+		_spec.SetField(role.FieldCreateTime, field.TypeTime, value)
+		_node.CreateTime = value
+	}
+	if value, ok := rc.mutation.UpdateTime(); ok {
+		_spec.SetField(role.FieldUpdateTime, field.TypeTime, value)
+		_node.UpdateTime = value
+	}
 	if value, ok := rc.mutation.Title(); ok {
 		_spec.SetField(role.FieldTitle, field.TypeString, value)
 		_node.Title = value
@@ -210,6 +266,7 @@ func (rcb *RoleCreateBulk) Save(ctx context.Context) ([]*Role, error) {
 	for i := range rcb.builders {
 		func(i int, root context.Context) {
 			builder := rcb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*RoleMutation)
 				if !ok {

@@ -4,6 +4,7 @@ package user
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/ahashim/web-server/enums"
 )
@@ -13,6 +14,10 @@ const (
 	Label = "user"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldCreateTime holds the string denoting the create_time field in the database.
+	FieldCreateTime = "create_time"
+	// FieldUpdateTime holds the string denoting the update_time field in the database.
+	FieldUpdateTime = "update_time"
 	// FieldAddress holds the string denoting the address field in the database.
 	FieldAddress = "address"
 	// FieldUsername holds the string denoting the username field in the database.
@@ -79,6 +84,8 @@ const (
 // Columns holds all SQL columns for user fields.
 var Columns = []string{
 	FieldID,
+	FieldCreateTime,
+	FieldUpdateTime,
 	FieldAddress,
 	FieldUsername,
 	FieldStatus,
@@ -108,6 +115,12 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultCreateTime holds the default value on creation for the "create_time" field.
+	DefaultCreateTime func() time.Time
+	// DefaultUpdateTime holds the default value on creation for the "update_time" field.
+	DefaultUpdateTime func() time.Time
+	// UpdateDefaultUpdateTime holds the default value on update for the "update_time" field.
+	UpdateDefaultUpdateTime func() time.Time
 	// AddressValidator is a validator for the "address" field. It is called by the builders before save.
 	AddressValidator func(string) error
 	// UsernameValidator is a validator for the "username" field. It is called by the builders before save.

@@ -503,12 +503,12 @@ func (uq *UserQuery) WithFollowing(opts ...func(*UserQuery)) *UserQuery {
 // Example:
 //
 //	var v []struct {
-//		Address string `json:"address,omitempty"`
+//		CreateTime time.Time `json:"create_time,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.User.Query().
-//		GroupBy(user.FieldAddress).
+//		GroupBy(user.FieldCreateTime).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (uq *UserQuery) GroupBy(field string, fields ...string) *UserGroupBy {
@@ -531,11 +531,11 @@ func (uq *UserQuery) GroupBy(field string, fields ...string) *UserGroupBy {
 // Example:
 //
 //	var v []struct {
-//		Address string `json:"address,omitempty"`
+//		CreateTime time.Time `json:"create_time,omitempty"`
 //	}
 //
 //	client.User.Query().
-//		Select(user.FieldAddress).
+//		Select(user.FieldCreateTime).
 //		Scan(ctx, &v)
 func (uq *UserQuery) Select(fields ...string) *UserSelect {
 	uq.fields = append(uq.fields, fields...)

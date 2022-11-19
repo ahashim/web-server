@@ -327,12 +327,12 @@ func (pq *PoolQuery) WithSqueak(opts ...func(*SqueakQuery)) *PoolQuery {
 // Example:
 //
 //	var v []struct {
-//		Amount *types.Uint256 `json:"amount,omitempty"`
+//		CreateTime time.Time `json:"create_time,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Pool.Query().
-//		GroupBy(pool.FieldAmount).
+//		GroupBy(pool.FieldCreateTime).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (pq *PoolQuery) GroupBy(field string, fields ...string) *PoolGroupBy {
@@ -355,11 +355,11 @@ func (pq *PoolQuery) GroupBy(field string, fields ...string) *PoolGroupBy {
 // Example:
 //
 //	var v []struct {
-//		Amount *types.Uint256 `json:"amount,omitempty"`
+//		CreateTime time.Time `json:"create_time,omitempty"`
 //	}
 //
 //	client.Pool.Query().
-//		Select(pool.FieldAmount).
+//		Select(pool.FieldCreateTime).
 //		Scan(ctx, &v)
 func (pq *PoolQuery) Select(fields ...string) *PoolSelect {
 	pq.fields = append(pq.fields, fields...)

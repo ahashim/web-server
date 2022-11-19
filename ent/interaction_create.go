@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -20,6 +21,20 @@ type InteractionCreate struct {
 	config
 	mutation *InteractionMutation
 	hooks    []Hook
+}
+
+// SetCreateTime sets the "create_time" field.
+func (ic *InteractionCreate) SetCreateTime(t time.Time) *InteractionCreate {
+	ic.mutation.SetCreateTime(t)
+	return ic
+}
+
+// SetNillableCreateTime sets the "create_time" field if the given value is not nil.
+func (ic *InteractionCreate) SetNillableCreateTime(t *time.Time) *InteractionCreate {
+	if t != nil {
+		ic.SetCreateTime(*t)
+	}
+	return ic
 }
 
 // SetType sets the "type" field.
@@ -77,6 +92,7 @@ func (ic *InteractionCreate) Save(ctx context.Context) (*Interaction, error) {
 		err  error
 		node *Interaction
 	)
+	ic.defaults()
 	if len(ic.hooks) == 0 {
 		if err = ic.check(); err != nil {
 			return nil, err
@@ -140,8 +156,19 @@ func (ic *InteractionCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (ic *InteractionCreate) defaults() {
+	if _, ok := ic.mutation.CreateTime(); !ok {
+		v := interaction.DefaultCreateTime()
+		ic.mutation.SetCreateTime(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (ic *InteractionCreate) check() error {
+	if _, ok := ic.mutation.CreateTime(); !ok {
+		return &ValidationError{Name: "create_time", err: errors.New(`ent: missing required field "Interaction.create_time"`)}
+	}
 	if _, ok := ic.mutation.GetType(); !ok {
 		return &ValidationError{Name: "type", err: errors.New(`ent: missing required field "Interaction.type"`)}
 	}
@@ -177,6 +204,10 @@ func (ic *InteractionCreate) createSpec() (*Interaction, *sqlgraph.CreateSpec) {
 			},
 		}
 	)
+	if value, ok := ic.mutation.CreateTime(); ok {
+		_spec.SetField(interaction.FieldCreateTime, field.TypeTime, value)
+		_node.CreateTime = value
+	}
 	if value, ok := ic.mutation.GetType(); ok {
 		_spec.SetField(interaction.FieldType, field.TypeEnum, value)
 		_node.Type = value
@@ -238,6 +269,7 @@ func (icb *InteractionCreateBulk) Save(ctx context.Context) ([]*Interaction, err
 	for i := range icb.builders {
 		func(i int, root context.Context) {
 			builder := icb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*InteractionMutation)
 				if !ok {

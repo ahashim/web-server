@@ -5,6 +5,7 @@ import (
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/mixin"
 
 	"github.com/ahashim/web-server/types"
 )
@@ -42,4 +43,10 @@ func (Squeak) Edges() []ent.Edge {
 			Ref("owned").
 			Unique(),
 	}
+}
+// Mixins of the Squeak.
+func (Squeak) Mixin() []ent.Mixin {
+  return []ent.Mixin{
+    mixin.CreateTime{},
+  }
 }

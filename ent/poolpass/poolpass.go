@@ -2,11 +2,17 @@
 
 package poolpass
 
+import (
+	"time"
+)
+
 const (
 	// Label holds the string label denoting the poolpass type in the database.
 	Label = "pool_pass"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldCreateTime holds the string denoting the create_time field in the database.
+	FieldCreateTime = "create_time"
 	// FieldShares holds the string denoting the shares field in the database.
 	FieldShares = "shares"
 	// EdgeUser holds the string denoting the user edge name in mutations.
@@ -34,6 +40,7 @@ const (
 // Columns holds all SQL columns for poolpass fields.
 var Columns = []string{
 	FieldID,
+	FieldCreateTime,
 	FieldShares,
 }
 
@@ -58,3 +65,8 @@ func ValidColumn(column string) bool {
 	}
 	return false
 }
+
+var (
+	// DefaultCreateTime holds the default value on creation for the "create_time" field.
+	DefaultCreateTime func() time.Time
+)

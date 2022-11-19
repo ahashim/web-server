@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -25,6 +26,12 @@ type RoleUpdate struct {
 // Where appends a list predicates to the RoleUpdate builder.
 func (ru *RoleUpdate) Where(ps ...predicate.Role) *RoleUpdate {
 	ru.mutation.Where(ps...)
+	return ru
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (ru *RoleUpdate) SetUpdateTime(t time.Time) *RoleUpdate {
+	ru.mutation.SetUpdateTime(t)
 	return ru
 }
 
@@ -75,6 +82,7 @@ func (ru *RoleUpdate) Save(ctx context.Context) (int, error) {
 		err      error
 		affected int
 	)
+	ru.defaults()
 	if len(ru.hooks) == 0 {
 		affected, err = ru.sqlSave(ctx)
 	} else {
@@ -123,6 +131,14 @@ func (ru *RoleUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (ru *RoleUpdate) defaults() {
+	if _, ok := ru.mutation.UpdateTime(); !ok {
+		v := role.UpdateDefaultUpdateTime()
+		ru.mutation.SetUpdateTime(v)
+	}
+}
+
 func (ru *RoleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
@@ -140,6 +156,9 @@ func (ru *RoleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := ru.mutation.UpdateTime(); ok {
+		_spec.SetField(role.FieldUpdateTime, field.TypeTime, value)
 	}
 	if ru.mutation.UsersCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -214,6 +233,12 @@ type RoleUpdateOne struct {
 	mutation *RoleMutation
 }
 
+// SetUpdateTime sets the "update_time" field.
+func (ruo *RoleUpdateOne) SetUpdateTime(t time.Time) *RoleUpdateOne {
+	ruo.mutation.SetUpdateTime(t)
+	return ruo
+}
+
 // AddUserIDs adds the "users" edge to the User entity by IDs.
 func (ruo *RoleUpdateOne) AddUserIDs(ids ...int) *RoleUpdateOne {
 	ruo.mutation.AddUserIDs(ids...)
@@ -268,6 +293,7 @@ func (ruo *RoleUpdateOne) Save(ctx context.Context) (*Role, error) {
 		err  error
 		node *Role
 	)
+	ruo.defaults()
 	if len(ruo.hooks) == 0 {
 		node, err = ruo.sqlSave(ctx)
 	} else {
@@ -322,6 +348,14 @@ func (ruo *RoleUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (ruo *RoleUpdateOne) defaults() {
+	if _, ok := ruo.mutation.UpdateTime(); !ok {
+		v := role.UpdateDefaultUpdateTime()
+		ruo.mutation.SetUpdateTime(v)
+	}
+}
+
 func (ruo *RoleUpdateOne) sqlSave(ctx context.Context) (_node *Role, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
@@ -356,6 +390,9 @@ func (ruo *RoleUpdateOne) sqlSave(ctx context.Context) (_node *Role, err error) 
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := ruo.mutation.UpdateTime(); ok {
+		_spec.SetField(role.FieldUpdateTime, field.TypeTime, value)
 	}
 	if ruo.mutation.UsersCleared() {
 		edge := &sqlgraph.EdgeSpec{

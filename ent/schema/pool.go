@@ -5,6 +5,7 @@ import (
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/mixin"
 	"github.com/ahashim/web-server/types"
 )
 
@@ -31,9 +32,9 @@ func (Pool) Fields() []ent.Field {
 			SchemaType(map[string]string{
 				dialect.Postgres: "numeric(78, 0)",
 			}).
-      Immutable(),
+			Immutable(),
 		field.Int("score").
-      Immutable(),
+			Immutable(),
 	}
 }
 
@@ -41,8 +42,15 @@ func (Pool) Fields() []ent.Field {
 func (Pool) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("pool_passes", PoolPass.Type),
-    edge.From("squeak", Squeak.Type).
-      Ref("pool").
-      Unique(),
-  }
+		edge.From("squeak", Squeak.Type).
+			Ref("pool").
+			Unique(),
+	}
+}
+
+// Mixins of the Pool.
+func (Pool) Mixin() []ent.Mixin {
+	return []ent.Mixin{
+		mixin.Time{},
+	}
 }

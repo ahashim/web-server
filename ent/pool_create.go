@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -20,6 +21,34 @@ type PoolCreate struct {
 	config
 	mutation *PoolMutation
 	hooks    []Hook
+}
+
+// SetCreateTime sets the "create_time" field.
+func (pc *PoolCreate) SetCreateTime(t time.Time) *PoolCreate {
+	pc.mutation.SetCreateTime(t)
+	return pc
+}
+
+// SetNillableCreateTime sets the "create_time" field if the given value is not nil.
+func (pc *PoolCreate) SetNillableCreateTime(t *time.Time) *PoolCreate {
+	if t != nil {
+		pc.SetCreateTime(*t)
+	}
+	return pc
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (pc *PoolCreate) SetUpdateTime(t time.Time) *PoolCreate {
+	pc.mutation.SetUpdateTime(t)
+	return pc
+}
+
+// SetNillableUpdateTime sets the "update_time" field if the given value is not nil.
+func (pc *PoolCreate) SetNillableUpdateTime(t *time.Time) *PoolCreate {
+	if t != nil {
+		pc.SetUpdateTime(*t)
+	}
+	return pc
 }
 
 // SetAmount sets the "amount" field.
@@ -91,6 +120,7 @@ func (pc *PoolCreate) Save(ctx context.Context) (*Pool, error) {
 		err  error
 		node *Pool
 	)
+	pc.defaults()
 	if len(pc.hooks) == 0 {
 		if err = pc.check(); err != nil {
 			return nil, err
@@ -154,8 +184,26 @@ func (pc *PoolCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (pc *PoolCreate) defaults() {
+	if _, ok := pc.mutation.CreateTime(); !ok {
+		v := pool.DefaultCreateTime()
+		pc.mutation.SetCreateTime(v)
+	}
+	if _, ok := pc.mutation.UpdateTime(); !ok {
+		v := pool.DefaultUpdateTime()
+		pc.mutation.SetUpdateTime(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (pc *PoolCreate) check() error {
+	if _, ok := pc.mutation.CreateTime(); !ok {
+		return &ValidationError{Name: "create_time", err: errors.New(`ent: missing required field "Pool.create_time"`)}
+	}
+	if _, ok := pc.mutation.UpdateTime(); !ok {
+		return &ValidationError{Name: "update_time", err: errors.New(`ent: missing required field "Pool.update_time"`)}
+	}
 	if _, ok := pc.mutation.Amount(); !ok {
 		return &ValidationError{Name: "amount", err: errors.New(`ent: missing required field "Pool.amount"`)}
 	}
@@ -195,6 +243,14 @@ func (pc *PoolCreate) createSpec() (*Pool, *sqlgraph.CreateSpec) {
 			},
 		}
 	)
+	if value, ok := pc.mutation.CreateTime(); ok {
+		_spec.SetField(pool.FieldCreateTime, field.TypeTime, value)
+		_node.CreateTime = value
+	}
+	if value, ok := pc.mutation.UpdateTime(); ok {
+		_spec.SetField(pool.FieldUpdateTime, field.TypeTime, value)
+		_node.UpdateTime = value
+	}
 	if value, ok := pc.mutation.Amount(); ok {
 		_spec.SetField(pool.FieldAmount, field.TypeInt, value)
 		_node.Amount = value
@@ -267,6 +323,7 @@ func (pcb *PoolCreateBulk) Save(ctx context.Context) ([]*Pool, error) {
 	for i := range pcb.builders {
 		func(i int, root context.Context) {
 			builder := pcb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*PoolMutation)
 				if !ok {

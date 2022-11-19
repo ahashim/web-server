@@ -2,11 +2,17 @@
 
 package squeak
 
+import (
+	"time"
+)
+
 const (
 	// Label holds the string label denoting the squeak type in the database.
 	Label = "squeak"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldCreateTime holds the string denoting the create_time field in the database.
+	FieldCreateTime = "create_time"
 	// FieldBlockNumber holds the string denoting the block_number field in the database.
 	FieldBlockNumber = "block_number"
 	// FieldContent holds the string denoting the content field in the database.
@@ -54,6 +60,7 @@ const (
 // Columns holds all SQL columns for squeak fields.
 var Columns = []string{
 	FieldID,
+	FieldCreateTime,
 	FieldBlockNumber,
 	FieldContent,
 }
@@ -81,6 +88,8 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultCreateTime holds the default value on creation for the "create_time" field.
+	DefaultCreateTime func() time.Time
 	// ContentValidator is a validator for the "content" field. It is called by the builders before save.
 	ContentValidator func(string) error
 )

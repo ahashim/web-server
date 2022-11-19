@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -27,6 +28,12 @@ type PoolUpdate struct {
 // Where appends a list predicates to the PoolUpdate builder.
 func (pu *PoolUpdate) Where(ps ...predicate.Pool) *PoolUpdate {
 	pu.mutation.Where(ps...)
+	return pu
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (pu *PoolUpdate) SetUpdateTime(t time.Time) *PoolUpdate {
+	pu.mutation.SetUpdateTime(t)
 	return pu
 }
 
@@ -114,6 +121,7 @@ func (pu *PoolUpdate) Save(ctx context.Context) (int, error) {
 		err      error
 		affected int
 	)
+	pu.defaults()
 	if len(pu.hooks) == 0 {
 		affected, err = pu.sqlSave(ctx)
 	} else {
@@ -162,6 +170,14 @@ func (pu *PoolUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (pu *PoolUpdate) defaults() {
+	if _, ok := pu.mutation.UpdateTime(); !ok {
+		v := pool.UpdateDefaultUpdateTime()
+		pu.mutation.SetUpdateTime(v)
+	}
+}
+
 func (pu *PoolUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
@@ -179,6 +195,9 @@ func (pu *PoolUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := pu.mutation.UpdateTime(); ok {
+		_spec.SetField(pool.FieldUpdateTime, field.TypeTime, value)
 	}
 	if value, ok := pu.mutation.Amount(); ok {
 		_spec.SetField(pool.FieldAmount, field.TypeInt, value)
@@ -294,6 +313,12 @@ type PoolUpdateOne struct {
 	mutation *PoolMutation
 }
 
+// SetUpdateTime sets the "update_time" field.
+func (puo *PoolUpdateOne) SetUpdateTime(t time.Time) *PoolUpdateOne {
+	puo.mutation.SetUpdateTime(t)
+	return puo
+}
+
 // SetAmount sets the "amount" field.
 func (puo *PoolUpdateOne) SetAmount(t *types.Uint256) *PoolUpdateOne {
 	puo.mutation.SetAmount(t)
@@ -385,6 +410,7 @@ func (puo *PoolUpdateOne) Save(ctx context.Context) (*Pool, error) {
 		err  error
 		node *Pool
 	)
+	puo.defaults()
 	if len(puo.hooks) == 0 {
 		node, err = puo.sqlSave(ctx)
 	} else {
@@ -439,6 +465,14 @@ func (puo *PoolUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (puo *PoolUpdateOne) defaults() {
+	if _, ok := puo.mutation.UpdateTime(); !ok {
+		v := pool.UpdateDefaultUpdateTime()
+		puo.mutation.SetUpdateTime(v)
+	}
+}
+
 func (puo *PoolUpdateOne) sqlSave(ctx context.Context) (_node *Pool, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
@@ -473,6 +507,9 @@ func (puo *PoolUpdateOne) sqlSave(ctx context.Context) (_node *Pool, err error) 
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := puo.mutation.UpdateTime(); ok {
+		_spec.SetField(pool.FieldUpdateTime, field.TypeTime, value)
 	}
 	if value, ok := puo.mutation.Amount(); ok {
 		_spec.SetField(pool.FieldAmount, field.TypeInt, value)

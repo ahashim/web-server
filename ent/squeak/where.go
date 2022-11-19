@@ -3,6 +3,8 @@
 package squeak
 
 import (
+	"time"
+
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/ahashim/web-server/ent/predicate"
@@ -80,6 +82,13 @@ func IDLTE(id int) predicate.Squeak {
 	})
 }
 
+// CreateTime applies equality check predicate on the "create_time" field. It's identical to CreateTimeEQ.
+func CreateTime(v time.Time) predicate.Squeak {
+	return predicate.Squeak(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldCreateTime), v))
+	})
+}
+
 // BlockNumber applies equality check predicate on the "block_number" field. It's identical to BlockNumberEQ.
 func BlockNumber(v *types.Uint256) predicate.Squeak {
 	return predicate.Squeak(func(s *sql.Selector) {
@@ -91,6 +100,70 @@ func BlockNumber(v *types.Uint256) predicate.Squeak {
 func Content(v string) predicate.Squeak {
 	return predicate.Squeak(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldContent), v))
+	})
+}
+
+// CreateTimeEQ applies the EQ predicate on the "create_time" field.
+func CreateTimeEQ(v time.Time) predicate.Squeak {
+	return predicate.Squeak(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldCreateTime), v))
+	})
+}
+
+// CreateTimeNEQ applies the NEQ predicate on the "create_time" field.
+func CreateTimeNEQ(v time.Time) predicate.Squeak {
+	return predicate.Squeak(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldCreateTime), v))
+	})
+}
+
+// CreateTimeIn applies the In predicate on the "create_time" field.
+func CreateTimeIn(vs ...time.Time) predicate.Squeak {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Squeak(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldCreateTime), v...))
+	})
+}
+
+// CreateTimeNotIn applies the NotIn predicate on the "create_time" field.
+func CreateTimeNotIn(vs ...time.Time) predicate.Squeak {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Squeak(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldCreateTime), v...))
+	})
+}
+
+// CreateTimeGT applies the GT predicate on the "create_time" field.
+func CreateTimeGT(v time.Time) predicate.Squeak {
+	return predicate.Squeak(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldCreateTime), v))
+	})
+}
+
+// CreateTimeGTE applies the GTE predicate on the "create_time" field.
+func CreateTimeGTE(v time.Time) predicate.Squeak {
+	return predicate.Squeak(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldCreateTime), v))
+	})
+}
+
+// CreateTimeLT applies the LT predicate on the "create_time" field.
+func CreateTimeLT(v time.Time) predicate.Squeak {
+	return predicate.Squeak(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldCreateTime), v))
+	})
+}
+
+// CreateTimeLTE applies the LTE predicate on the "create_time" field.
+func CreateTimeLTE(v time.Time) predicate.Squeak {
+	return predicate.Squeak(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldCreateTime), v))
 	})
 }
 
