@@ -54,6 +54,12 @@ run: up
 test:
 	go test -count=1 -p 1 ./...
 
+# Run the indexer
+.PHONY: indexer
+indexer:
+	clear
+	go run indexer/indexer.go
+
 # Run the worker
 .PHONY: worker
 worker:
