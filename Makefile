@@ -19,14 +19,9 @@ cache-test:
 	docker compose exec -it redis-cli -n 1
 
 # Generate Ent code
-.PHONY: ent-gen
+.PHONY: generate
 ent-gen:
 	go generate ./ent
-
-# Create a new Ent entity
-.PHONY: ent-new
-ent-new:
-	go run entgo.io/ent/cmd/ent init $(name)
 
 # Start the Docker containers & remove old volumes
 .PHONY: up
@@ -67,6 +62,6 @@ worker:
 	go run worker/worker.go
 
 # Check for direct dependency updates
-.PHONY: check-updates
+.PHONY: update
 check-updates:
 	go list -u -m -f '{{if not .Indirect}}{{.}}{{end}}' all | rg "\["
