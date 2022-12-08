@@ -1,12 +1,8 @@
-# Connect to the primary database
-.PHONY: db
-db:
-	docker compose exec -it db psql postgresql://postgres:password@localhost:5432/critter
-
-# Connect to the test database
-.PHONY: db-test
-db-test:
-	docker compose exec -it db psql postgresql://postgres:password@localhost:5432/critter_test
+# Generate abi from smart contracts
+.PHONY: abi
+abi:
+	mkdir -p ./abi
+	abigen --abi ../smart-contracts/abi/contracts/Critter.sol/Critter.json --pkg abi --type Critter --out ./abi/Critter.go
 
 # Connect to the primary cache
 .PHONY: cache
@@ -18,9 +14,19 @@ cache:
 cache-test:
 	docker compose exec -it redis-cli -n 1
 
+# Connect to the primary database
+.PHONY: db
+db:
+	docker compose exec -it db psql postgresql://postgres:password@localhost:5432/critter
+
+# Connect to the test database
+.PHONY: db-test
+db-test:
+	docker compose exec -it db psql postgresql://postgres:password@localhost:5432/critter_test
+
 # Generate Ent code
 .PHONY: generate
-ent-gen:
+generate:
 	go generate ./ent
 
 # Start the Docker containers & remove old volumes
