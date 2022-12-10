@@ -2,7 +2,7 @@
 .PHONY: abi
 abi:
 	mkdir -p ./critter
-	abigen --abi ../smart-contracts/abi/contracts/Critter.sol/Critter.json --pkg critter --type Critter --out ./critter/critter.go
+	abigen --abi ../smart-contracts/abi/contracts/Critter.sol/Critter.json --pkg contract --type Contract --out ./contract.go
 
 # Connect to the primary cache
 .PHONY: cache
@@ -31,7 +31,7 @@ generate:
 
 # Start the Docker containers & remove old volumes
 .PHONY: up
-up:
+up: abi
 	docker compose up -d
 
 # Stop the Docker containers
@@ -57,7 +57,7 @@ test:
 
 # Run the indexer
 .PHONY: indexer
-indexer:
+indexer: abi
 	clear
 	go run indexer/indexer.go
 

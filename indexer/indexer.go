@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ahashim/web-server/critter"
+	"github.com/ahashim/web-server/contract"
 	_ "github.com/joho/godotenv/autoload"
 
 	"github.com/ethereum/go-ethereum"
@@ -37,7 +37,7 @@ func main() {
 	}
 
 	// load contract ABI
-	contractAbi, err := abi.JSON(strings.NewReader(string(critter.CritterMetaData.ABI)))
+	contractAbi, err := abi.JSON(strings.NewReader(string(contract.ContractMetaData.ABI)))
 	if err != nil {
 		log.Fatal(err)
 	}
