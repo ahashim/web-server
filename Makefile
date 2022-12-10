@@ -1,8 +1,7 @@
 # Generate abi from smart contracts
 .PHONY: abi
 abi:
-	mkdir -p ./critter
-	abigen --abi ../smart-contracts/abi/contracts/Critter.sol/Critter.json --pkg contract --type Contract --out ./contract.go
+	abigen --abi ../smart-contracts/abi/Critter.json --pkg contract --type Contract --out ./contract/contract.go
 
 # Connect to the primary cache
 .PHONY: cache
