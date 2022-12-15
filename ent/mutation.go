@@ -3061,7 +3061,7 @@ type UserMutation struct {
 	update_time         *time.Time
 	address             *string
 	username            *string
-	status              *enums.Status
+	status              *user.Status
 	level               *int8
 	addlevel            *int8
 	clearedFields       map[string]struct{}
@@ -3334,12 +3334,12 @@ func (m *UserMutation) ResetUsername() {
 }
 
 // SetStatus sets the "status" field.
-func (m *UserMutation) SetStatus(e enums.Status) {
-	m.status = &e
+func (m *UserMutation) SetStatus(u user.Status) {
+	m.status = &u
 }
 
 // Status returns the value of the "status" field in the mutation.
-func (m *UserMutation) Status() (r enums.Status, exists bool) {
+func (m *UserMutation) Status() (r user.Status, exists bool) {
 	v := m.status
 	if v == nil {
 		return
@@ -3350,7 +3350,7 @@ func (m *UserMutation) Status() (r enums.Status, exists bool) {
 // OldStatus returns the old "status" field's value of the User entity.
 // If the User object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldStatus(ctx context.Context) (v enums.Status, err error) {
+func (m *UserMutation) OldStatus(ctx context.Context) (v user.Status, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
 	}
@@ -3920,7 +3920,7 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		m.SetUsername(v)
 		return nil
 	case user.FieldStatus:
-		v, ok := value.(enums.Status)
+		v, ok := value.(user.Status)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

@@ -8,7 +8,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/ahashim/web-server/ent/predicate"
-	"github.com/ahashim/web-server/enums"
 )
 
 // ID filters vertices based on their ID field.
@@ -444,21 +443,21 @@ func UsernameContainsFold(v string) predicate.User {
 }
 
 // StatusEQ applies the EQ predicate on the "status" field.
-func StatusEQ(v enums.Status) predicate.User {
+func StatusEQ(v Status) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldStatus), v))
 	})
 }
 
 // StatusNEQ applies the NEQ predicate on the "status" field.
-func StatusNEQ(v enums.Status) predicate.User {
+func StatusNEQ(v Status) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldStatus), v))
 	})
 }
 
 // StatusIn applies the In predicate on the "status" field.
-func StatusIn(vs ...enums.Status) predicate.User {
+func StatusIn(vs ...Status) predicate.User {
 	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -469,7 +468,7 @@ func StatusIn(vs ...enums.Status) predicate.User {
 }
 
 // StatusNotIn applies the NotIn predicate on the "status" field.
-func StatusNotIn(vs ...enums.Status) predicate.User {
+func StatusNotIn(vs ...Status) predicate.User {
 	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]

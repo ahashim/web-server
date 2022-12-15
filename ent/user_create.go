@@ -15,7 +15,6 @@ import (
 	"github.com/ahashim/web-server/ent/role"
 	"github.com/ahashim/web-server/ent/squeak"
 	"github.com/ahashim/web-server/ent/user"
-	"github.com/ahashim/web-server/enums"
 )
 
 // UserCreate is the builder for creating a User entity.
@@ -66,8 +65,8 @@ func (uc *UserCreate) SetUsername(s string) *UserCreate {
 }
 
 // SetStatus sets the "status" field.
-func (uc *UserCreate) SetStatus(e enums.Status) *UserCreate {
-	uc.mutation.SetStatus(e)
+func (uc *UserCreate) SetStatus(u user.Status) *UserCreate {
+	uc.mutation.SetStatus(u)
 	return uc
 }
 

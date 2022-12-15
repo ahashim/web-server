@@ -17,7 +17,6 @@ import (
 	"github.com/ahashim/web-server/ent/role"
 	"github.com/ahashim/web-server/ent/squeak"
 	"github.com/ahashim/web-server/ent/user"
-	"github.com/ahashim/web-server/enums"
 )
 
 // UserUpdate is the builder for updating User entities.
@@ -46,8 +45,8 @@ func (uu *UserUpdate) SetUsername(s string) *UserUpdate {
 }
 
 // SetStatus sets the "status" field.
-func (uu *UserUpdate) SetStatus(e enums.Status) *UserUpdate {
-	uu.mutation.SetStatus(e)
+func (uu *UserUpdate) SetStatus(u user.Status) *UserUpdate {
+	uu.mutation.SetStatus(u)
 	return uu
 }
 
@@ -856,8 +855,8 @@ func (uuo *UserUpdateOne) SetUsername(s string) *UserUpdateOne {
 }
 
 // SetStatus sets the "status" field.
-func (uuo *UserUpdateOne) SetStatus(e enums.Status) *UserUpdateOne {
-	uuo.mutation.SetStatus(e)
+func (uuo *UserUpdateOne) SetStatus(u user.Status) *UserUpdateOne {
+	uuo.mutation.SetStatus(u)
 	return uuo
 }
 

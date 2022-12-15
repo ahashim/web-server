@@ -5,8 +5,6 @@ package user
 import (
 	"fmt"
 	"time"
-
-	"github.com/ahashim/web-server/enums"
 )
 
 const (
@@ -129,10 +127,25 @@ var (
 	DefaultLevel int8
 )
 
+// Status defines the type for the "status" enum field.
+type Status string
+
+// Status values.
+const (
+	StatusUNKNOWN   Status = "UNKNOWN"
+	StatusACTIVE    Status = "ACTIVE"
+	StatusSUSPENDED Status = "SUSPENDED"
+	StatusBANNED    Status = "BANNED"
+)
+
+func (s Status) String() string {
+	return string(s)
+}
+
 // StatusValidator is a validator for the "status" field enum values. It is called by the builders before save.
-func StatusValidator(s enums.Status) error {
-	switch s.String() {
-	case "UNKNOWN", "ACTIVE", "SUSPENDED", "BANNED":
+func StatusValidator(s Status) error {
+	switch s {
+	case StatusUNKNOWN, StatusACTIVE, StatusSUSPENDED, StatusBANNED:
 		return nil
 	default:
 		return fmt.Errorf("user: invalid enum value for status field: %q", s)

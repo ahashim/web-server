@@ -7,7 +7,6 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/mixin"
-	"github.com/ahashim/web-server/enums"
 )
 
 // User holds the schema definition for the User entity.
@@ -26,7 +25,7 @@ func (User) Fields() []ent.Field {
 			MaxLen(32).
 			NotEmpty(),
 		field.Enum("status").
-			GoType(enums.Status(0)),
+			Values("UNKNOWN", "ACTIVE", "SUSPENDED", "BANNED"),
 		field.Int8("level").
 			Default(1),
 	}

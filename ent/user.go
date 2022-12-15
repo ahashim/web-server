@@ -9,7 +9,6 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/ahashim/web-server/ent/user"
-	"github.com/ahashim/web-server/enums"
 )
 
 // User is the model entity for the User schema.
@@ -26,7 +25,7 @@ type User struct {
 	// Username holds the value of the "username" field.
 	Username string `json:"username,omitempty"`
 	// Status holds the value of the "status" field.
-	Status enums.Status `json:"status,omitempty"`
+	Status user.Status `json:"status,omitempty"`
 	// Level holds the value of the "level" field.
 	Level int8 `json:"level,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -123,11 +122,9 @@ func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case user.FieldStatus:
-			values[i] = new(enums.Status)
 		case user.FieldID, user.FieldLevel:
 			values[i] = new(sql.NullInt64)
-		case user.FieldAddress, user.FieldUsername:
+		case user.FieldAddress, user.FieldUsername, user.FieldStatus:
 			values[i] = new(sql.NullString)
 		case user.FieldCreateTime, user.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -177,10 +174,10 @@ func (u *User) assignValues(columns []string, values []any) error {
 				u.Username = value.String
 			}
 		case user.FieldStatus:
-			if value, ok := values[i].(*enums.Status); !ok {
+			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field status", values[i])
-			} else if value != nil {
-				u.Status = *value
+			} else if value.Valid {
+				u.Status = user.Status(value.String)
 			}
 		case user.FieldLevel:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
