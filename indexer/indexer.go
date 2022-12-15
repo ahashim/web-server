@@ -10,7 +10,6 @@ import (
 
 	"entgo.io/ent/dialect"
 
-	// "github.com/ahashim/web-server/config"
 	"github.com/ahashim/web-server/config"
 	"github.com/ahashim/web-server/contract"
 	"github.com/ahashim/web-server/ent"
@@ -109,7 +108,7 @@ func initORM() *ent.Client {
 	orm, err := ent.Open(
 		dialect.Postgres,
 		fmt.Sprintf(
-		"host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+			"host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 			cfg.Database.Hostname,
 			cfg.Database.Port,
 			cfg.Database.User,
@@ -138,7 +137,7 @@ func indexAccountCreated(vLog types.Log, contractABI abi.ABI, orm *ent.Client) {
 	event.Account = common.HexToAddress(vLog.Topics[1].Hex())
 	event.Username = vLog.Topics[2]
 
-  // remove null bytes
+	// remove null bytes
 	username := string(bytes.Trim(event.Username[:], "\x00"))
 
 	// save to db
@@ -151,7 +150,7 @@ func indexAccountCreated(vLog types.Log, contractABI abi.ABI, orm *ent.Client) {
 		log.Fatalf("failed creating user: %s", err)
 	}
 
-  // log creation event
+	// log creation event
 	fmt.Printf("=================== %s ===================\n", contract.AccountCreatedEventName)
 	fmt.Println("Address:", user.Address)
 	fmt.Println("Username:", user.Username)
