@@ -41,7 +41,7 @@ func main() {
 
 	// create ent ORM client
 	orm := initORM()
-	// defer orm.Close()
+	defer orm.Close()
 
 	// stream events
 	for {
