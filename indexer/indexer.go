@@ -25,24 +25,33 @@ import (
 )
 
 func main() {
-	// contract abi
+	// event logs channel
+	logs := make(chan types.Log)
+
+	// critter abi
 	contract_abi, err := newContractABI()
 	if err != nil {
 		log.Fatalf("failed to load contract ABI: %v", err)
 	}
 
-	// create a channel for the event logs
-	logs := make(chan types.Log)
+	// ethereum client
+	ec, err := newEthClient(os.Getenv("CONTRACT_WEBSOCKET_URL"))
+	defer ec.Close()
+	if err != nil {
+		log.Fatalf("failed to connect to Ethereum node: %v", err)
+	}
 
-	// create an ethereum client & contract subscription
-	ec, sub := initContractSubscription(
-		os.Getenv("CONTRACT_WEBSOCKET_URL"),
-		os.Getenv("CONTRACT_ADDRESS"),
+	// contract subscription
+	sub, err := newContractSubscription(
+		common.HexToAddress(os.Getenv("CONTRACT_ADDRESS")),
+		ec,
 		logs,
 	)
-	defer ec.Close()
+	if err != nil {
+		log.Fatalf("failed to subscribe to contract: %v", err)
+	}
 
-	// create ent ORM client
+	// ent ORM
 	orm := initORM()
 	defer orm.Close()
 
@@ -63,7 +72,7 @@ func main() {
 	}
 }
 
-// Loads the ABI interface from a smart-contracts abi.json file.
+// Loads the smart-contract ABI interface from a json file.
 func newContractABI() (abi.ABI, error) {
 	contract_abi, err := abi.JSON(strings.NewReader(string(contract.ContractMetaData.ABI)))
 	if err != nil {
@@ -73,31 +82,32 @@ func newContractABI() (abi.ABI, error) {
 	return contract_abi, nil
 }
 
-// Creates a subscription to an ethereum smart-contract.
-func initContractSubscription(
-	websocketURL string,
-	contractAddress string,
-	logs chan types.Log,
-) (*ethclient.Client, ethereum.Subscription) {
-	// create an ethereum client
-	client, err := ethclient.Dial(websocketURL)
+// Creates an ethereum client connected to a node.
+func newEthClient(node_url string) (*ethclient.Client, error) {
+	ec, err := ethclient.Dial(node_url)
 	if err != nil {
-		log.Fatal(err)
+		return ec, err
 	}
 
-	// create the filter query
-	address := common.HexToAddress(contractAddress)
+	return ec, nil
+}
+
+// Creates a subscription to an ethereum smart-contract.
+func newContractSubscription(
+	address common.Address,
+	ec *ethclient.Client,
+	logs chan types.Log,
+) (ethereum.Subscription, error) {
 	query := ethereum.FilterQuery{
 		Addresses: []common.Address{address},
 	}
 
-	// create event log subscription
-	sub, err := client.SubscribeFilterLogs(context.Background(), query, logs)
+	sub, err := ec.SubscribeFilterLogs(context.Background(), query, logs)
 	if err != nil {
-		log.Fatalf("failed to subscribe to contract events: %v", err)
+		return sub, err
 	}
 
-	return client, sub
+	return sub, nil
 }
 
 func initORM() *ent.Client {
