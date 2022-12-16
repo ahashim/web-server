@@ -25,8 +25,11 @@ import (
 )
 
 func main() {
-	// load contract ABI
-	abi := initContractABI()
+	// contract abi
+	contract_abi, err := newContractABI()
+	if err != nil {
+		log.Fatalf("failed to load contract ABI: %v", err)
+	}
 
 	// create a channel for the event logs
 	logs := make(chan types.Log)
@@ -54,20 +57,20 @@ func main() {
 			switch vLog.Topics[0].Hex() {
 			case contract.AccountCreatedSignature:
 				// TODO: move this to an `indexer` package/struct to separate concerns
-				indexAccountCreated(vLog, abi, orm)
+				indexAccountCreated(vLog, contract_abi, orm)
 			}
 		}
 	}
 }
 
 // Loads the ABI interface from a smart-contracts abi.json file.
-func initContractABI() abi.ABI {
-	contractAbi, err := abi.JSON(strings.NewReader(string(contract.ContractMetaData.ABI)))
+func newContractABI() (abi.ABI, error) {
+	contract_abi, err := abi.JSON(strings.NewReader(string(contract.ContractMetaData.ABI)))
 	if err != nil {
-		log.Fatalf("failed to load contract ABI: %v", err)
+		return contract_abi, err
 	}
 
-	return contractAbi
+	return contract_abi, nil
 }
 
 // Creates a subscription to an ethereum smart-contract.
@@ -88,7 +91,7 @@ func initContractSubscription(
 		Addresses: []common.Address{address},
 	}
 
-	// create event log sub
+	// create event log subscription
 	sub, err := client.SubscribeFilterLogs(context.Background(), query, logs)
 	if err != nil {
 		log.Fatalf("failed to subscribe to contract events: %v", err)
